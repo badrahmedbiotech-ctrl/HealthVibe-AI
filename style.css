@@ -1,0 +1,246 @@
+/* ===================================================
+   HEALTHVIBE AI - DARK MEDICAL THEME
+=================================================== */
+
+:root{
+
+--bg:#08111F;
+--bg2:#0F172A;
+--card:#162033;
+--card2:#1E293B;
+
+--primary:#00C2FF;
+--secondary:#2563EB;
+
+--text:#F8FAFC;
+--sub:#94A3B8;
+
+--border:#26364F;
+
+}
+
+/* Background */
+
+html,
+body,
+.stApp{
+
+background:linear-gradient(135deg,#08111F,#0F172A,#162033);
+
+color:var(--text);
+
+}
+
+/* Main */
+
+.block-container{
+
+padding-top:2rem;
+padding-left:3rem;
+padding-right:3rem;
+
+}
+
+/* Sidebar */
+
+section[data-testid="stSidebar"]{
+
+background:#091321 !important;
+
+border-right:1px solid #20314D;
+
+}
+
+/* Metrics */
+
+[data-testid="stMetric"]{
+
+background:#162033 !important;
+
+border:1px solid #2A3B55;
+
+border-radius:18px;
+
+padding:20px;
+
+box-shadow:0 10px 30px rgba(0,0,0,.30);
+
+}
+
+/* Metric Text */
+
+[data-testid="stMetric"] label{
+
+color:#9FB3C8 !important;
+
+}
+
+[data-testid="stMetricValue"]{
+
+color:white !important;
+
+font-size:34px;
+
+}
+
+/* Buttons */
+
+.stButton>button{
+
+width:100%;
+
+height:55px;
+
+border:none;
+
+border-radius:14px;
+
+background:linear-gradient(90deg,#00C2FF,#2563EB);
+
+color:white;
+
+font-size:18px;
+
+font-weight:600;
+
+transition:.3s;
+
+}
+
+.stButton>button:hover{
+
+transform:translateY(-3px);
+
+box-shadow:0 10px 25px rgba(0,194,255,.35);
+
+}
+
+/* Inputs */
+
+input{
+
+background:#1E293B !important;
+
+color:white !important;
+
+border:1px solid #30445F !important;
+
+}
+
+/* Number */
+
+[data-baseweb="input"]{
+
+background:#1E293B !important;
+
+}
+
+/* Select */
+
+div[data-baseweb="select"]>div{
+
+background:#1E293B !important;
+
+border:1px solid #30445F !important;
+
+color:white !important;
+
+}
+
+/* TextArea */
+
+textarea{
+
+background:#1E293B !important;
+
+color:white !important;
+
+}
+
+/* Slider */
+
+.stSlider{
+
+color:#00C2FF;
+
+}
+
+/* Checkbox */
+
+.stCheckbox{
+
+color:white;
+
+}
+
+/* Progress */
+
+.stProgress>div>div{
+
+background:#00C2FF !important;
+
+}
+
+/* Alerts */
+
+[data-testid="stAlert"]{
+
+background:#162033 !important;
+
+border:1px solid #2A3B55;
+
+border-radius:15px;
+
+}
+
+/* Divider */
+
+hr{
+
+border-color:#23334C;
+
+}
+
+/* Cards */
+
+.card{
+
+background:#162033;
+
+border:1px solid #2A3B55;
+
+border-radius:20px;
+
+padding:28px;
+
+transition:.35s;
+
+box-shadow:0 12px 35px rgba(0,0,0,.30);
+
+}
+
+.card:hover{
+
+transform:translateY(-8px);
+
+border:1px solid #00C2FF;
+
+box-shadow:0 20px 45px rgba(0,194,255,.20);
+
+}
+
+/* Scroll */
+
+::-webkit-scrollbar{
+
+width:10px;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+background:#2A3B55;
+
+border-radius:20px;
+
+}
