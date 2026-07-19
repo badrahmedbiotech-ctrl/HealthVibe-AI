@@ -6,9 +6,7 @@ from fpdf import FPDF
 import io
 
 # دالة لتوليد تقرير الـ PDF بالشكل الطبي والمُنظم
-def generate_pdf(user_data, result, recommendations):
-    from fpdf import FPDF
-    
+def generate_pdf(user_data, result, recommendations, medications):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -50,7 +48,19 @@ def generate_pdf(user_data, result, recommendations):
     pdf.multi_cell(180, 10, f"Result Status: {result}", border=1, align="C", fill=True)
     pdf.ln(8)
     
-    # 4. التوصيات
+    # 4. الأدوية المقترحة (المضافة حديثاً)
+    pdf.set_font("Arial", "B", 14)
+    pdf.set_text_color(44, 62, 80)
+    pdf.cell(0, 10, "Suggested Medications & Medical Options (Consult Doctor):", ln=1)
+    pdf.set_font("Arial", "", 11)
+    pdf.set_text_color(60, 60, 60)
+    for med in medications:
+        pdf.set_x(10)
+        pdf.multi_cell(180, 7, f"  - {med}")
+        
+    pdf.ln(5)
+    
+    # 5. التوصيات
     pdf.set_font("Arial", "B", 14)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 10, "Personalized Recommendations:", ln=1)
@@ -108,34 +118,61 @@ if submit:
         "Prolonged Immobility": mobility
     }
     
-    st.subheader("Analysis Results")
+    st.subheader("Analysis Results:")
+
+    # ضبط منطق حساب نتيجة الـ Risk بناءً على الـ D-Dimer
+    if d_dimer < 500:
+            if history == "Yes" and swelling == "Yes":
+                result = "Moderate Risk (D-Dimer Normal, but Clinical Signs Present)"
+            else:
+                result = "Low Risk / Negative"
+    else:
+            if history == "Yes" or swelling == "Yes" or pain == "Yes" or mobility == "Yes":
+                result = "High Risk / Positive"
+            else:
+                result = "Moderate Risk (Elevated D-Dimer, No Major Symptoms)"
+    result_status = result 
+        # الأدوية في حالة الخطورة العالية
+    meds = [
+            "Anticoagulants (Blood Thinners) like Low-Molecular-Weight Heparin (LMWH) injections (e.g., Enoxaparin/Clexane).",
+            "Oral Anticoagulants (DOACs) like Rivaroxaban (Xarelto) or Apixaban (Eliquis) as prescribed by your doctor.",
+            "Note: Medication dosage and duration must be strictly tailored by a cardiologist or hematologist."
+        ]
     
-    # التحقق من حالة المريض وعرض التوصيات المناسبة
-    if risk_score >= 3 or d_dimer > 500:
-        result_status = "High Risk / Positive"
-        st.error(f"⚠️ Result: {result_status}")
-        recs = [
+    recs = [
             "Please consult a cardiovascular specialist or visit an emergency room immediately.",
-"Avoid sitting or standing still for long periods; keep your legs slightly elevated when resting.",
+            "Avoid sitting or standing still for long periods; keep your legs slightly elevated when resting.",
             "Do not massage the affected leg, as this could dislodge a potential clot.",
             "An ultrasound (Doppler) or further clinical imaging is highly recommended to confirm diagnosis."
         ]
-    else:
-        result_status = "Low Risk / Negative"
-        st.success(f"✅ Result: {result_status}")
-        recs = [
+
+        # عرض النتيجة على المنصة
+    st.success(f"Result: {result}")
+        
+        # الأدوية/الإجراءات الوقائية في حالة الخطورة المنخفضة
+    meds = [
+            "No immediate therapeutic anticoagulation is needed.",
+            "Prophylactic options (for long travel/immobility): Low-dose Aspirin or Compression Stockings may be advised.",
+            "Always review with your physician before starting any preventive medication."
+        ]
+        
+    recs = [
             "Maintain an active lifestyle with regular walking or exercise.",
             "Stay well-hydrated throughout the day to support healthy blood flow.",
             "If taking long flights or trips, remember to stretch and move your legs every 1-2 hours.",
             "Keep monitoring for any sudden symptoms like swelling, redness, or shortness of breath."
         ]
         
-    st.write("Recommendations:")
+    st.write("**Suggested Medications / Clinical Approach:**")
+    for m in meds:
+        st.write(f"- {m}")
+        
+    st.write("**Recommendations:**")
     for r in recs:
         st.write(f"- {r}")
         
-    # توليد ملف الـ PDF وحفظه في الذاكرة للتحميل
-    pdf_bytes = generate_pdf(user_data, result_status, recs)
+    # توليد ملف الـ PDF وحفظه في الذاكرة للتحميل (مع تمرير قائمة الأدوية الجديدة)
+    pdf_bytes = generate_pdf(user_data, result_status, recs, meds)
     
     # زر تحميل التقرير الطبي بصيغة PDF
     st.download_button(
