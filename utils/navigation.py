@@ -1,6 +1,7 @@
 import streamlit as st
 from pathlib import Path
 
+
 def sidebar():
 
     with st.sidebar:
@@ -16,9 +17,7 @@ def sidebar():
         🩺
         </h1>
 
-        <h2 style="
-        color:white;
-        ">
+        <h2 style="color:white;">
         HealthVibe AI
         </h2>
 
@@ -38,33 +37,32 @@ def sidebar():
 
         pages = [
 
-            ("app.py","🏠 Dashboard"),
+            ("app.py", "🏠 Dashboard"),
 
-            ("pages/Diabetes.py","🩸 Diabetes"),
+            ("pages/Diabetes.py", "🩸 Diabetes"),
 
-            ("pages/Heart_Disease.py","❤️ Heart Disease"),
+            ("pages/Patient_History.py", "📋 Patient History"),
 
-            ("pages/Pulmonary_Fibrosis.py","🫁 Pulmonary Fibrosis"),
+            ("pages/Heart_Disease.py", "❤️ Heart Disease"),
 
-            ("pages/CT_Scan_AI.py","🩻 Lung CT Scan"),
+            ("pages/Pulmonary_Fibrosis.py", "🫁 Pulmonary Fibrosis"),
 
-            ("pages/Breast_Cancer.py","🎗 Breast Cancer"),
+            ("pages/CT_Scan_AI.py", "🩻 Lung CT Scan"),
 
-            ("pages/About.py","ℹ About")
+            ("pages/Breast_Cancer.py", "🎗 Breast Cancer"),
+
+            ("pages/About.py", "ℹ About")
 
         ]
 
-        for page,title in pages:
+        for page, title in pages:
 
             if Path(page).exists():
-
-                st.page_link(page,label=title)
+                st.page_link(page, label=title)
 
         st.divider()
 
-        st.markdown("""
-        ### 📊 System Status
-        """)
+        st.markdown("### 📊 System Status")
 
         st.success("🟢 AI Online")
 
@@ -73,15 +71,32 @@ def sidebar():
         st.divider()
 
         st.markdown("""
-        ### 👨‍💻 Developer
+### 👨‍💻 Developer
 
-        **Badr Ahmed**
+**Badr Ahmed**
 
-        Biotechnology Student
+Biotechnology Student
 
-        AI & Bioinformatics
-        """)
+AI & Bioinformatics
+""")
 
         st.divider()
 
         st.caption("© 2026 HealthVibe AI")
+
+
+def hide_sidebar():
+
+    st.markdown("""
+    <style>
+
+    section[data-testid="stSidebar"]{
+        display:none;
+    }
+
+    div[data-testid="collapsedControl"]{
+        display:none;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
