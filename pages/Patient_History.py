@@ -1,0 +1,369 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+from utils.navigation import sidebar
+
+from components.database import (
+    get_history,
+    search_patient,
+    delete_patient
+)
+
+st.set_page_config(
+    page_title="Patient History",
+    page_icon="📋",
+    layout="wide"
+)
+
+with open("style.css", encoding="utf-8") as f:
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
+
+sidebar()
+
+st.markdown("""
+<div class="hero">
+
+<h1>📋 Patient History</h1>
+
+<p>
+Complete medical history and AI prediction records
+</p>
+
+</div>
+""", unsafe_allow_html=True)
+
+st.write("")
+
+search = st.text_input(
+    "🔍 Search Patient",
+    placeholder="Search by patient name..."
+)
+
+if search:
+
+    df = search_patient(search)
+
+else:
+
+    df = get_history()
+
+    st.write("")
+
+if len(df) == 0:
+
+    st.warning("No Patient Records Found")
+
+else:
+
+    high = len(df[df["prediction"] == 1])
+
+    low = len(df[df["prediction"] == 0])
+
+    avg_bmi = round(df["bmi"].mean(), 1)
+
+    total = len(df)
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.metric(
+            "👥 Total Patients",
+            total
+        )
+
+    with c2:
+        st.metric(
+            "🔴 High Risk",
+            high
+        )
+
+    with c3:
+        st.metric(
+            "🟢 Low Risk",
+            low
+        )
+
+    with c4:
+        st.metric(
+            "⚖ Average BMI",
+            avg_bmi
+        )
+
+    st.write("")
+
+    left, right = st.columns([2, 1])
+
+    with left:
+
+        fig = px.histogram(
+
+            df,
+
+            x="glucose",
+
+            nbins=20,
+
+            title="Glucose Distribution"
+
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    with right:
+
+        risk = pd.DataFrame({
+
+            "Risk": ["Low Risk", "High Risk"],
+
+            "Count": [low, high]
+
+        })
+
+        fig2 = px.pie(
+
+            risk,
+
+            values="Count",
+
+            names="Risk",
+
+            hole=.55,
+
+            title="Risk Distribution"
+
+        )
+
+        st.plotly_chart(
+            fig2,
+            use_container_width=True
+        )
+        st.write("")
+
+st.subheader("📋 Patient Records")
+
+show_df = df.copy()
+
+if "prediction" in show_df.columns:
+
+    show_df["prediction"] = show_df["prediction"].replace({
+
+        0: "🟢 Low Risk",
+
+        1: "🔴 High Risk"
+
+    })
+
+st.dataframe(
+
+    show_df,
+
+    use_container_width=True,
+
+    hide_index=True
+
+)
+
+st.write("")
+
+csv = df.to_csv(index=False).encode()
+
+st.download_button(
+
+    "⬇ Download Patient History",
+
+    data=csv,
+
+    file_name="Patient_History.csv",
+
+    mime="text/csv",
+
+    use_container_width=True
+
+)
+
+st.write("")
+
+st.subheader("👤 View Patient Details")
+
+patient_ids = df["id"].tolist()
+
+selected = st.selectbox(
+
+    "Select Patient",
+
+    patient_ids
+
+)
+
+patient = df[df["id"] == selected].iloc[0]
+
+left, right = st.columns(2)
+
+with left:
+
+    st.markdown("### Personal Information")
+
+    st.write(f"**Name:** {patient['full_name']}")
+
+    st.write(f"**Age:** {patient['age']}")
+
+    st.write(f"**Gender:** {patient['gender']}")
+
+    st.write(f"**Weight:** {patient['weight']} kg")
+
+    st.write(f"**Height:** {patient['height']} cm")
+
+with right:
+
+    st.markdown("### Medical Information")
+
+    st.write(f"**BMI:** {patient['bmi']}")
+
+    st.write(f"**Glucose:** {patient['glucose']}")
+
+    st.write(f"**Blood Pressure:** {patient['blood_pressure']}")
+
+    st.write(f"**Insulin:** {patient['insulin']}")
+
+    st.write(f"**Pedigree:** {patient['pedigree']}")
+
+if patient["prediction"] == 1:
+
+    st.error("🔴 High Risk of Diabetes")
+
+else:
+
+    st.success("🟢 Low Risk of Diabetes")
+
+    st.write("")
+
+st.divider()
+
+left, right = st.columns(2)
+
+# ==========================
+# DELETE
+# ==========================
+
+with left:
+
+    st.subheader("🗑 Delete Patient")
+
+    delete_id = st.number_input(
+
+        "Patient ID",
+
+        min_value=1,
+
+        step=1,
+
+        key="delete_patient"
+
+    )
+
+    if st.button(
+
+        "Delete Record",
+
+        use_container_width=True
+
+    ):
+
+        delete_patient(delete_id)
+
+        st.success("Patient deleted successfully.")
+
+        st.rerun()
+
+# ==========================
+# PDF REPORT
+# ==========================
+
+with right:
+
+    st.subheader("📄 Medical Report")
+
+    report = f"""
+HealthVibe AI
+
+==============================
+
+Patient Name : {patient['full_name']}
+
+Age : {patient['age']}
+
+Gender : {patient['gender']}
+
+Weight : {patient['weight']} kg
+
+Height : {patient['height']} cm
+
+------------------------------
+
+Glucose : {patient['glucose']}
+
+Blood Pressure : {patient['blood_pressure']}
+
+Insulin : {patient['insulin']}
+
+BMI : {patient['bmi']}
+
+Pedigree : {patient['pedigree']}
+
+------------------------------
+
+Prediction :
+
+{"HIGH RISK" if patient["prediction"]==1 else "LOW RISK"}
+
+==============================
+
+Generated by
+
+HealthVibe AI
+
+"""
+
+    st.download_button(
+
+        "⬇ Download Report",
+
+        report,
+
+        file_name=f"{patient['full_name']}_Report.txt",
+
+        mime="text/plain",
+
+        use_container_width=True
+
+    )
+
+    st.write("")
+st.divider()
+
+st.markdown("""
+<div class="footer">
+
+<h2 style="color:#00C2FF;">
+HealthVibe AI
+</h2>
+
+<p>
+AI-powered Clinical Decision Support Platform
+</p>
+
+<hr>
+
+<p style="color:#94A3B8;">
+Developed by <b>Badr Ahmed</b>
+</p>
+
+</div>
+""", unsafe_allow_html=True)
