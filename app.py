@@ -86,7 +86,8 @@ BMI, glucose level and vital signs.
 
 <br>
 
-<span style="color:#22C55E;font-size:18px;">
+<span style="color:
+#22C55E;font-size:18px;">
 ● Ready
 </span>
 
@@ -112,7 +113,8 @@ with pulmonary fibrosis prediction.
 
 <br>
 
-<span style="color:#22C55E;font-size:18px;">
+<span style="color:
+#22C55E;font-size:18px;">
 ● Ready
 </span>
 
@@ -142,7 +144,8 @@ heart disease prediction.
 
 <br>
 
-<span style="color:#F59E0B;font-size:18px;">
+<span style="color:
+#F59E0B;font-size:18px;">
 Coming Soon
 </span>
 
@@ -165,7 +168,8 @@ using Artificial Intelligence.
 
 <br>
 
-<span style="color:#F59E0B;font-size:18px;">
+<span style="color:
+#F59E0B;font-size:18px;">
 Coming Soon
 </span>
 
@@ -200,7 +204,8 @@ st.divider()
 st.markdown("""
 <div class="footer">
 
-<h2 style="color:#00C2FF;">
+<h2 style="color:
+#00C2FF;">
 HealthVibe AI
 </h2>
 
@@ -210,7 +215,8 @@ Artificial Intelligence Platform for Early Disease Detection
 
 <hr>
 
-<p style="color:#94A3B8;">
+<p style="color:
+#94A3B8;">
 Developed by <b>Badr Ahmed</b>
 </p>
 

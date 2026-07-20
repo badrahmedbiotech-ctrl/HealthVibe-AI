@@ -1,0 +1,108 @@
+{
+  "HV-E2CC9A91": {
+    "data": {
+      "full_name": "l",
+      "age": 45,
+      "email": "mennamahmoudtawfik281@gmail.com",
+      "gender": "Male",
+      "weight_kg": 75.0,
+      "occupation_choice": "IT / Software",
+      "height_cm": 170.0,
+      "bmi": 25.95155709342561,
+      "sysBP": 120,
+      "diaBP": 80,
+      "bp_history": "Normal",
+      "symptoms": [
+        "Headache"
+      ],
+      "other_symptoms": "",
+      "diabetes": "No",
+      "glucose": 90,
+      "totChol": 196,
+      "heartRate_mode": "Not sure — let me estimate",
+      "heartRate": 75,
+      "diseases": {
+        "Kidney Disease": {
+          "has": "No",
+          "value": null,
+          "type": null,
+          "file_uploaded": false
+        },
+        "Thyroid Disorder": {
+          "has": "No",
+          "value": null,
+          "type": null,
+          "file_uploaded": false
+        },
+        "Heart Disease": {
+          "has": "No",
+          "value": null,
+          "type": null,
+          "file_uploaded": false
+        }
+      },
+      "other_conditions": "",
+      "family_history": [
+        "Heart Disease"
+      ],
+      "family_history_other": "",
+      "heartRate_choice": "Normal (60–100 bpm)",
+      "bp_meds": "No",
+      "med_choice": "Other (please specify)",
+      "med_custom": "",
+      "currentSmoker": "Yes",
+      "cigsPerDay": 10,
+      "alcohol": "Occasionally",
+      "activity_level": "Moderate (3-4 times/week)",
+      "activity_types_display": [
+        "🚴 Cycling"
+      ],
+      "activity_types": [
+        "Cycling"
+      ],
+      "stress_level": "Low",
+      "avg_sleep": "7-8 hours",
+      "salt_intake": "Low",
+      "activity_other": "",
+      "extra_labs_text": "no"
+    },
+    "created_at": "2026-07-19T05:22:11.282304",
+    "updated_at": "2026-07-19T05:35:38.853920",
+    "last_result": {
+      "ml_prediction": 0,
+      "ml_risk": 2.953709309255912,
+      "adjustments": [
+        [
+          "Reported symptoms (1)",
+          2
+        ],
+        [
+          "Occasional alcohol consumption",
+          2
+        ],
+        [
+          "Family history of Heart Disease",
+          3
+        ]
+      ],
+      "total_adjustment": 7,
+      "final_risk": 9.953709309255911,
+      "final_prediction": 0,
+      "generated_at": "2026-07-19 05:21"
+    }
+  },
+  "PT-168988CA": {
+    "data": {
+      "full_name": "",
+      "age": 45,
+      "email": "",
+      "gender": "Male",
+      "weight_kg": 75.0,
+      "occupation_choice": "Office / Desk Job",
+      "height_cm": 170.0,
+      "bmi": 25.95155709342561
+    },
+    "created_at": "2026-07-20T00:30:34.567444",
+    "updated_at": "2026-07-20T00:30:40.732505"
+  }
+}
