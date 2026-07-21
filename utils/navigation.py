@@ -2,42 +2,70 @@ import streamlit as st
 from pathlib import Path
 
 
+# ==========================================
+# SIDEBAR
+# ==========================================
+
 def sidebar():
 
     with st.sidebar:
 
-        st.markdown("""
-        <div style="text-align:center;">
+        st.markdown(
+            """
+            <div style="text-align:center;">
 
-        <h1 style="
-        color:#00C2FF;
-        font-size:55px;
-        margin-bottom:-15px;
-        ">
-        🩺
-        </h1>
+            <h1 style="
+                color:#00C2FF;
+                font-size:55px;
+                margin-bottom:-15px;
+            ">
+            🩺
+            </h1>
 
-        <h2 style="color:white;">
-        HealthVibe AI
-        </h2>
+            <h2 style="color:white;">
+            HealthVibe AI
+            </h2>
 
-        <p style="
-        color:#94A3B8;
-        margin-top:-10px;
-        ">
-        AI Clinical Decision Support System
-        </p>
+            <p style="
+                color:#94A3B8;
+                margin-top:-10px;
+            ">
+            AI Clinical Decision Support System
+            </p>
 
-        </div>
-        """, unsafe_allow_html=True)
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         st.divider()
 
-        st.markdown("### 🏥 AI Modules")
+        # ==========================
+        # USER INFO
+        # ==========================
+
+        username = st.session_state.get("username", "Guest")
+        role = st.session_state.get("role", "User")
+
+        st.markdown(f"""
+        ### 👤 Logged in
+
+        **User:** {username}
+
+        **Role:** {role}
+        """)
+
+        st.divider()
+
+        st.markdown("## 🏥 AI Modules")
+    
+        # ==========================
+        # NAVIGATION
+        # ==========================
 
         pages = [
 
-            ("app.py", "🏠 Dashboard"),
+            ("pages/Dashboard.py", "🏠 Dashboard"),
 
             ("pages/Diabetes.py", "🩸 Diabetes"),
 
@@ -58,45 +86,82 @@ def sidebar():
         for page, title in pages:
 
             if Path(page).exists():
-                st.page_link(page, label=title)
+
+                st.page_link(
+                    page,
+                    label=title,
+                    use_container_width=True
+                )
 
         st.divider()
 
-        st.markdown("### 📊 System Status")
+        # ==========================
+        # SYSTEM STATUS
+        # ==========================
+
+        st.markdown("## 📊 System Status")
 
         st.success("🟢 AI Online")
 
-        st.info("Version 2.0")
+        st.progress(100)
+
+        st.caption("Version 2.0")
 
         st.divider()
 
+        # ==========================
+        # DEVELOPER
+        # ==========================
+
         st.markdown("""
-### 👨‍💻 Developer
+        ## 👨‍💻 Developer
 
-**Badr Ahmed**
+        **Badr Ahmed**
 
-Biotechnology Student
+        Biotechnology Student
 
-AI & Bioinformatics
-""")
+        AI • Bioinformatics • Data Science
+        """)
+
+        st.divider()
+
+        # ==========================
+        # LOGOUT
+        # ==========================
+
+        if st.button(
+            "🚪 Logout",
+            use_container_width=True
+        ):
+
+            st.session_state.clear()
+
+            st.switch_page("app.py")
 
         st.divider()
 
         st.caption("© 2026 HealthVibe AI")
 
 
+# ==========================================
+# HIDE SIDEBAR
+# ==========================================
+
 def hide_sidebar():
 
-    st.markdown("""
-    <style>
+    st.markdown(
+        """
+        <style>
 
-    section[data-testid="stSidebar"]{
-        display:none;
-    }
+        section[data-testid="stSidebar"]{
+            display:none;
+        }
 
-    div[data-testid="collapsedControl"]{
-        display:none;
-    }
+        div[data-testid="collapsedControl"]{
+            display:none;
+        }
 
-    </style>
-    """, unsafe_allow_html=True)
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
