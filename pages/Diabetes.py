@@ -1,9 +1,33 @@
 import streamlit as st
+
+from components.auth_guard import require_patient
+
+require_patient()
+
 import joblib
 import pandas as pd
 
-from utils.navigation import sidebar
+# ==========================
+# LOGIN CHECK
+# ==========================
 
+if "user" not in st.session_state:
+    st.switch_page("pages/Login.py")
+    st.stop()
+
+user = st.session_state["user"]
+
+from components.database import get_profile
+
+profile = get_profile(user["id"])
+
+if profile is None:
+    st.warning("Please complete your profile first.")
+    st.switch_page("pages/Profile.py")
+    st.stop()
+
+from utils.navigation import sidebar
+from components.database import get_profile
 from components.stepper import stepper
 from components.result_card import result_card
 from components.recommendation import recommendation
@@ -88,62 +112,41 @@ if st.session_state.step == 1:
 
     st.subheader("👤 Patient Information")
 
-    name = st.text_input(
-        "Full Name",
-        value=st.session_state.patient.get("name", "")
-    )
+    name = profile["full_name"]
+    age = profile["age"]
+    gender = profile["gender"]
+    weight = profile["weight"]
+    height = profile["height"]
 
-    age = st.number_input(
-        "Age",
-        min_value=1,
-        max_value=120,
-        value=st.session_state.patient.get("age", 30)
-    )
-
-    gender = st.selectbox(
-        "Gender",
-        ["Male", "Female"],
-        index=0 if st.session_state.patient.get(
-            "gender",
-            "Male"
-        ) == "Male" else 1
-    )
-
-    weight = st.number_input(
-        "Weight (kg)",
-        min_value=20,
-        max_value=250,
-        value=st.session_state.patient.get("weight", 70)
-    )
-
-    height = st.number_input(
-        "Height (cm)",
-        min_value=80,
-        max_value=250,
-        value=st.session_state.patient.get("height", 170)
-    )
-
-    st.write("")
+    st.success("✅ Patient information loaded from your profile.")
 
     col1, col2 = st.columns(2)
 
+    with col1:
+        st.text_input("Full Name", value=name, disabled=True)
+        st.number_input("Age", value=int(age), disabled=True)
+        st.text_input("Gender", value=gender, disabled=True)
+
     with col2:
+        st.number_input("Weight (kg)", value=float(weight), disabled=True)
+        st.number_input("Height (cm)", value=float(height), disabled=True)
 
-        if st.button(
-            "Next ➜",
-            key="next_step1",
-            use_container_width=True
-        ):
+    st.write("")
 
-            st.session_state.patient["name"] = name
-            st.session_state.patient["age"] = age
-            st.session_state.patient["gender"] = gender
-            st.session_state.patient["weight"] = weight
-            st.session_state.patient["height"] = height
+    if st.button(
+        "Next ➜",
+        key="next_step1",
+        use_container_width=True
+    ):
 
-            st.session_state.step = 2
+        st.session_state.patient["name"] = name
+        st.session_state.patient["age"] = age
+        st.session_state.patient["gender"] = gender
+        st.session_state.patient["weight"] = weight
+        st.session_state.patient["height"] = height
 
-            st.rerun()
+        st.session_state.step = 2
+        st.rerun()
 
 # ==========================================
 # STEP 2
@@ -316,6 +319,8 @@ elif st.session_state.step == 4:
     patient["probability"] = float(probability)
 
     if not st.session_state.saved:
+
+        patient["user_id"] = st.session_state.user["id"]
 
         save_patient(patient)
 

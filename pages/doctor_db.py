@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+from components.auth_guard import require_doctor
+
+require_doctor()
+
 from utils.navigation import sidebar
 
 from components.doctor_db import (

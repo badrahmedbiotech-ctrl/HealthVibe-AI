@@ -1,28 +1,34 @@
 import sqlite3
 from pathlib import Path
 import pandas as pd
+import hashlib
 
 # ==========================================
-# DATABASE CONFIG
+# DATABASE
 # ==========================================
 
-DB_PATH = Path("database")
-DB_PATH.mkdir(exist_ok=True)
+DB_FOLDER = Path("database")
+DB_FOLDER.mkdir(exist_ok=True)
 
-DATABASE = DB_PATH / "healthvibe.db"
+DATABASE = DB_FOLDER / "healthvibe.db"
 
 
 # ==========================================
-# CONNECT DATABASE
+# CONNECT
 # ==========================================
 
 def connect():
-
     conn = sqlite3.connect(DATABASE)
-
     conn.row_factory = sqlite3.Row
-
     return conn
+
+
+# ==========================================
+# HASH PASSWORD
+# ==========================================
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 
 # ==========================================
@@ -32,292 +38,394 @@ def connect():
 def create_tables():
 
     conn = connect()
-
     cur = conn.cursor()
 
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS patients(
+    # ---------------- USERS ----------------
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cur.execute("""
 
-            full_name TEXT NOT NULL,
+    CREATE TABLE IF NOT EXISTS users(
 
-            age INTEGER NOT NULL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            gender TEXT NOT NULL,
+        full_name TEXT NOT NULL,
 
-            weight REAL,
+        email TEXT UNIQUE NOT NULL,
 
-            height REAL,
+        password TEXT NOT NULL,
 
-            pregnancies INTEGER,
+        role TEXT NOT NULL,
 
-            glucose REAL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-            blood_pressure REAL,
-
-            skin_thickness REAL,
-
-            insulin REAL,
-
-            bmi REAL,
-
-            pedigree REAL,
-
-            prediction INTEGER,
-
-            probability REAL,
-
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-
-        )
-        """
     )
 
+    """)
+
+    # ---------------- PROFILE ----------------
+
+    cur.execute("""
+
+    CREATE TABLE IF NOT EXISTS patient_profiles(
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    user_id INTEGER UNIQUE,
+
+    full_name TEXT,
+    age INTEGER,
+    gender TEXT,
+    weight REAL,
+    height REAL,
+
+    phone TEXT,
+    address TEXT,
+    birth_date TEXT,
+    blood_group TEXT,
+
+    smoking TEXT,
+    alcohol TEXT,
+
+    allergies TEXT,
+    chronic_diseases TEXT,
+    medications TEXT,
+
+    emergency_name TEXT,
+    emergency_phone TEXT,
+    emergency_relation TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(user_id) REFERENCES users(id)
+
+)
+
+    """)
+
     conn.commit()
+    conn.close()
+
+
+create_tables()
+
+
+# ==========================================
+# REGISTER
+# ==========================================
+
+def register_user(full_name, email, password, role):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("""
+
+        INSERT INTO users(
+
+            full_name,
+            email,
+            password,
+            role
+
+        )
+
+        VALUES(?,?,?,?)
+
+        """,(
+
+            full_name,
+            email,
+            hash_password(password),
+            role
+
+        ))
+
+        conn.commit()
+
+        return True
+
+    except sqlite3.IntegrityError:
+
+        return False
+
+    finally:
+
+        conn.close()
+
+
+# ==========================================
+# LOGIN
+# ==========================================
+
+def login_user(email, password):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    SELECT *
+
+    FROM users
+
+    WHERE email=?
+    AND password=?
+
+    """,(
+
+        email,
+        hash_password(password)
+
+    ))
+
+    user = cur.fetchone()
 
     conn.close()
 
+    return user
+
 # ==========================================
-# SAVE PATIENT
+# CREATE PROFILE
 # ==========================================
 
-def save_patient(data):
-
-    required_fields = [
-
-        "name",
-        "age",
-        "gender",
-        "weight",
-        "height",
-        "pregnancies",
-        "glucose",
-        "blood_pressure",
-        "skin_thickness",
-        "insulin",
-        "bmi",
-        "pedigree",
-        "prediction",
-        "probability"
-
-    ]
-
-    for field in required_fields:
-
-        if field not in data:
-
-            raise ValueError(f"Missing field: {field}")
+def create_profile(user_id):
 
     conn = connect()
-
     cur = conn.cursor()
 
-    try:
+    cur.execute("""
 
-        cur.execute(
+    INSERT OR IGNORE INTO patient_profiles(
 
-            """
-            INSERT INTO patients(
+        user_id
 
-                full_name,
-                age,
-                gender,
-                weight,
-                height,
-                pregnancies,
-                glucose,
-                blood_pressure,
-                skin_thickness,
-                insulin,
-                bmi,
-                pedigree,
-                prediction,
-                probability
+    )
 
-            )
+    VALUES(?)
 
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """,(user_id,))
 
-            """,
+    conn.commit()
+    conn.close()
 
-            (
-
-                data["name"],
-                data["age"],
-                data["gender"],
-                data["weight"],
-                data["height"],
-                data["pregnancies"],
-                data["glucose"],
-                data["blood_pressure"],
-                data["skin_thickness"],
-                data["insulin"],
-                data["bmi"],
-                data["pedigree"],
-                data["prediction"],
-                data["probability"]
-
-            )
-
-        )
-
-        conn.commit()
-
-        return True
-
-    except Exception as e:
-
-        conn.rollback()
-
-        print(f"Database Error: {e}")
-
-        return False
-
-    finally:
-
-        conn.close()
 
 # ==========================================
-# GET HISTORY
+# GET PROFILE
 # ==========================================
 
-def get_history():
+def get_profile(user_id):
 
     conn = connect()
-
-    try:
-
-        query = """
-        SELECT *
-        FROM patients
-        ORDER BY created_at DESC
-        """
-
-        df = pd.read_sql_query(query, conn)
-
-        return df
-
-    except Exception as e:
-
-        print(f"History Error: {e}")
-
-        return pd.DataFrame()
-
-    finally:
-
-        conn.close()
-
-
-# ==========================================
-# SEARCH PATIENT
-# ==========================================
-
-def search_patient(name):
-
-    conn = connect()
-
-    try:
-
-        query = """
-        SELECT *
-        FROM patients
-        WHERE full_name LIKE ?
-        ORDER BY created_at DESC
-        """
-
-        df = pd.read_sql_query(
-
-            query,
-
-            conn,
-
-            params=(f"%{name.strip()}%",)
-
-        )
-
-        return df
-
-    except Exception as e:
-
-        print(f"Search Error: {e}")
-
-        return pd.DataFrame()
-
-    finally:
-
-        conn.close()
-
-# ==========================================
-# DELETE PATIENT
-# ==========================================
-
-def delete_patient(patient_id):
-
-    conn = connect()
-
-    cur = conn.cursor()
-
-    try:
-
-        cur.execute(
-
-            """
-            DELETE FROM patients
-            WHERE id=?
-            """,
-
-            (patient_id,)
-
-        )
-
-        conn.commit()
-
-        return True
-
-    except Exception as e:
-
-        conn.rollback()
-
-        print(f"Delete Error: {e}")
-
-        return False
-
-    finally:
-
-        conn.close()
-
-
-# ==========================================
-# GET PATIENT BY ID
-# ==========================================
-
-def get_patient(patient_id):
-
-    conn = connect()
-
     conn.row_factory = sqlite3.Row
 
     cur = conn.cursor()
 
-    cur.execute(
+    cur.execute("""
 
-        """
-        SELECT *
-        FROM patients
-        WHERE id=?
-        """,
+    SELECT *
 
-        (patient_id,)
+    FROM patient_profiles
 
-    )
+    WHERE user_id=?
 
-    patient = cur.fetchone()
+    """,(user_id,))
+
+    profile = cur.fetchone()
 
     conn.close()
 
-    return patient
+    return profile
+
+
+# ==========================================
+# UPDATE PROFILE
+# ==========================================
+
+def update_profile(data):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    UPDATE patient_profiles
+
+    SET
+
+        full_name=?,
+        age=?,
+        gender=?,
+        weight=?,
+        height=?,
+
+        phone=?,
+        address=?,
+        birth_date=?,
+        blood_group=?,
+
+        smoking=?,
+        alcohol=?,
+
+        allergies=?,
+        chronic_diseases=?,
+        medications=?,
+
+        emergency_name=?,
+        emergency_phone=?,
+        emergency_relation=?
+
+    WHERE user_id=?
+
+    """,(
+
+        data["full_name"],
+        data["age"],
+        data["gender"],
+        data["weight"],
+        data["height"],
+
+        data["phone"],
+        data["address"],
+        data["birth_date"],
+        data["blood_group"],
+
+        data["smoking"],
+        data["alcohol"],
+
+        data["allergies"],
+        data["chronic_diseases"],
+        data["medications"],
+
+        data["emergency_name"],
+        data["emergency_phone"],
+        data["emergency_relation"],
+
+        data["user_id"]
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+# ==========================================
+# SAVE PATIENT HISTORY
+# ==========================================
+
+def save_patient(data):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO patients(
+
+        user_id,
+        full_name,
+        age,
+        gender,
+        weight,
+        height,
+        pregnancies,
+        glucose,
+        blood_pressure,
+        skin_thickness,
+        insulin,
+        bmi,
+        pedigree,
+        prediction,
+        probability
+
+    )
+
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+    """,(
+
+        data["user_id"],
+        data["name"],
+        data["age"],
+        data["gender"],
+        data["weight"],
+        data["height"],
+        data["pregnancies"],
+        data["glucose"],
+        data["blood_pressure"],
+        data["skin_thickness"],
+        data["insulin"],
+        data["bmi"],
+        data["pedigree"],
+        data["prediction"],
+        data["probability"]
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ==========================================
+# USER HISTORY
+# ==========================================
+
+def get_user_history(user_id):
+
+    conn = connect()
+
+    df = pd.read_sql_query(
+
+        """
+
+        SELECT *
+
+        FROM patients
+
+        WHERE user_id=?
+
+        ORDER BY created_at DESC
+
+        """,
+
+        conn,
+
+        params=(user_id,)
+
+    )
+
+    conn.close()
+
+    return df
+
+
+# ==========================================
+# ALL HISTORY
+# ==========================================
+
+def get_all_history():
+
+    conn = connect()
+
+    df = pd.read_sql_query(
+
+        """
+
+        SELECT *
+
+        FROM patients
+
+        ORDER BY created_at DESC
+
+        """,
+
+        conn
+
+    )
+
+    conn.close()
+
+    return df
 
 
 # ==========================================
@@ -327,15 +435,11 @@ def get_patient(patient_id):
 def total_patients():
 
     conn = connect()
-
     cur = conn.cursor()
 
     cur.execute(
 
-        """
-        SELECT COUNT(*)
-        FROM patients
-        """
+        "SELECT COUNT(*) FROM patients"
 
     )
 
@@ -344,40 +448,3 @@ def total_patients():
     conn.close()
 
     return total
-
-
-# ==========================================
-# CLEAR DATABASE
-# ==========================================
-
-def clear_database():
-
-    conn = connect()
-
-    cur = conn.cursor()
-
-    try:
-
-        cur.execute(
-
-            """
-            DELETE FROM patients
-            """
-
-        )
-
-        conn.commit()
-
-        return True
-
-    except Exception as e:
-
-        conn.rollback()
-
-        print(f"Clear Database Error: {e}")
-
-        return False
-
-    finally:
-
-        conn.close()

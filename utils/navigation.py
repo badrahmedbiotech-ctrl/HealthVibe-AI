@@ -10,33 +10,23 @@ def sidebar():
 
     with st.sidebar:
 
-        st.markdown(
-            """
-            <div style="text-align:center;">
+        st.markdown("""
+        <div style="text-align:center;">
 
-            <h1 style="
-                color:#00C2FF;
-                font-size:55px;
-                margin-bottom:-15px;
-            ">
-            🩺
-            </h1>
+        <h1 style="color:#00C2FF;font-size:55px;margin-bottom:-15px;">
+        🩺
+        </h1>
 
-            <h2 style="color:white;">
-            HealthVibe AI
-            </h2>
+        <h2 style="color:white;">
+        HealthVibe AI
+        </h2>
 
-            <p style="
-                color:#94A3B8;
-                margin-top:-10px;
-            ">
-            AI Clinical Decision Support System
-            </p>
+        <p style="color:#94A3B8;margin-top:-10px;">
+        AI Clinical Decision Support System
+        </p>
 
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        </div>
+        """, unsafe_allow_html=True)
 
         st.divider()
 
@@ -57,30 +47,23 @@ def sidebar():
 
         st.divider()
 
-        st.markdown("## 🏥 AI Modules")
-    
         # ==========================
         # NAVIGATION
         # ==========================
 
+        st.markdown("## 🏥 AI Modules")
+
         pages = [
-
             ("pages/Dashboard.py", "🏠 Dashboard"),
-
+            ("pages/Profile.py", "👤 My Profile"),
             ("pages/Diabetes.py", "🩸 Diabetes"),
-
-            ("pages/Patient_History.py", "📋 Patient History"),
-
-            ("pages/Heart_Disease.py", "❤️ Heart Disease"),
-
+            ("pages/Hypertension.py", "❤️ Hypertension"),
+            ("pages/lipid.py", "🫀 Lipid"),
+            ("pages/obesity.py", "⚖️ Obesity"),
             ("pages/Pulmonary_Fibrosis.py", "🫁 Pulmonary Fibrosis"),
-
-            ("pages/CT_Scan_AI.py", "🩻 Lung CT Scan"),
-
-            ("pages/Breast_Cancer.py", "🎗 Breast Cancer"),
-
-            ("pages/About.py", "ℹ About")
-
+            ("pages/thrombosis_app.py", "🩸 Thrombosis"),
+            ("pages/doctor_db.py", "👨‍⚕️ Doctor Dashboard"),
+            ("pages/About.py", "ℹ️ About"),
         ]
 
         for page, title in pages:
