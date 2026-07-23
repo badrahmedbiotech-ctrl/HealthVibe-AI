@@ -3,9 +3,12 @@ import uuid
 from datetime import datetime
 
 import pandas as pd
-import streamlit as st
 from groq import Groq
+import streamlit as st
+import os
+from dotenv import load_dotenv
 
+load_dotenv()  # بيلقط المفاتيح من ملف .env تلقائياً
 # ==========================
 # Page Config
 # ==========================
@@ -70,7 +73,7 @@ if "current_chat" not in st.session_state:
     chat_id = str(uuid.uuid4())
     st.session_state.current_chat = chat_id
     st.session_state.all_chats[chat_id] = {
-        "title": "محادثة جديدة",
+        "title": "New Chat",
         "messages": [
             {
                 "role": "assistant",
@@ -85,7 +88,7 @@ with st.sidebar:
     if st.button("➕ New Chat", use_container_width=True):
         new_id = str(uuid.uuid4())
         st.session_state.all_chats[new_id] = {
-            "title": "محادثة جديدة",
+            "title": "New Chat",
             "messages": [
                 {
                     "role": "assistant",
@@ -111,7 +114,9 @@ st.session_state.messages = st.session_state.all_chats[current_chat_id]["message
 # Groq Client
 # ==========================
 
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+# هيحاول يقرأ الأول من st.secrets، ولو مش لاقيه هيقرأ من os.getenv
+api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+client = Groq(api_key=api_key)
 
 # ==========================
 # Search Functions
