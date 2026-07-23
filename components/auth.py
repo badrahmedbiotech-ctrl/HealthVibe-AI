@@ -1,4 +1,5 @@
 import sqlite3
+import hashlib
 from pathlib import Path
 
 DB_PATH = Path("database")
@@ -8,12 +9,22 @@ DATABASE = DB_PATH / "healthvibe.db"
 
 
 def connect():
-    return sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-# ==========================================
+# ===========================
+# PASSWORD HASH
+# ===========================
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+# ===========================
 # CREATE USERS TABLE
-# ==========================================
+# ===========================
 
 def create_users_table():
 
@@ -21,106 +32,101 @@ def create_users_table():
     cur = conn.cursor()
 
     cur.execute("""
-
     CREATE TABLE IF NOT EXISTS users(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        username TEXT UNIQUE,
+        full_name TEXT NOT NULL,
 
-        password TEXT,
+        email TEXT UNIQUE NOT NULL,
 
-        role TEXT
+        password TEXT NOT NULL,
+
+        role TEXT NOT NULL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
     )
-
     """)
 
     conn.commit()
     conn.close()
 
 
-# ==========================================
+# ===========================
 # REGISTER
-# ==========================================
+# ===========================
 
-def register(username, password, role):
+def register_user(full_name, email, password, role):
 
     conn = connect()
     cur = conn.cursor()
 
-    cur.execute(
+    try:
 
-        "INSERT INTO users(username,password,role) VALUES(?,?,?)",
+        cur.execute("""
 
-        (username, password, role)
+        INSERT INTO users(
 
-    )
+            full_name,
+            email,
+            password,
+            role
 
-    conn.commit()
-    conn.close()
+        )
+
+        VALUES(?,?,?,?)
+
+        """, (
+
+            full_name,
+            email,
+            hash_password(password),
+            role
+
+        ))
+
+        conn.commit()
+
+        return True
+
+    except sqlite3.IntegrityError:
+
+        return False
+
+    finally:
+
+        conn.close()
 
 
-# ==========================================
+# ===========================
 # LOGIN
-# ==========================================
+# ===========================
 
-def login(username, password):
+def login_user(email, password):
 
     conn = connect()
 
     cur = conn.cursor()
 
-    cur.execute(
+    cur.execute("""
 
-        """
-        SELECT * FROM users
-        WHERE username=? AND password=?
-        """,
+    SELECT *
 
-        (username, password)
+    FROM users
 
-    )
+    WHERE email=?
+    AND password=?
+
+    """, (
+
+        email,
+        hash_password(password)
+
+    ))
 
     user = cur.fetchone()
 
     conn.close()
 
     return user
-
-# ==========================================
-# CREATE DEFAULT ADMIN
-# ==========================================
-
-def create_default_admin():
-
-    conn = connect()
-
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT * FROM users WHERE username='admin'"
-    )
-
-    user = cur.fetchone()
-
-    if user is None:
-
-        cur.execute(
-
-            """
-            INSERT INTO users(username,password,role)
-            VALUES(?,?,?)
-            """,
-
-            (
-                "admin",
-                "admin123",
-                "Admin"
-            )
-
-        )
-
-        conn.commit()
-
-    conn.close()
