@@ -45,6 +45,7 @@ create_profile(user["id"])
 
 profile = get_profile(user["id"])
 
+st.write(profile.keys())
 
 full_name = st.text_input(
     "👤 Full Name",

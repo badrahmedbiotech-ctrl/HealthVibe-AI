@@ -63,15 +63,15 @@ def create_tables():
     """)
 
 
-    # ---------------- PROFILE ----------------
+    # ---------------- PATIENTS ----------------
 
     cur.execute("""
 
-CREATE TABLE IF NOT EXISTS patient_profiles (
+    CREATE TABLE IF NOT EXISTS patient_profiles (
 
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    user_id INTEGER UNIQUE,
+    user_id INTEGER,
 
     full_name TEXT,
     age INTEGER,
@@ -79,21 +79,16 @@ CREATE TABLE IF NOT EXISTS patient_profiles (
     weight REAL,
     height REAL,
 
-    phone TEXT,
-    address TEXT,
-    birth_date TEXT,
-    blood_group TEXT,
+    pregnancies INTEGER,
+    glucose REAL,
+    blood_pressure REAL,
+    skin_thickness REAL,
+    insulin REAL,
+    bmi REAL,
+    pedigree REAL,
 
-    smoking TEXT,
-    alcohol TEXT,
-
-    allergies TEXT,
-    chronic_diseases TEXT,
-    medications TEXT,
-
-    emergency_name TEXT,
-    emergency_phone TEXT,
-    emergency_relation TEXT,
+    prediction TEXT,
+    probability REAL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -102,7 +97,6 @@ CREATE TABLE IF NOT EXISTS patient_profiles (
 )
 
 """)
-
     conn.commit()
     conn.close()
 
