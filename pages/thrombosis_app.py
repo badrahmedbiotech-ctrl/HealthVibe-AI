@@ -1,5 +1,4 @@
 from pyexpat import features
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,6 +6,7 @@ import fpdf
 from fpdf import FPDF
 import io
 import plotly.graph_objects as go
+from utils.sidebar import render_sidebar
 
 # دالة لتوليد تقرير الـ PDF بالشكل الطبي والمُنظم
 def generate_pdf(user_data, result, recommendations, medications):
@@ -86,6 +86,7 @@ st.set_page_config(page_title="Thrombosis Assessment", page_icon="🩸")
 
 st.title("🩸 Thrombosis Risk Assessment & AI Screening")
 st.write("Enter the patient health parameters below to analyze the risk of Thrombosis (Blood Clots).")
+render_sidebar()
 
 # بناء الاستمارة (Form) ليدخل المريض بياناته
 with st.form("thrombosis_form"):
