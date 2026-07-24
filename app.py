@@ -1,45 +1,31 @@
 import streamlit as st
 
-from components.auth import (
-    create_users_table,
-    create_default_admin,
-    login,
-)
-
 st.set_page_config(
     page_title="HealthVibe AI",
-    page_icon="🩺",
-    layout="centered"
+    page_icon="🏥",
+    layout="wide"
 )
 
 with open("style.css", encoding="utf-8") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
+st.markdown("""
 
-create_users_table()
-create_default_admin()
+<div style="text-align:center;padding-top:50px;">
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+<h1 style="font-size:55px;color:#00C2FF;">
+🏥 HealthVibe AI
+</h1>
 
-if "role" not in st.session_state:
-    st.session_state.role = None
+<h3 style="color:white;">
+AI Clinical Decision Support Platform
+</h3>
 
-if "username" not in st.session_state:
-    st.session_state.username = None
-
-if st.session_state.logged_in:
-
-    st.switch_page("pages/Dashboard.py")
-
-    st.markdown("""
-
-<div class="hero">
-
-<h1>🩺 HealthVibe AI</h1>
-
-<p>
-AI Clinical Decision Support System
+<p style="color:#94A3B8;font-size:20px;">
+Choose how you want to continue
 </p>
 
 </div>
@@ -47,50 +33,36 @@ AI Clinical Decision Support System
 """, unsafe_allow_html=True)
 
 st.write("")
+st.write("")
 
-with st.container(border=True):
+col1, col2 = st.columns(2)
 
-    st.subheader("🔐 Login")
+with col1:
 
-    username = st.text_input(
-        "Username",
-        placeholder="Enter your username"
-    )
+    st.markdown("## 👤 Patient")
 
-    password = st.text_input(
-        "Password",
-        type="password",
-        placeholder="Enter your password"
-    )
+    st.write("Access your medical dashboard")
 
-    st.write("")
-
-    login_btn = st.button(
-        "Login",
+    if st.button(
+        "Continue as Patient",
         use_container_width=True
-    )
+    ):
 
-    if login_btn:
+        st.session_state.role = "Patient"
 
-     if username.strip() == "" or password.strip() == "":
+        st.switch_page("pages/Login.py")
 
-        st.warning("Please enter username and password.")
+with col2:
 
-    else:
+    st.markdown("## 👨‍⚕️ Doctor")
 
-        user = login(username, password)
+    st.write("Access your doctor dashboard")
 
-        if user is None:
+    if st.button(
+        "Continue as Doctor",
+        use_container_width=True
+    ):
 
-            st.error("Invalid username or password.")
+        st.session_state.role = "Doctor"
 
-        else:
-
-            st.session_state.logged_in = True
-            st.session_state.username = user[1]
-            st.session_state.role = user[3]
-
-            st.success("Login Successful ✅")
-
-            st.rerun()
-
+        st.switch_page("pages/Login.py")

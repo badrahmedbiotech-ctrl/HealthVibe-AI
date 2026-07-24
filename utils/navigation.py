@@ -1,6 +1,9 @@
 import streamlit as st
 from pathlib import Path
 
+# ==========================================
+# SIDEBAR
+# ==========================================
 
 def sidebar():
 
@@ -9,11 +12,7 @@ def sidebar():
         st.markdown("""
         <div style="text-align:center;">
 
-        <h1 style="
-        color:#00C2FF;
-        font-size:55px;
-        margin-bottom:-15px;
-        ">
+        <h1 style="color:#00C2FF;font-size:55px;margin-bottom:-15px;">
         🩺
         </h1>
 
@@ -21,10 +20,7 @@ def sidebar():
         HealthVibe AI
         </h2>
 
-        <p style="
-        color:#94A3B8;
-        margin-top:-10px;
-        ">
+        <p style="color:#94A3B8;margin-top:-10px;">
         AI Clinical Decision Support System
         </p>
 
@@ -33,70 +29,104 @@ def sidebar():
 
         st.divider()
 
-        st.markdown("### 🏥 AI Modules")
+        username = st.session_state.get("username", "Guest")
+        role = st.session_state.get("role", "User")
+
+        st.markdown(f"""
+        ### 👤 Logged in
+
+        **User:** {username}
+
+        **Role:** {role}
+        """)
+
+        st.divider()
+
+        # ==========================
+        # MAIN
+        # ==========================
+
+        st.markdown("## 🏠 Main")
 
         pages = [
 
-            ("app.py", "🏠 Dashboard"),
+            ("pages/Login.py","🔑 Login"),
 
-            ("pages/Diabetes.py", "🩸 Diabetes"),
+            ("pages/Register.py","📝 Register"),
 
-            ("pages/Patient_History.py", "📋 Patient History"),
+            ("pages/Profile.py","👤 My Profile"),
 
-            ("pages/Heart_Disease.py", "❤️ Heart Disease"),
-
-            ("pages/Pulmonary_Fibrosis.py", "🫁 Pulmonary Fibrosis"),
-
-            ("pages/CT_Scan_AI.py", "🩻 Lung CT Scan"),
-
-            ("pages/Breast_Cancer.py", "🎗 Breast Cancer"),
-
-            ("pages/About.py", "ℹ About")
+            ("pages/Dashboard.py","🏠 Dashboard"),
 
         ]
+
+        # ==========================
+        # DISEASES
+        # ==========================
+
+        st.markdown("## 🧬 Disease Prediction")
+
+        pages += [
+
+            ("pages/Diabetes.py","🩸 Diabetes"),
+
+            ("pages/Hypertension.py","❤️ Hypertension"),
+
+            ("pages/lipid.py","🫀 Lipid"),
+
+            ("pages/obesity.py","⚖️ Obesity"),
+
+            ("pages/thrombosis_app.py","🩸 Thrombosis"),
+
+            ("pages/Pulmonary_Fibrosis.py","🫁 Pulmonary Fibrosis"),
+
+            ("pages/CT_Scan_AI.py","🩻 CT Scan"),
+
+        ]
+
+        # ==========================
+        # EXTRA
+        # ==========================
+
+        st.markdown("## 📋 Other")
+
+        pages += [
+
+            ("pages/Patient_History.py","📋 Patient History"),
+
+            ("pages/doctor_db.py","👨‍⚕️ Doctor Dashboard"),
+
+            ("pages/About.py","ℹ️ About"),
+
+        ]
+
+        # ==========================
 
         for page, title in pages:
 
             if Path(page).exists():
-                st.page_link(page, label=title)
+
+                st.page_link(
+                    page,
+                    label=title,
+                    use_container_width=True
+                )
 
         st.divider()
-
-        st.markdown("### 📊 System Status")
 
         st.success("🟢 AI Online")
 
-        st.info("Version 2.0")
+        st.progress(100)
+
+        st.caption("Version 2.0")
 
         st.divider()
 
-        st.markdown("""
-### 👨‍💻 Developer
+        if st.button(
+            "🚪 Logout",
+            use_container_width=True
+        ):
 
-**Badr Ahmed**
+            st.session_state.clear()
 
-Biotechnology Student
-
-AI & Bioinformatics
-""")
-
-        st.divider()
-
-        st.caption("© 2026 HealthVibe AI")
-
-
-def hide_sidebar():
-
-    st.markdown("""
-    <style>
-
-    section[data-testid="stSidebar"]{
-        display:none;
-    }
-
-    div[data-testid="collapsedControl"]{
-        display:none;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
+            st.switch_page("app.py")

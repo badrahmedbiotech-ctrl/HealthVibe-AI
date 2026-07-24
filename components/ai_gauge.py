@@ -1,11 +1,13 @@
 import streamlit as st
+import plotly.graph_objects as go
+
 
 def ai_gauge(probability):
 
     if probability is None:
         return
 
-    percent = int(probability * 100)
+    percent = round(probability * 100, 1)
 
     if percent < 40:
         color = "#22C55E"
@@ -19,66 +21,105 @@ def ai_gauge(probability):
         color = "#EF4444"
         status = "HIGH RISK"
 
-    st.markdown(f"""
-    <div style="
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=percent,
 
-    width:260px;
-    height:260px;
+            number={
+                "suffix": "%",
+                "font": {
+                    "size": 42,
+                    "color": "white"
+                }
+            },
 
-    margin:auto;
+            title={
+                "text": f"<b>{status}</b>",
+                "font": {
+                    "size": 24,
+                    "color": color
+                }
+            },
 
-    border-radius:50%;
+            gauge={
 
-    background:conic-gradient(
-        {color} {percent*3.6}deg,
-        #E5E7EB 0deg
-    );
+                "axis": {
+                    "range": [0, 100],
+                    "tickcolor": "white",
+                    "tickfont": {
+                        "color": "white"
+                    }
+                },
 
-    display:flex;
+                "bar": {
+                    "color": color,
+                    "thickness": 0.35
+                },
 
-    justify-content:center;
+                "bgcolor": "#162033",
 
-    align-items:center;
+                "borderwidth": 0,
 
-    ">
+                "steps": [
 
-        <div style="
+                    {
+                        "range": [0, 40],
+                        "color": "#1F3D2D"
+                    },
 
-        width:200px;
+                    {
+                        "range": [40, 70],
+                        "color": "#4B3A15"
+                    },
 
-        height:200px;
+                    {
+                        "range": [70, 100],
+                        "color": "#4A1E1E"
+                    }
 
-        background:#111827;
+                ],
 
-        border-radius:50%;
+                "threshold": {
 
-        display:flex;
+                    "line": {
+                        "color": "#FFFFFF",
+                        "width": 6
+                    },
 
-        flex-direction:column;
+                    "thickness": 0.8,
 
-        justify-content:center;
+                    "value": percent
 
-        align-items:center;
+                }
 
-        ">
+            }
 
-            <div style="font-size:52px;">
-            🩺
-            </div>
+        )
+    )
 
-            <h1 style="color:white;margin:0;">
-            {percent}%
-            </h1>
+    fig.update_layout(
 
-            <p style="
-            color:{color};
-            font-size:20px;
-            font-weight:bold;
-            ">
-            {status}
-            </p>
+        paper_bgcolor="rgba(0,0,0,0)",
 
-        </div>
+        plot_bgcolor="rgba(0,0,0,0)",
 
-    </div>
-    """, unsafe_allow_html=True)
+        font={
+            "color": "white"
+        },
+
+        height=380,
+
+        margin=dict(
+            l=20,
+            r=20,
+            t=60,
+            b=20
+        )
+
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
