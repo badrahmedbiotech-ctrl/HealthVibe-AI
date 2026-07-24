@@ -271,7 +271,7 @@ Context from dataset:
                 })
                 
                 # حفظ المخرجات في سجل المحادثة
-                st.session_state.all_chats[current_chat_id]["messages"] = st.session_state.messages
+                st.session_state.all_chats[current_chat_id]["messages"] = st.session_state. messages
                 
             except Exception as e:
                 st.error(f"خطأ: {str(e)}")
