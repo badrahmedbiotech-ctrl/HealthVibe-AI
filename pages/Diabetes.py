@@ -112,11 +112,11 @@ if st.session_state.step == 1:
 
     st.subheader("👤 Patient Information")
 
-    name = profile["full_name"]
-    age = profile["age"]
-    gender = profile["gender"]
-    weight = profile["weight"]
-    height = profile["height"]
+    name = profile["full_name"] or ""
+    age = profile["age"] or 20
+    gender = profile["gender"] or "Male"
+    weight = profile["weight"] or 70.0
+    height = profile["height"] or 170.0
 
     st.success("✅ Patient information loaded from your profile.")
 
