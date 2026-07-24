@@ -62,11 +62,12 @@ def create_tables():
 
     """)
 
+
     # ---------------- PROFILE ----------------
 
     cur.execute("""
 
-    CREATE TABLE IF NOT EXISTS patient_profiles(
+CREATE TABLE IF NOT EXISTS patient_profiles (
 
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -100,7 +101,7 @@ def create_tables():
 
 )
 
-    """)
+""")
 
     conn.commit()
     conn.close()
@@ -205,7 +206,7 @@ def create_profile(user_id):
 
     VALUES(?)
 
-    """,(user_id,))
+    """, (user_id,))
 
     conn.commit()
     conn.close()
@@ -219,7 +220,6 @@ def get_profile(user_id):
 
     conn = connect()
     conn.row_factory = sqlite3.Row
-
     cur = conn.cursor()
 
     cur.execute("""
@@ -230,7 +230,7 @@ def get_profile(user_id):
 
     WHERE user_id=?
 
-    """,(user_id,))
+    """, (user_id,))
 
     profile = cur.fetchone()
 
@@ -278,7 +278,7 @@ def update_profile(data):
 
     WHERE user_id=?
 
-    """,(
+    """, (
 
         data["full_name"],
         data["age"],

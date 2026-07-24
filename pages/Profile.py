@@ -45,6 +45,7 @@ create_profile(user["id"])
 
 profile = get_profile(user["id"])
 
+
 full_name = st.text_input(
     "👤 Full Name",
     value=profile["full_name"] or user["full_name"]
@@ -274,42 +275,39 @@ st.divider()
 # ==========================================
 
 if st.button(
-
     "💾 Save Medical Profile",
-
     use_container_width=True
-
 ):
 
-update_profile({
+    update_profile({
 
-    "user_id": user["id"],
+        "user_id": user["id"],
 
-    "full_name": full_name,
-    "age": age,
-    "gender": gender,
-    "weight": weight,
-    "height": height,
+        "full_name": full_name,
+        "age": age,
+        "gender": gender,
+        "weight": weight,
+        "height": height,
 
-    "phone": phone,
-    "address": address,
-    "birth_date": birth_date,
-    "blood_group": blood_group,
-    "smoking": smoking,
-    "alcohol": alcohol,
-    "allergies": allergies,
-    "chronic_diseases": chronic_diseases,
-    "medications": medications,
-    "emergency_name": emergency_name,
-    "emergency_phone": emergency_phone,
-    "emergency_relation": emergency_relation
+        "phone": phone,
+        "address": address,
+        "birth_date": birth_date,
+        "blood_group": blood_group,
+        "smoking": smoking,
+        "alcohol": alcohol,
+        "allergies": allergies,
+        "chronic_diseases": chronic_diseases,
+        "medications": medications,
+        "emergency_name": emergency_name,
+        "emergency_phone": emergency_phone,
+        "emergency_relation": emergency_relation
 
-})
+    })
+
     st.success("✅ Medical Profile Updated Successfully!")
-
     st.balloons()
 
-st.write("")
+    st.write("")
 
 # ==========================================
 # BACK BUTTON
@@ -329,4 +327,4 @@ if st.button(
 
     else:
 
-        st.switch_page("Dashboard.py")
+        st.switch_page("pages/Dashboard.py")
