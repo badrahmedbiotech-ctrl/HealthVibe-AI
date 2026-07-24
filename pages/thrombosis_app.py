@@ -269,11 +269,11 @@ if submit:
     for r in recs:
         st.write(f"- {r}")
         
-    # 6. زر تحميل الـ PDF
+    # 6. زر تحميل الـ PD
     pdf_bytes = generate_pdf(user_data, result_status, recs, meds)
     st.download_button(
-        label="📥 Download PDF Medical Report",
-        data=pdf_bytes,
-        file_name="Thrombosis_AI_Report.pdf",
-        mime="application/pdf"
-    )
+            label="📥 Download PDF Medical Report",
+            data=pdf_bytes,
+            file_name="Thrombosis_AI_Report.pdf",
+            mime="application/pdf"
+        )

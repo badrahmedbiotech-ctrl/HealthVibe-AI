@@ -5,5 +5,5 @@ def render_sidebar():
         st.divider()
 
         if st.button("💬 AI Assistant", use_container_width=True):
-              st.switch_page("pages/chatbot.py")
+           st.switch_page("pages/chatbot.py")
             
