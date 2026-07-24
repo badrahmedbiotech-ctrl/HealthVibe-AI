@@ -12,7 +12,6 @@ DB_FOLDER.mkdir(exist_ok=True)
 
 DATABASE = DB_FOLDER / "healthvibe.db"
 
-
 # ==========================================
 # CONNECT
 # ==========================================
@@ -31,7 +30,7 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# ==========================================
+ # ==========================================
 # CREATE TABLES
 # ==========================================
 
@@ -43,7 +42,6 @@ def create_tables():
     # ---------------- USERS ----------------
 
     cur.execute("""
-
     CREATE TABLE IF NOT EXISTS users(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,44 +57,90 @@ def create_tables():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
     )
-
     """)
 
-
-    # ---------------- PATIENTS ----------------
+    # ---------------- PATIENT PROFILE ----------------
 
     cur.execute("""
+    CREATE TABLE IF NOT EXISTS patient_profiles(
 
-    CREATE TABLE IF NOT EXISTS patient_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER UNIQUE,
 
-    user_id INTEGER,
+        full_name TEXT,
+        age INTEGER,
+        gender TEXT,
+        weight REAL,
+        height REAL,
 
-    full_name TEXT,
-    age INTEGER,
-    gender TEXT,
-    weight REAL,
-    height REAL,
+        phone TEXT,
+        address TEXT,
+        birth_date TEXT,
+        blood_group TEXT,
 
-    pregnancies INTEGER,
-    glucose REAL,
-    blood_pressure REAL,
-    skin_thickness REAL,
-    insulin REAL,
-    bmi REAL,
-    pedigree REAL,
+        smoking TEXT,
+        alcohol TEXT,
 
-    prediction TEXT,
-    probability REAL,
+        allergies TEXT,
+        chronic_diseases TEXT,
+        medications TEXT,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        emergency_name TEXT,
+        emergency_phone TEXT,
+        emergency_relation TEXT,
 
-    FOREIGN KEY(user_id) REFERENCES users(id)
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-)
+        FOREIGN KEY(user_id) REFERENCES users(id)
 
-""")
+    )
+    """)
+
+    # ---------------- PREDICTIONS ----------------
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS patients(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        user_id INTEGER,
+
+        full_name TEXT,
+
+        age INTEGER,
+
+        gender TEXT,
+
+        weight REAL,
+
+        height REAL,
+
+        pregnancies INTEGER,
+
+        glucose REAL,
+
+        blood_pressure REAL,
+
+        skin_thickness REAL,
+
+        insulin REAL,
+
+        bmi REAL,
+
+        pedigree REAL,
+
+        prediction INTEGER,
+
+        probability REAL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY(user_id) REFERENCES users(id)
+
+    )
+    """)
+
     conn.commit()
     conn.close()
 
