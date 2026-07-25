@@ -1,12 +1,16 @@
 import streamlit as st
-from pathlib import Path
+
+from translations import get_text
 
 
-def sidebar():
+def sidebar(lang=None):
+
+    if lang is None:
+        lang = st.session_state.get("lang", "en")
 
     with st.sidebar:
 
-        st.markdown("""
+        st.markdown(f"""
         <div style="text-align:center;">
 
         <h1 style="
@@ -18,14 +22,14 @@ def sidebar():
         </h1>
 
         <h2 style="color:white;">
-        HealthVibe AI
+        {get_text(lang, "app_title")}
         </h2>
 
         <p style="
         color:#94A3B8;
         margin-top:-10px;
         ">
-        AI Clinical Decision Support System
+        {get_text(lang, "sidebar_subtitle")}
         </p>
 
         </div>
@@ -33,56 +37,27 @@ def sidebar():
 
         st.divider()
 
-        st.markdown("### 🏥 AI Modules")
+        st.markdown(f"### 📊 {get_text(lang, 'sidebar_status_header')}")
 
-        pages = [
+        st.success(f"🟢 {get_text(lang, 'sidebar_ai_online')}")
 
-            ("app.py", "🏠 Dashboard"),
-
-            ("pages/Diabetes.py", "🩸 Diabetes"),
-
-            ("pages/Patient_History.py", "📋 Patient History"),
-
-            ("pages/Heart_Disease.py", "❤️ Heart Disease"),
-
-            ("pages/Pulmonary_Fibrosis.py", "🫁 Pulmonary Fibrosis"),
-
-            ("pages/CT_Scan_AI.py", "🩻 Lung CT Scan"),
-
-            ("pages/Breast_Cancer.py", "🎗 Breast Cancer"),
-
-            ("pages/About.py", "ℹ About")
-
-        ]
-
-        for page, title in pages:
-
-            if Path(page).exists():
-                st.page_link(page, label=title)
+        st.info(get_text(lang, "sidebar_version"))
 
         st.divider()
 
-        st.markdown("### 📊 System Status")
-
-        st.success("🟢 AI Online")
-
-        st.info("Version 2.0")
-
-        st.divider()
-
-        st.markdown("""
-### 👨‍💻 Developer
+        st.markdown(f"""
+### 👨‍💻 {get_text(lang, "sidebar_developer_header")}
 
 **Badr Ahmed**
 
-Biotechnology Student
+{get_text(lang, "sidebar_developer_role1")}
 
-AI & Bioinformatics
+{get_text(lang, "sidebar_developer_role2")}
 """)
 
         st.divider()
 
-        st.caption("© 2026 HealthVibe AI")
+        st.caption(get_text(lang, "sidebar_copyright"))
 
 
 def hide_sidebar():

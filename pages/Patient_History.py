@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.express as px
 
 from utils.navigation import sidebar
+from components.language import apply_language
+from translations import get_text
 
 from components.database import (
     get_history,
@@ -16,6 +18,8 @@ st.set_page_config(
     layout="wide"
 )
 
+lang = apply_language()
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -24,13 +28,13 @@ with open("style.css", encoding="utf-8") as f:
 
 sidebar()
 
-st.markdown("""
+st.markdown(f"""
 <div class="hero">
 
-<h1>📋 Patient History</h1>
+<h1>{get_text(lang, "patient_history_hero_title")}</h1>
 
 <p>
-Complete medical history and AI prediction records
+{get_text(lang, "patient_history_hero_desc")}
 </p>
 
 </div>
@@ -39,8 +43,8 @@ Complete medical history and AI prediction records
 st.write("")
 
 search = st.text_input(
-    "🔍 Search Patient",
-    placeholder="Search by patient name..."
+    get_text(lang, "search_patient_label"),
+    placeholder=get_text(lang, "search_patient_placeholder")
 )
 
 if search:
@@ -55,7 +59,7 @@ else:
 
 if len(df) == 0:
 
-    st.warning("No Patient Records Found")
+    st.warning(get_text(lang, "no_patient_records"))
 
 else:
 
@@ -71,25 +75,25 @@ else:
 
     with c1:
         st.metric(
-            "👥 Total Patients",
+            get_text(lang, "metric_total_patients"),
             total
         )
 
     with c2:
         st.metric(
-            "🔴 High Risk",
+            get_text(lang, "metric_high_risk"),
             high
         )
 
     with c3:
         st.metric(
-            "🟢 Low Risk",
+            get_text(lang, "metric_low_risk"),
             low
         )
 
     with c4:
         st.metric(
-            "⚖ Average BMI",
+            get_text(lang, "metric_avg_bmi"),
             avg_bmi
         )
 
@@ -107,7 +111,7 @@ else:
 
             nbins=20,
 
-            title="Glucose Distribution"
+            title=get_text(lang, "glucose_distribution_title")
 
         )
 
@@ -120,7 +124,7 @@ else:
 
         risk = pd.DataFrame({
 
-            "Risk": ["Low Risk", "High Risk"],
+            "Risk": [get_text(lang, "risk_label_low"), get_text(lang, "risk_label_high")],
 
             "Count": [low, high]
 
@@ -136,7 +140,7 @@ else:
 
             hole=.55,
 
-            title="Risk Distribution"
+            title=get_text(lang, "risk_distribution_title")
 
         )
 
@@ -146,7 +150,7 @@ else:
         )
         st.write("")
 
-st.subheader("📋 Patient Records")
+st.subheader(get_text(lang, "patient_records_header"))
 
 show_df = df.copy()
 
@@ -154,9 +158,9 @@ if "prediction" in show_df.columns:
 
     show_df["prediction"] = show_df["prediction"].replace({
 
-        0: "🟢 Low Risk",
+        0: get_text(lang, "metric_low_risk"),
 
-        1: "🔴 High Risk"
+        1: get_text(lang, "metric_high_risk")
 
     })
 
@@ -176,7 +180,7 @@ csv = df.to_csv(index=False).encode()
 
 st.download_button(
 
-    "⬇ Download Patient History",
+    get_text(lang, "download_patient_history_button"),
 
     data=csv,
 
@@ -190,13 +194,13 @@ st.download_button(
 
 st.write("")
 
-st.subheader("👤 View Patient Details")
+st.subheader(get_text(lang, "view_patient_details_header"))
 
 patient_ids = df["id"].tolist()
 
 selected = st.selectbox(
 
-    "Select Patient",
+    get_text(lang, "select_patient_label"),
 
     patient_ids
 
@@ -208,39 +212,39 @@ left, right = st.columns(2)
 
 with left:
 
-    st.markdown("### Personal Information")
+    st.markdown(f"### {get_text(lang, 'personal_info')}")
 
-    st.write(f"**Name:** {patient['full_name']}")
+    st.write(f"**{get_text(lang, 'name_label')}:** {patient['full_name']}")
 
-    st.write(f"**Age:** {patient['age']}")
+    st.write(f"**{get_text(lang, 'age')}:** {patient['age']}")
 
-    st.write(f"**Gender:** {patient['gender']}")
+    st.write(f"**{get_text(lang, 'gender')}:** {patient['gender']}")
 
-    st.write(f"**Weight:** {patient['weight']} kg")
+    st.write(f"**{get_text(lang, 'weight_plain_label')}:** {patient['weight']} kg")
 
-    st.write(f"**Height:** {patient['height']} cm")
+    st.write(f"**{get_text(lang, 'height_plain_label')}:** {patient['height']} cm")
 
 with right:
 
-    st.markdown("### Medical Information")
+    st.markdown(f"### {get_text(lang, 'medical_info_header')}")
 
-    st.write(f"**BMI:** {patient['bmi']}")
+    st.write(f"**{get_text(lang, 'bmi_label')}:** {patient['bmi']}")
 
-    st.write(f"**Glucose:** {patient['glucose']}")
+    st.write(f"**{get_text(lang, 'glucose_label')}:** {patient['glucose']}")
 
-    st.write(f"**Blood Pressure:** {patient['blood_pressure']}")
+    st.write(f"**{get_text(lang, 'blood_pressure_label')}:** {patient['blood_pressure']}")
 
-    st.write(f"**Insulin:** {patient['insulin']}")
+    st.write(f"**{get_text(lang, 'insulin_label')}:** {patient['insulin']}")
 
-    st.write(f"**Pedigree:** {patient['pedigree']}")
+    st.write(f"**{get_text(lang, 'pedigree_label')}:** {patient['pedigree']}")
 
 if patient["prediction"] == 1:
 
-    st.error("🔴 High Risk of Diabetes")
+    st.error(get_text(lang, "high_risk_diabetes_msg"))
 
 else:
 
-    st.success("🟢 Low Risk of Diabetes")
+    st.success(get_text(lang, "low_risk_diabetes_msg"))
 
     st.write("")
 
@@ -254,11 +258,11 @@ left, right = st.columns(2)
 
 with left:
 
-    st.subheader("🗑 Delete Patient")
+    st.subheader(get_text(lang, "delete_patient_header"))
 
     delete_id = st.number_input(
 
-        "Patient ID",
+        get_text(lang, "patient_id_label"),
 
         min_value=1,
 
@@ -270,7 +274,7 @@ with left:
 
     if st.button(
 
-        "Delete Record",
+        get_text(lang, "delete_record_button"),
 
         use_container_width=True
 
@@ -278,7 +282,7 @@ with left:
 
         delete_patient(delete_id)
 
-        st.success("Patient deleted successfully.")
+        st.success(get_text(lang, "patient_deleted_success"))
 
         st.rerun()
 
@@ -288,44 +292,44 @@ with left:
 
 with right:
 
-    st.subheader("📄 Medical Report")
+    st.subheader(get_text(lang, "medical_report_header"))
 
     report = f"""
 HealthVibe AI
 
 ==============================
 
-Patient Name : {patient['full_name']}
+{get_text(lang, 'name_label')} : {patient['full_name']}
 
-Age : {patient['age']}
+{get_text(lang, 'age')} : {patient['age']}
 
-Gender : {patient['gender']}
+{get_text(lang, 'gender')} : {patient['gender']}
 
-Weight : {patient['weight']} kg
+{get_text(lang, 'weight_plain_label')} : {patient['weight']} kg
 
-Height : {patient['height']} cm
-
-------------------------------
-
-Glucose : {patient['glucose']}
-
-Blood Pressure : {patient['blood_pressure']}
-
-Insulin : {patient['insulin']}
-
-BMI : {patient['bmi']}
-
-Pedigree : {patient['pedigree']}
+{get_text(lang, 'height_plain_label')} : {patient['height']} cm
 
 ------------------------------
 
-Prediction :
+{get_text(lang, 'glucose_label')} : {patient['glucose']}
 
-{"HIGH RISK" if patient["prediction"]==1 else "LOW RISK"}
+{get_text(lang, 'blood_pressure_label')} : {patient['blood_pressure']}
+
+{get_text(lang, 'insulin_label')} : {patient['insulin']}
+
+{get_text(lang, 'bmi_label')} : {patient['bmi']}
+
+{get_text(lang, 'pedigree_label')} : {patient['pedigree']}
+
+------------------------------
+
+{get_text(lang, 'report_prediction_label')} :
+
+{get_text(lang, 'report_high_risk') if patient["prediction"] == 1 else get_text(lang, 'report_low_risk')}
 
 ==============================
 
-Generated by
+{get_text(lang, 'report_generated_by')}
 
 HealthVibe AI
 
@@ -333,7 +337,7 @@ HealthVibe AI
 
     st.download_button(
 
-        "⬇ Download Report",
+        get_text(lang, "download_report_button"),
 
         report,
 
@@ -348,7 +352,7 @@ HealthVibe AI
     st.write("")
 st.divider()
 
-st.markdown("""
+st.markdown(f"""
 <div class="footer">
 
 <h2 style="color:#00C2FF;">
@@ -356,13 +360,13 @@ HealthVibe AI
 </h2>
 
 <p>
-AI-powered Clinical Decision Support Platform
+{get_text(lang, "footer_desc_patient_history")}
 </p>
 
 <hr>
 
 <p style="color:#94A3B8;">
-Developed by <b>Badr Ahmed</b>
+{get_text(lang, "footer_developed_by")}
 </p>
 
 </div>

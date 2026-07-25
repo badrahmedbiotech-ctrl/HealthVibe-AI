@@ -1,4 +1,6 @@
 import streamlit as st
+from components.language import apply_language
+from translations import get_text
 
 st.set_page_config(
     page_title="HealthVibe AI",
@@ -9,109 +11,111 @@ st.set_page_config(
 with open("style.css", encoding="utf-8") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.markdown("""
+lang = apply_language()
+
+st.markdown(f"""
 # 🩺 HealthVibe AI
 
-### AI Powered Diabetes Management Platform
+### {get_text(lang, "dashboard_subtitle")}
 
 ---
 
 """)
 
-st.success("System Online ✅")
+st.success(get_text(lang, "system_online"))
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric(
-        "Patients",
+        get_text(lang, "metric_patients"),
         "1,254",
         "+23"
     )
 
 with col2:
     st.metric(
-        "Predictions",
+        get_text(lang, "metric_predictions"),
         "8,421",
         "+112"
     )
 
 with col3:
     st.metric(
-        "AI Accuracy",
+        get_text(lang, "metric_accuracy"),
         "96.4%",
         "+0.3%"
     )
 
 with col4:
     st.metric(
-        "Reports",
+        get_text(lang, "metric_reports"),
         "5,014",
         "+44"
     )
 
     st.write("")
-st.subheader("🚀 Quick Actions")
+st.subheader(get_text(lang, "quick_actions_header"))
 
 c1, c2, c3 = st.columns(3)
 
 with c1:
     with st.container(border=True):
-        st.markdown("## 🩸 Diabetes Assessment")
-        st.write("Predict diabetes risk using AI.")
-        if st.button("Open Assessment", use_container_width=True):
+        st.markdown(f"## {get_text(lang, 'diabetes_assessment_title')}")
+        st.write(get_text(lang, "diabetes_assessment_desc"))
+        if st.button(get_text(lang, "open_assessment_button"), use_container_width=True):
             st.switch_page("pages/Diabetes.py")
 
 with c2:
     with st.container(border=True):
-        st.markdown("## 📂 Patient History")
-        st.write("View previous patient records.")
-        if st.button("Open History", use_container_width=True):
-            st.info("Coming Soon")
+        st.markdown(f"## {get_text(lang, 'patient_history_title')}")
+        st.write(get_text(lang, "patient_history_desc"))
+        if st.button(get_text(lang, "open_history_button"), use_container_width=True):
+            st.info(get_text(lang, "coming_soon"))
 
 with c3:
     with st.container(border=True):
-        st.markdown("## 🩻 DICOM Viewer")
-        st.write("View Medical Images.")
-        if st.button("Open Viewer", use_container_width=True):
-            st.info("Coming Soon")
+        st.markdown(f"## {get_text(lang, 'dicom_viewer_title')}")
+        st.write(get_text(lang, "dicom_viewer_desc"))
+        if st.button(get_text(lang, "open_viewer_button"), use_container_width=True):
+            st.info(get_text(lang, "coming_soon"))
 
             st.write("")
-st.subheader("✨ Platform Features")
+st.subheader(get_text(lang, "platform_features_header"))
 
 col1, col2 = st.columns(2)
 
 with col1:
 
-    st.checkbox("✅ Doctor Login", value=True, disabled=True)
+    st.checkbox(get_text(lang, "feature_doctor_login"), value=True, disabled=True)
 
-    st.checkbox("✅ Patient Login", value=True, disabled=True)
+    st.checkbox(get_text(lang, "feature_patient_login"), value=True, disabled=True)
 
-    st.checkbox("✅ AI Prediction", value=True, disabled=True)
+    st.checkbox(get_text(lang, "feature_ai_prediction"), value=True, disabled=True)
 
-    st.checkbox("✅ Patient History", value=True, disabled=True)
+    st.checkbox(get_text(lang, "feature_patient_history"), value=True, disabled=True)
 
-    st.checkbox("✅ Database", value=True, disabled=True)
+    st.checkbox(get_text(lang, "feature_database"), value=True, disabled=True)
 
 with col2:
 
-    st.checkbox("🚧 OCR Analysis", value=False, disabled=True)
+    st.checkbox(get_text(lang, "feature_ocr"), value=False, disabled=True)
 
-    st.checkbox("🚧 DICOM Viewer", value=False, disabled=True)
+    st.checkbox(get_text(lang, "feature_dicom"), value=False, disabled=True)
 
-    st.checkbox("🚧 PDF Reports", value=False, disabled=True)
+    st.checkbox(get_text(lang, "feature_pdf_reports"), value=False, disabled=True)
 
-    st.checkbox("🚧 Mobile App", value=False, disabled=True)
+    st.checkbox(get_text(lang, "feature_mobile_app"), value=False, disabled=True)
 
-    st.checkbox("🚧 API Integration", value=False, disabled=True)
+    st.checkbox(get_text(lang, "feature_api_integration"), value=False, disabled=True)
 
     st.write("")
 st.divider()
 
-st.subheader("📊 System Status")
+st.subheader(get_text(lang, "system_status_header"))
 
 st.progress(96)
 
-st.success("HealthVibe AI is running normally.")
+st.success(get_text(lang, "system_running"))
 
-st.caption("Version 1.0.0")
+st.caption(get_text(lang, "version_label"))
