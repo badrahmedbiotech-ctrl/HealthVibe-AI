@@ -30,21 +30,20 @@ with open("style.css", encoding="utf-8") as f:
 # LOGIN CHECK
 # ==========================================
 
-if "user" not in st.session_state:
+user = st.session_state.get("user")
 
-    st.switch_page("pages/Login.py")
+if not user:
+    st.warning("⚠️ Please log in first to view your profile.")
     st.stop()
-
-user = st.session_state.user
 
 # ==========================================
 # CREATE PROFILE IF NOT EXISTS
 # ==========================================
 
-create_profile(user["id"])
+user_id = user.get("id") if isinstance(user, dict) else user
 
-profile = get_profile(user["id"])
-
+create_profile(user_id)
+profile = get_profile(user_id)
 
 full_name = st.text_input(
     "👤 Full Name",

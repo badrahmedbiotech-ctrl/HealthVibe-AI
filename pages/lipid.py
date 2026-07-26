@@ -1,76 +1,132 @@
+import os
 import streamlit as st
 import pandas as pd
+from fpdf import FPDF
 
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-import os
+from translations import get_text, get_lang_meta, DEFAULT_LANG
+
+# مكتبات تشكيل الحروف العربية (reshaping) وترتيب الاتجاه (bidi) - ضرورية عشان
+# الحروف العربية تظهر متصلة وبالاتجاه الصحيح جوه الـ PDF.
+# pip install arabic-reshaper python-bidi
+try:
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    ARABIC_SHAPING_AVAILABLE = True
+except ImportError:
+    ARABIC_SHAPING_AVAILABLE = False
+
+# --- Language setup (same pattern used across the rest of the app) ---
+if "lang" not in st.session_state:
+    st.session_state["lang"] = DEFAULT_LANG
+
+lang = st.session_state["lang"]
+meta = get_lang_meta(lang)
+
+
+def t(key: str) -> str:
+    """Shortcut for get_text bound to the current session language."""
+    return get_text(lang, key)
+
+
+# --- خط الـ PDF (نفس أسلوب صفحة الجلطات) ---
+# فولدر fonts موجود في جذر المشروع (HealthVibe-AI/fonts) مش جوه pages/,
+# فلازم نطلع درجة واحدة لفوق من مكان الملف ده (اللي هو جوه pages/) عشان نوصله.
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FONT_DIR = os.path.join(PROJECT_ROOT, "fonts")
+FONT_REGULAR_PATH = os.path.join(FONT_DIR, "Amiri-Regular.ttf")
+FONT_BOLD_PATH = os.path.join(FONT_DIR, "Amiri-Bold.ttf")
+PDF_FONTS_AVAILABLE = os.path.exists(FONT_REGULAR_PATH) and os.path.exists(FONT_BOLD_PATH)
+
+
+def shape_ar(text: str) -> str:
+    """يشكّل النص العربي ويرتبه من اليمين لليسار عشان يظهر سليم جوه الـ PDF."""
+    if lang == "ar" and ARABIC_SHAPING_AVAILABLE:
+        try:
+            reshaped = arabic_reshaper.reshape(str(text))
+            return get_display(reshaped)
+        except Exception:
+            return str(text)
+    return str(text)
 
 
 # ==========================
 # PDF Generator Function
 # ==========================
-if "analyzed" not in st.session_state:
-    st.session_state.analyzed = False
+def generate_pdf(user_data, risk_level, health_score, recommendations):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
 
-if "health_score" not in st.session_state:
-    st.session_state.health_score = 0
+    if lang == "ar":
+        if not PDF_FONTS_AVAILABLE:
+            return None
+        pdf.add_font("Amiri", "", FONT_REGULAR_PATH)
+        pdf.add_font("Amiri", "B", FONT_BOLD_PATH)
+        base_font = "Amiri"
+    else:
+        base_font = "Helvetica"
 
-if "risk_level" not in st.session_state:
-    st.session_state.risk_level = ""
+    align = "R" if lang == "ar" else "L"
 
-if "recommendations" not in st.session_state:
-    st.session_state.recommendations = []    
-def generate_pdf(age, gender, bmi, total_chol, ldl, hdl, triglycerides,
-                 health_score, risk_level, recommendations):
+    # 1. الهيدر
+    pdf.set_font(base_font, "B", 24)
+    pdf.set_text_color(26, 82, 118)
+    pdf.cell(0, 15, shape_ar(t("pdf_app_name")), ln=1, align=align)
 
-    file_name = "Lipid_Report.pdf"
+    pdf.set_font(base_font, "", 12)
+    pdf.set_text_color(127, 140, 141)
+    pdf.cell(0, 5, shape_ar(t("pdf_lipid_report_subtitle")), ln=1, align=align)
 
-    doc = SimpleDocTemplate(file_name)
+    pdf.ln(8)
 
-    styles = getSampleStyleSheet()
+    # 2. البيانات
+    pdf.set_font(base_font, "B", 14)
+    pdf.set_text_color(44, 62, 80)
+    pdf.cell(0, 10, shape_ar(t("pdf_patient_params_header")), ln=1, align=align)
 
-    elements = []
+    pdf.set_font(base_font, "", 11)
+    pdf.set_text_color(60, 60, 60)
+    for key, value in user_data.items():
+        pdf.set_x(10)  # 🌟 السطر السحري عشان يرجع المؤشر لأول الشمال دايماً
+        pdf.multi_cell(0, 7, shape_ar(f"- {key}: {value}"), align=align)
 
-    elements.append(Paragraph("<b>HealthVibe AI</b>", styles["Title"]))
-    elements.append(Paragraph("Lipid Profile Report", styles["Heading1"]))
+    pdf.ln(5)
 
-    elements.append(Paragraph(f"Age : {age}", styles["BodyText"]))
-    elements.append(Paragraph(f"Gender : {gender}", styles["BodyText"]))
-    elements.append(Paragraph(f"BMI : {bmi:.2f}", styles["BodyText"]))
+    # 3. النتيجة
+    pdf.set_font(base_font, "B", 14)
+    pdf.set_text_color(44, 62, 80)
+    pdf.cell(0, 10, shape_ar(t("pdf_ai_eval_header")), ln=1, align=align)
 
-    elements.append(Paragraph("<br/>", styles["BodyText"]))
+    pdf.set_fill_color(240, 244, 248)
+    pdf.set_text_color(26, 82, 118)
+    pdf.set_draw_color(26, 82, 118)
 
-    elements.append(Paragraph(f"Total Cholesterol : {total_chol}", styles["BodyText"]))
-    elements.append(Paragraph(f"LDL : {ldl}", styles["BodyText"]))
-    elements.append(Paragraph(f"HDL : {hdl}", styles["BodyText"]))
-    elements.append(Paragraph(f"Triglycerides : {triglycerides}", styles["BodyText"]))
+    pdf.set_font(base_font, "B", 12)
+    pdf.set_x(10)  # 🌟 نفس المبدأ هنا كمان قبل صندوق النتيجة
+    pdf.multi_cell(
+        180, 10,
+        shape_ar(f"{t('pdf_lipid_overall_risk_label')}: {risk_level}    |    {t('pdf_lipid_health_score_label')}: {health_score}/100"),
+        border=1, align="C", fill=True
+    )
+    pdf.ln(8)
 
-    elements.append(Paragraph("<br/>", styles["BodyText"]))
+    # 4. التوصيات
+    pdf.set_font(base_font, "B", 14)
+    pdf.set_text_color(44, 62, 80)
+    pdf.cell(0, 10, shape_ar(t("pdf_lipid_recs_label")), ln=1, align=align)
 
-    elements.append(Paragraph(
-        f"Overall Risk : {risk_level}",
-        styles["Heading2"]
-    ))
+    pdf.set_font(base_font, "", 11)
+    pdf.set_text_color(60, 60, 60)
 
-    elements.append(Paragraph(
-        f"Health Score : {health_score}/100",
-        styles["Heading2"]
-    ))
+    if recommendations:
+        for rec in recommendations:
+            pdf.set_x(10)
+            pdf.multi_cell(180, 7, shape_ar(f"- {rec}"), align=align)
+    else:
+        pdf.set_x(10)
+        pdf.multi_cell(180, 7, shape_ar(f"- {t('lipid_no_recs_msg')}"), align=align)
 
-    elements.append(Paragraph(
-        "Recommendations:",
-        styles["Heading2"]
-    ))
-
-    for rec in recommendations:
-        elements.append(
-            Paragraph(f"• {rec}", styles["BodyText"])
-        )
-
-    doc.build(elements)
-
-    return file_name
-
+    return bytes(pdf.output())
 
 
 # ==========================
@@ -79,16 +135,40 @@ def generate_pdf(age, gender, bmi, total_chol, ldl, hdl, triglycerides,
 
 st.set_page_config(
     page_title="Lipid Profile Analyzer",
-    page_icon="🩸",
+    page_icon=t("lipid_page_icon"),
     layout="wide"
 )
 
-
-st.title("🩸 Lipid Profile Analyzer")
-
+# --- RTL / font support (نفس الأسلوب المستخدم في باقي صفحات المنصة) ---
 st.markdown(
-    "Analyze your lipid profile and receive a personalized health report."
+    f"""
+    <style>
+    html, body, [class*="css"] {{
+        direction: {meta['dir']};
+        font-family: '{meta['font']}', sans-serif;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
+
+# --- زرار تبديل اللغة ---
+top_col1, top_col2 = st.columns([5, 1])
+with top_col2:
+    if st.button(meta["switch_label"], key="lang_switch_lipid"):
+        st.session_state["lang"] = "ar" if lang == "en" else "en"
+        st.rerun()
+
+if lang == "ar" and (not ARABIC_SHAPING_AVAILABLE or not PDF_FONTS_AVAILABLE):
+    missing = []
+    if not ARABIC_SHAPING_AVAILABLE:
+        missing.append("`pip install arabic-reshaper python-bidi`")
+    if not PDF_FONTS_AVAILABLE:
+        missing.append(f"ملفات الخط `{FONT_REGULAR_PATH}` و `{FONT_BOLD_PATH}`")
+    st.warning("⚠️ تقرير الـ PDF بالعربي محتاج: " + " و ".join(missing) + " — لحد ما تضيفهم مش هيتولد تقرير PDF بالعربي.")
+
+st.title(t("lipid_hero_title"))
+st.markdown(t("lipid_hero_desc"))
 
 st.divider()
 
@@ -97,52 +177,22 @@ st.divider()
 # Personal Information
 # ==========================
 
-st.subheader("👤 Personal Information")
-
+st.subheader(t("personal_info"))
 
 col1, col2 = st.columns(2)
 
-
 with col1:
-
-    age = st.number_input(
-        "Age",
-        min_value=1,
-        max_value=120,
-        value=30
-    )
-
-    gender = st.selectbox(
-        "Gender",
-        ["Male", "Female"]
-    )
-
-    height = st.number_input(
-        "Height (cm)",
-        min_value=100,
-        max_value=250,
-        value=170
-    )
-
+    age = st.number_input(t("age"), min_value=1, max_value=120, value=30)
+    gender = st.selectbox(t("gender"), [t("male"), t("female")])
+    height = st.number_input(t("height"), min_value=100, max_value=250, value=170)
 
 with col2:
-
-    weight = st.number_input(
-        "Weight (kg)",
-        min_value=20,
-        max_value=250,
-        value=70
-    )
-
+    weight = st.number_input(t("weight"), min_value=20, max_value=250, value=70)
     smoker = st.selectbox(
-        "Smoking",
-        ["Never", "Former", "Current"]
+        t("lipid_smoking_label"),
+        [t("lipid_smoke_never"), t("lipid_smoke_former"), t("lipid_smoke_current")]
     )
-
-    family_history = st.selectbox(
-        "Family History of Heart Disease",
-        ["No", "Yes"]
-    )
+    family_history = st.selectbox(t("lipid_family_history_label"), [t("no_option"), t("yes_option")])
 
 
 # ==========================
@@ -151,44 +201,25 @@ with col2:
 
 bmi = weight / ((height / 100) ** 2)
 
-st.info(f"Calculated BMI : {bmi:.2f}")
+st.info(f"{t('lipid_calculated_bmi_label')} : {bmi:.2f}")
 
 st.divider()
+
 # ==========================
 # Medical Conditions
 # ==========================
 
-st.subheader("🩺 Medical Conditions")
+st.subheader(t("lipid_medical_conditions_header"))
 
 col1, col2 = st.columns(2)
 
 with col1:
-
-    diabetes = st.selectbox(
-        "Diabetes",
-        ["No", "Yes"]
-    )
-
-    hypertension = st.selectbox(
-        "Hypertension",
-        ["No", "Yes"]
-    )
+    diabetes = st.selectbox(t("lipid_diabetes_label"), [t("no_option"), t("yes_option")])
+    hypertension = st.selectbox(t("lipid_hypertension_label"), [t("no_option"), t("yes_option")])
 
 with col2:
-
-    exercise = st.slider(
-        "Exercise (days/week)",
-        0,
-        7,
-        3
-    )
-
-    sleep = st.slider(
-        "Sleep Hours",
-        3,
-        12,
-        7
-    )
+    exercise = st.slider(t("lipid_exercise_label"), 0, 7, 3)
+    sleep = st.slider(t("lipid_sleep_label"), 3, 12, 7)
 
 st.divider()
 
@@ -196,54 +227,28 @@ st.divider()
 # Lipid Profile
 # ==========================
 
-st.subheader("🩸 Lipid Profile")
+st.subheader(t("lipid_profile_header"))
 
 col1, col2 = st.columns(2)
 
 with col1:
-
-    total_chol = st.number_input(
-        "Total Cholesterol (mg/dL)",
-        50,
-        500,
-        180
-    )
-
-    ldl = st.number_input(
-        "LDL (mg/dL)",
-        10,
-        300,
-        100
-    )
+    total_chol = st.number_input(t("lipid_total_chol_label"), 50, 500, 180)
+    ldl = st.number_input(t("lipid_ldl_label"), 10, 300, 100)
 
 with col2:
+    hdl = st.number_input(t("lipid_hdl_label"), 10, 120, 55)
+    triglycerides = st.number_input(t("lipid_trig_label"), 20, 600, 120)
 
-    hdl = st.number_input(
-        "HDL (mg/dL)",
-        10,
-        120,
-        55
-    )
+st.divider()
 
-    triglycerides = st.number_input(
-        "Triglycerides (mg/dL)",
-        20,
-        600,
-        120
-    )
-
-    st.divider()
-    analyze = st.button(
-    "🔍 Analyze Lipid Profile",
-    use_container_width=True
-     )
+analyze = st.button(t("lipid_analyze_button"), use_container_width=True)
 
 if analyze:
 
-    st.session_state.analyzed = True
-
     st.divider()
-    st.header("📊 Lipid Analysis Results")
+    st.header(t("lipid_results_header"))
+
+    yes_label = t("yes_option")
 
     risk_score = 0
 
@@ -251,311 +256,235 @@ if analyze:
     # Total Cholesterol
     # ==========================
 
-    st.subheader("🩸 Total Cholesterol")
+    st.subheader(t("lipid_total_chol_section"))
 
     if total_chol < 200:
-        st.success("🟢 Normal")
+        st.success(t("lipid_chol_normal"))
     elif total_chol < 240:
-        st.warning("🟡 Borderline High")
+        st.warning(t("lipid_chol_borderline"))
         risk_score += 1
     else:
-        st.error("🔴 High")
+        st.error(t("lipid_chol_high"))
         risk_score += 2
 
     # ==========================
     # LDL
     # ==========================
 
-    st.subheader("🧬 LDL")
+    st.subheader(t("lipid_ldl_section"))
 
     if ldl < 100:
-        st.success("🟢 Optimal")
+        st.success(t("lipid_ldl_optimal"))
     elif ldl < 130:
-        st.info("🟡 Near Optimal")
+        st.info(t("lipid_ldl_near_optimal"))
         risk_score += 1
     elif ldl < 160:
-        st.warning("🟠 Borderline High")
+        st.warning(t("lipid_ldl_borderline"))
         risk_score += 2
     else:
-        st.error("🔴 High")
+        st.error(t("lipid_ldl_high"))
         risk_score += 3
 
     # ==========================
     # HDL
     # ==========================
-    risk_score = 0
-    st.subheader("💙 HDL")
+    # (ملحوظة: تم حذف إعادة تصفير risk_score هنا لأنها كانت بتلغي نتيجة
+    # الكوليسترول الكلي والـ LDL اللي اتحسبت فوق - ده كان الـ Bug الأساسي)
+
+    st.subheader(t("lipid_hdl_section"))
 
     if hdl >= 60:
-        st.success("🟢 Excellent")
+        st.success(t("lipid_hdl_excellent"))
     elif hdl >= 40:
-        st.info("🟡 Acceptable")
+        st.info(t("lipid_hdl_acceptable"))
     else:
-        st.error("🔴 Low HDL")
+        st.error(t("lipid_hdl_low"))
         risk_score += 2
 
     # ==========================
     # Triglycerides
     # ==========================
 
-    st.subheader("🧪 Triglycerides")
+    st.subheader(t("lipid_trig_section"))
 
     if triglycerides < 150:
-        st.success("🟢 Normal")
+        st.success(t("lipid_trig_normal"))
     elif triglycerides < 200:
-        st.warning("🟡 Borderline High")
+        st.warning(t("lipid_trig_borderline"))
         risk_score += 1
     elif triglycerides < 500:
-        st.error("🔴 High")
+        st.error(t("lipid_trig_high"))
         risk_score += 2
     else:
-        st.error("🚨 Very High")
+        st.error(t("lipid_trig_very_high"))
         risk_score += 3
 
     st.divider()
-    st.header("🎯 Overall Lipid Risk")
+    st.header(t("lipid_overall_risk_header"))
 
     if risk_score <= 2:
-        risk_level = "Low Risk"
-        st.success("🟢 Low Risk")
-
+        risk_level = t("lipid_risk_low")
+        st.success(t("lipid_risk_low"))
     elif risk_score <= 5:
-        risk_level = "Moderate Risk"
-        st.warning("🟡 Moderate Risk")
-
+        risk_level = t("lipid_risk_moderate")
+        st.warning(t("lipid_risk_moderate"))
     else:
-        risk_level = "High Risk"
-        st.error("🔴 High Risk")
+        risk_level = t("lipid_risk_high")
+        st.error(t("lipid_risk_high"))
 
     st.divider()
 
-   # ==========================
-   # Personalized Recommendations
-   # ==========================
+    # ==========================
+    # Personalized Recommendations
+    # ==========================
 
-    st.header("💡 Personalized Recommendations")
+    st.header(t("lipid_recommendations_header"))
     recommendations = []
-    # Cholesterol
+
     if total_chol >= 200:
-      recommendations.append(
-        "🥗 Reduce foods rich in saturated fats and fried meals."
-    )
+        recommendations.append(t("lipid_rec_chol"))
 
-    # LDL
     if ldl >= 130:
-      recommendations.append(
-        "🐟 Increase fish, olive oil and healthy fats."
-    )
+        recommendations.append(t("lipid_rec_ldl"))
 
-    # HDL
     if hdl < 40:
-      recommendations.append(
-        "🏃 Exercise regularly to increase HDL."
-    )
+        recommendations.append(t("lipid_rec_hdl"))
 
-    # Triglycerides
     if triglycerides >= 150:
-      recommendations.append(
-        "🍭 Reduce sugar, sweets and soft drinks."
-    )
+        recommendations.append(t("lipid_rec_trig"))
 
-    # BMI
     if bmi >= 25:
-      recommendations.append(
-        "⚖️ Losing 5-10% of your body weight can improve your lipid profile."
-    )
-      
-    #Smoking
-    if smoker == "Current":
-      recommendations.append(
-        "🚭 Stop smoking to reduce cardiovascular risk."
-    )
+        recommendations.append(t("lipid_rec_bmi"))
 
-    # Exercise
+    if smoker == t("lipid_smoke_current"):
+        recommendations.append(t("lipid_rec_smoking"))
+
     if exercise < 3:
-      recommendations.append(
-        "🏋️ Aim for at least 150 minutes of exercise per week."
-    )
+        recommendations.append(t("lipid_rec_exercise"))
 
-    # Sleep
     if sleep < 6:
-      recommendations.append(
-        "😴 Improve your sleep quality (7-9 hours/day)."
-    )
+        recommendations.append(t("lipid_rec_sleep"))
 
-    # Diabetes
-    if diabetes == "Yes":
-      recommendations.append(
-        "🩺 Keep blood sugar under control."
-    )
+    if diabetes == yes_label:
+        recommendations.append(t("lipid_rec_diabetes"))
 
-    # Hypertension
-    if hypertension == "Yes":
-      recommendations.append(
-        "❤️ Monitor your blood pressure regularly."
-    )
+    if hypertension == yes_label:
+        recommendations.append(t("lipid_rec_hypertension"))
 
-    # Family History
-    if family_history == "Yes":
-      recommendations.append(
-        "👨‍⚕️ Periodic lipid profile check-ups are recommended."
-    )
+    if family_history == yes_label:
+        recommendations.append(t("lipid_rec_family_history"))
 
     if len(recommendations) == 0:
-      st.success(
-        "🎉 Excellent! Your current lifestyle supports healthy lipid levels."
-    )
+        st.success(t("lipid_no_recs_msg"))
     else:
-      for item in recommendations:
-        st.write("✔️", item)
+        for item in recommendations:
+            st.write("✔️", item)
 
     st.divider()
 
-    st.header("⚠️ Medical Advice")
+    st.header(t("lipid_medical_advice_header"))
 
     if risk_score <= 2:
-
-      st.success(
-        "Continue your healthy lifestyle and repeat your lipid profile every year."
-    )
-
+        st.success(t("lipid_advice_low"))
     elif risk_score <= 5:
-
-     st.warning(
-        "Lifestyle modifications are recommended. Repeat your lipid profile within 3-6 months."
-    )
-
+        st.warning(t("lipid_advice_moderate"))
     else:
-
-     st.error(
-        "Your results indicate a high cardiovascular risk. Please consult a healthcare professional."
-    )
+        st.error(t("lipid_advice_high"))
 
     st.divider()
 
-   # =====================================
-   # Health Score
-   # =====================================
+    # =====================================
+    # Health Score
+    # =====================================
 
-    st.header("❤️ Health Score")
+    st.header(t("lipid_health_score_header"))
 
     health_score = 100
-
     health_score -= risk_score * 10
 
     if bmi >= 25:
-     health_score -= 5
-
-    if smoker == "Current":
-     health_score -= 10
-
-    if diabetes == "Yes":
-     health_score -= 10
-
-    if hypertension == "Yes":
-      health_score -= 10
-
+        health_score -= 5
+    if smoker == t("lipid_smoke_current"):
+        health_score -= 10
+    if diabetes == yes_label:
+        health_score -= 10
+    if hypertension == yes_label:
+        health_score -= 10
     if exercise < 3:
-      health_score -= 5
-
+        health_score -= 5
     if sleep < 6:
-      health_score -= 5
+        health_score -= 5
 
     health_score = max(0, health_score)
 
-    st.metric(
-    label="Overall Health Score",
-    value=f"{health_score}/100"
-    )
+    st.metric(label=t("lipid_health_score_metric_label"), value=f"{health_score}/100")
 
     if health_score >= 85:
-
-     st.success("🟢 Excellent Health Status")
-
+        st.success(t("lipid_health_excellent"))
     elif health_score >= 70:
-
-      st.info("🟡 Good Health Status")
-
+        st.info(t("lipid_health_good"))
     elif health_score >= 50:
-
-     st.warning("🟠 Moderate Health Status")
-
+        st.warning(t("lipid_health_moderate"))
     else:
-
-      st.error("🔴 High Health Risk")
+        st.error(t("lipid_health_high_risk"))
 
     st.divider()
 
-   # =====================================
-   # Lipid Profile Chart
-   # =====================================
+    # =====================================
+    # Lipid Profile Chart
+    # =====================================
 
-    st.header("📊 Lipid Profile Chart")
+    st.header(t("lipid_chart_header"))
 
     chart_data = pd.DataFrame({
-
-    "Test": [
-        "Total Cholesterol",
-        "LDL",
-        "HDL",
-        "Triglycerides"
-    ],
-
-    "Value": [
-        total_chol,
-        ldl,
-        hdl,
-        triglycerides
-    ]
-
+        t("lipid_chart_test_col"): [
+            t("lipid_total_chol_label"),
+            t("lipid_ldl_label"),
+            t("lipid_hdl_label"),
+            t("lipid_trig_label"),
+        ],
+        t("lipid_chart_value_col"): [total_chol, ldl, hdl, triglycerides],
     })
 
-    st.bar_chart(
-    chart_data,
-    x="Test",
-    y="Value"
-    )
+    st.bar_chart(chart_data, x=t("lipid_chart_test_col"), y=t("lipid_chart_value_col"))
 
     st.divider()
 
-    st.subheader("📈 Healthy Lipid Targets")
-
-    st.write("🟢 Total Cholesterol : Less than 200 mg/dL")
-    st.write("🟢 LDL : Less than 100 mg/dL")
-    st.write("🟢 HDL : More than 60 mg/dL")
-    st.write("🟢 Triglycerides : Less than 150 mg/dL")
+    st.subheader(t("lipid_targets_header"))
+    st.write(t("lipid_target_chol"))
+    st.write(t("lipid_target_ldl"))
+    st.write(t("lipid_target_hdl"))
+    st.write(t("lipid_target_trig"))
 
     st.divider()
 
-   # =====================================
-   # PDF Report
-   # =====================================
-if st.session_state.analyzed:
+    # =====================================
+    # PDF Report
+    # =====================================
 
-    st.header("📄 Download Your Report")
+    st.header(t("lipid_download_header"))
 
-    if st.button("Generate PDF Report"):
+    user_data = {
+        t("pdf_lipid_age_label"): age,
+        t("pdf_lipid_gender_label"): gender,
+        t("pdf_lipid_bmi_label"): f"{bmi:.2f}",
+        t("pdf_lipid_total_chol_label"): total_chol,
+        t("pdf_lipid_ldl_label"): ldl,
+        t("pdf_lipid_hdl_label"): hdl,
+        t("pdf_lipid_trig_label"): triglycerides,
+    }
 
-        pdf_file = generate_pdf(
-            age,
-            gender,
-            bmi,
-            total_chol,
-            ldl,
-            hdl,
-            triglycerides,
-            st.session_state.health_score,
-            st.session_state.risk_level,
-            st.session_state.recommendations
+    pdf_bytes = generate_pdf(user_data, risk_level, health_score, recommendations)
+
+    if pdf_bytes is None:
+        st.error(
+            "❌ لا يمكن توليد تقرير PDF بالعربي لأن ملفات خط Amiri غير موجودة.\n\n"
+            f"من فضلك ضيف الملفين التاليين:\n- {FONT_REGULAR_PATH}\n- {FONT_BOLD_PATH}"
         )
-
-        with open(pdf_file, "rb") as file:
-            pdf_bytes = file.read()
-
+    else:
         st.download_button(
-            label="⬇️ Download PDF",
+            label=t("lipid_download_pdf_button"),
             data=pdf_bytes,
             file_name="HealthVibe_Lipid_Report.pdf",
-            mime="application/pdf"
+            mime="application/pdf",
         )
-    
