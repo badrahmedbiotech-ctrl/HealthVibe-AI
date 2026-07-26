@@ -31,7 +31,7 @@ if "user" not in st.session_state:
     st.switch_page("pages/Login.py")
     st.stop()
 
-user = st.session_state.user
+user = st.session_state.get("user")
 
 # ==========================================
 # CSS
@@ -51,13 +51,14 @@ sidebar()
 # LOAD DATA
 # ==========================================
 
-if user["role"] == "Doctor":
+if user and user.get("role") == "Doctor":
 
     df = get_all_history()
 
 else:
-
-    df = get_user_history(user["id"])
+    # بدلاً من user["id"] المباشرة:
+ user_id = user.get("id") if isinstance(user, dict) else user
+df = get_user_history(user_id)
 
 # ==========================================
 # EMPTY
@@ -522,21 +523,21 @@ _________________________________________________________
 """
 ___________________________________________ 
 
-{get_text(lang, 'pregnancies_label')} : {patient['pregnancies']}
-{get_text(lang, 'glucose_label')} : {patient['glucose']}
-{get_text(lang, 'blood_pressure_label')} : {patient['blood_pressure']}
-{get_text(lang, 'skin_thickness_label')} : {patient['skin_thickness']}
-{get_text(lang, 'insulin_label')} : {patient['insulin']}
-{get_text(lang, 'bmi_label')} : {patient['bmi']}
-{get_text(lang, 'pedigree_label')} : {patient['pedigree']}
+f"{get_text(lang, 'pregnancies_label')} : {patient['pregnancies']}"
+f"{get_text(lang, 'glucose_label')} : {patient['glucose']}"
+f"{get_text(lang, 'blood_pressure_label')} : {patient['blood_pressure']}"
+f"{get_text(lang, 'skin_thickness_label')} : {patient['skin_thickness']}"
+f"{get_text(lang, 'insulin_label')} : {patient['insulin']}"
+f"{get_text(lang, 'bmi_label')} : {patient['bmi']}"
+f"{get_text(lang, 'pedigree_label')} : {patient['pedigree']}"
 
 __________________________________________________________________
 
-{get_text(lang, 'report_prediction_label')}:
+f"{get_text(lang, 'report_prediction_label')}"
 
 {get_text(lang, 'report_high_risk') if patient["prediction"] == 1 else get_text(lang, 'report_low_risk')}
 
-{get_text(lang, 'probability_label')}: {patient.get('probability', 0.0):.2f}%
+f"{get_text(lang, 'probability_label')}: {patient.get('probability', 0.0):.2f}%"
 ___________________________________________________________
 {get_text(lang, 'report_generated_by')}
 """

@@ -285,7 +285,6 @@ elif st.session_state.step == 3:
         get_text(lang, "pedigree_label"),
         min_value=0.0,
         max_value=3.0,
-        value=st.session_state.patient.get("pedigree", 0.500),
         value=st.session_state.patient.get("pedigree", 0.50),
         format="%.3f"
     )

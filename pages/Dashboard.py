@@ -17,9 +17,9 @@ from components.doctor_db import (
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
-if not st.session_state.logged_in:
-    st.switch_page("app.py")
+# بدلاً من st.switch_page("login_page")
+if not st.session_state.get("logged_in"):
+    st.warning("Please log in first.")
     st.stop()
 
 username = st.session_state.get("username", "User")
