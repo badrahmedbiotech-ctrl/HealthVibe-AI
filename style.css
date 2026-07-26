@@ -244,3 +244,19 @@ background:#2A3B55;
 border-radius:20px;
 
 }
+.stChatMessage{
+    border-radius:18px;
+    padding:10px;
+}
+
+.stButton>button{
+    border-radius:10px;
+}
+
+.stDownloadButton>button{
+    border-radius:10px;
+}
+
+textarea{
+    font-size:16px;
+}

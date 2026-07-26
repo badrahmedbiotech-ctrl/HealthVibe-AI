@@ -1,218 +1,68 @@
 import streamlit as st
-from utils.navigation import sidebar
-
-# ==========================================
-# PAGE CONFIG
-# ==========================================
 
 st.set_page_config(
     page_title="HealthVibe AI",
-    page_icon="🩺",
+    page_icon="🏥",
     layout="wide"
 )
 
-# ==========================================
-# LOAD CSS
-# ==========================================
-
 with open("style.css", encoding="utf-8") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# ==========================================
-# SIDEBAR
-# ==========================================
-
-sidebar()
-
-# ==========================================
-# HERO SECTION
-# ==========================================
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
 st.markdown("""
-<div class="hero">
 
-<h1>🩺 HealthVibe AI</h1>
+<div style="text-align:center;padding-top:50px;">
 
-<p>
-Artificial Intelligence Platform for Early Disease Detection
+<h1 style="font-size:55px;color:#00C2FF;">
+🏥 HealthVibe AI
+</h1>
+
+<h3 style="color:white;">
+AI Clinical Decision Support Platform
+</h3>
+
+<p style="color:#94A3B8;font-size:20px;">
+Choose how you want to continue
 </p>
 
 </div>
+
 """, unsafe_allow_html=True)
 
-# ==========================================
-# STATISTICS
-# ==========================================
-
-st.subheader("📊 System Overview")
-
-m1, m2, m3, m4 = st.columns(4)
-
-with m1:
-    st.metric("🧠 AI Models", "4")
-
-with m2:
-    st.metric("🏥 Diseases", "18")
-
-with m3:
-    st.metric("📈 Accuracy", "92.6%")
-
-with m4:
-    st.metric("🟢 Status", "ONLINE")
-
 st.write("")
-
-# ==========================================
-# MODULES
-# ==========================================
-
-st.subheader("🚀 AI Modules")
+st.write("")
 
 col1, col2 = st.columns(2)
 
 with col1:
 
-    st.markdown("""
-<div class="dashboard-card">
+    st.markdown("## 👤 Patient")
 
-<h2>🩺 Diabetes Prediction</h2>
+    st.write("Access your medical dashboard")
 
-<p>
+    if st.button(
+        "Continue as Patient",
+        use_container_width=True
+    ):
 
-Predict diabetes using patient clinical data,
-BMI, glucose level and vital signs.
+        st.session_state.role = "Patient"
 
-</p>
-
-<br>
-
-<span style="color:#22C55E;font-size:18px;">
-● Ready
-</span>
-
-</div>
-""", unsafe_allow_html=True)
-
-    if st.button("Open Diabetes", use_container_width=True):
-        st.switch_page("pages/Diabetes.py")
+        st.switch_page("pages/Login.py")
 
 with col2:
 
-    st.markdown("""
-<div class="dashboard-card">
+    st.markdown("## 👨‍⚕️ Doctor")
 
-<h2>🫁 Pulmonary Fibrosis</h2>
+    st.write("Access your doctor dashboard")
 
-<p>
+    if st.button(
+        "Continue as Doctor",
+        use_container_width=True
+    ):
 
-AI-powered respiratory assessment
-with pulmonary fibrosis prediction.
+        st.session_state.role = "Doctor"
 
-</p>
-
-<br>
-
-<span style="color:#22C55E;font-size:18px;">
-● Ready
-</span>
-
-</div>
-""", unsafe_allow_html=True)
-
-    if st.button("Open Pulmonary Fibrosis", use_container_width=True):
-        st.switch_page("pages/Pulmonary_Fibrosis.py")
-
-st.write("")
-
-col3, col4 = st.columns(2)
-
-with col3:
-
-    st.markdown("""
-<div class="dashboard-card">
-
-<h2>❤️ Heart Disease</h2>
-
-<p>
-
-Machine Learning model for
-heart disease prediction.
-
-</p>
-
-<br>
-
-<span style="color:#F59E0B;font-size:18px;">
-Coming Soon
-</span>
-
-</div>
-""", unsafe_allow_html=True)
-
-with col4:
-
-    st.markdown("""
-<div class="dashboard-card">
-
-<h2>🩻 Breast Cancer</h2>
-
-<p>
-
-Breast cancer diagnosis
-using Artificial Intelligence.
-
-</p>
-
-<br>
-
-<span style="color:#F59E0B;font-size:18px;">
-Coming Soon
-</span>
-
-</div>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# QUICK INFO
-# ==========================================
-
-st.write("")
-st.subheader("📌 Platform Features")
-
-a, b, c = st.columns(3)
-
-with a:
-    st.info("🤖 AI-powered disease prediction")
-
-with b:
-    st.info("⚡ Fast patient assessment")
-
-with c:
-    st.info("📊 Professional medical dashboard")
-
-# ==========================================
-# FOOTER
-# ==========================================
-
-st.write("")
-st.divider()
-
-st.markdown("""
-<div class="footer">
-
-<h2 style="color:#00C2FF;">
-HealthVibe AI
-</h2>
-
-<p>
-Artificial Intelligence Platform for Early Disease Detection
-</p>
-
-<hr>
-
-<p style="color:#94A3B8;">
-Developed by <b>Badr Ahmed</b>
-</p>
-
-</div>
-""", unsafe_allow_html=True)
+        st.switch_page("pages/Login.py")

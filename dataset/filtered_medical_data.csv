@@ -1,0 +1,466 @@
+Symptoms,Age,Sex,Disease,Treatment,Nature
+Coughing,5.0,Female,Asthma,Omalizumab,High
+Tight feeling in the chest,4.0,Female,Asthma,Mepolizumab,High
+Wheezing,6.0,Male,Asthma,Mepolizumab,High
+Shortness of breath,7.0,Male,Asthma,Mepolizumab,High
+Shortness of breath,9.0,Male,Asthma,Mepolizumab,High
+Tight feeling in the chest,,Male,Asthma,Mepolizumab,High
+Shortness of breath,,Male,Asthma,Mepolizumab,High
+Tight feeling in the chest,8.0,Female,Asthma,Mepolizumab,High
+Shortness of breath,36.0,Female,Asthma,Mepolizumab,Medium
+Wheezing,40.0,Female,Asthma,Omalizumab,Medium
+Coughing,46.0,Female,Asthma,Omalizumab,Medium
+Shortness of breath,56.0,Female,Asthma,Omalizumab,Medium
+Shortness of breath,58.0,Female,Asthma,Omalizumab,Medium
+Shortness of breath,67.0,Female,Asthma,Omalizumab,High
+Coughing,87.0,Male,Asthma,Omalizumab,High
+Shortness of breath,65.0,Male,Asthma,Mepolizumab,High
+Tight feeling in the chest,54.0,Female,Asthma,Mepolizumab,Medium
+Wheezing,34.0,Female,Asthma,Omalizumab,Medium
+Shortness of breath,78.0,Female,Asthma,Itraconazole,High
+Shortness of breath,7.0,Female,Asthma,Inhaler,High
+Fever,67.0,Female,Asthma,Inhaler,High
+Cold,56.0,Female,Asthma,Inhaler,Medium
+Cold,59.0,Female,Asthma,Omalizumab,Medium
+Fever,60.0,Female,Asthma,Omalizumab,High
+Fever,20.0,Female,Asthma,Omalizumab,Medium
+Fever,50.0,Female,Asthma,Mepolizumab,Medium
+Cold,14.0,Male,Asthma,Inhaler,Medium
+Shortness of breath,3.0,Male,Asthma,Inhaler,High
+Shortness of breath,78.0,Male,Asthma,Inhaler,High
+Fever,45.0,Female,Unspecified,Inhaler,Medium
+Wheezing,8.0,Female,Asthma,Inhaler,High
+Cold,45.0,Female,Asthma,Inhaler,Medium
+Coughing,43.0,Female,Asthma,Mepolizumab,Medium
+Coughing,2.0,Female,Asthma,Inhaler,High
+Allergy,14.0,Male,Asthma,Inhaler,High
+Cold,16.0,Unspecified,Unspecified,Mepolizumab,High
+Allergy,13.0,Female,Asthma,Inhaler,High
+Allergy,14.0,Female,Asthma,Inhaler,Medium
+Wheezing,12.0,Female,Asthma,Inhaler,High
+Fever,7.0,Male,Asthma,Mepolizumab,High
+Allergy,7.0,Male,Asthma,Mepolizumab,High
+Coughing up yellow or green mucus daily,12.0,Male,Bronchiectasis,Antibiotics,High
+Shortness of breath that gets worse during flare-ups,12.0,Male,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",12.0,Male,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",14.0,Male,Bronchiectasis,Antibiotics,High
+Coughing up yellow or green mucus daily,11.0,Male,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",11.0,Female,Bronchiectasis,Antibiotics,High
+Shortness of breath that gets worse during flare-ups,10.0,Female,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",13.0,Female,Bronchiectasis,Antibiotics,High
+Coughing up yellow or green mucus daily,9.0,Female,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",8.0,Female,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",8.0,Male,Bronchiectasis,Antibiotics,High
+Coughing up yellow or green mucus daily,8.0,Male,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",7.0,Female,Bronchiectasis,Antibiotics,High
+Shortness of breath that gets worse during flare-ups,7.0,Female,Bronchiectasis,Antibiotics,High
+Coughing up yellow or green mucus daily,7.0,Female,Bronchiectasis,Antibiotics,High
+Shortness of breath that gets worse during flare-ups,6.0,Female,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",6.0,Female,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",5.0,Male,Bronchiectasis,Antibiotics,High
+Fever,8.0,Male,Bronchiectasis,Antibiotics,Unspecified
+Coughing up yellow or green mucus daily,56.0,Unspecified,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",56.0,Not Disclosed,Bronchiectasis,Antibiotics,High
+"Fatigue, feeling run-down or tired",78.0,Not Disclosed,Bronchiectasis,Antibiotics,High
+Fever,78.0,Unspecified,Bronchiectasis,Antibiotics,Unspecified
+Coughing up yellow or green mucus daily,70.0,Male,Bronchiectasis,Hypertonic Saline,High
+Chest pain,70.0,Male,Bronchiectasis,Hypertonic Saline,Unspecified
+"Fatigue, feeling run-down or tired",66.0,Male,Bronchiectasis,Not Specified,High
+Shortness of breath that gets worse during flare-ups,67.0,Unspecified,Bronchiectasis,Not Specified,High
+Fever,65.0,Male,Bronchiectasis,Hypertonic Saline,High
+Fever,45.0,Female,Bronchiectasis,Not Specified,Medium
+Fever,44.0,Female,Bronchiectasis,Hypertonic Saline,Medium
+Coughing up yellow or green mucus daily,43.0,Female,Bronchiectasis,Hypertonic Saline,Medium
+"Fatigue, feeling run-down or tired",40.0,Unspecified,Bronchiectasis,Hypertonic Saline,Medium
+Whistling sound while you breathe,55.0,Unspecified,Bronchiectasis,Hypertonic Saline,Medium
+Whistling sound while you breathe,56.0,Not Disclosed,Bronchiectasis,Hypertonic Saline,Medium
+Whistling sound while you breathe,11.0,Female,Bronchiectasis,Hypertonic Saline,High
+Whistling sound while you breathe,13.0,Male,Bronchiectasis,Hypertonic Saline,High
+Shortness of breath that gets worse during flare-ups,12.0,Male,Bronchiectasis,Hypertonic Saline,High
+Wheezing,14.0,Female,Bronchiectasis,Hypertonic Saline,High
+Wheezing,20.0,Male,Bronchiectasis,Hypertonic Saline,Medium
+Shortness of breath that gets worse during flare-ups,16.0,Male,Bronchiectasis,Hypertonic Saline,High
+Wheezing,17.0,Male,Bronchiectasis,Hypertonic Saline,Medium
+Wheezing,10.0,Male,Bronchiectasis,Hypertonic Saline,High
+Shortness of breath that gets worse during flare-ups,9.0,Male,Bronchiectasis,Hypertonic Saline,High
+Wheezing,8.0,Female,Bronchiectasis,Hypertonic Saline,High
+Whistling sound while you breathe,6.0,Female,Bronchiectasis,Hypertonic Saline,High
+Wheezing,7.0,Male,Bronchiectasis,Hypertonic Saline,High
+Shortness of breath that gets worse during flare-ups,7.0,Male,Bronchiectasis,Hypertonic Saline,High
+Wheezing,6.0,Male,Bronchiectasis,Hypertonic Saline,High
+Whistling sound while you breathe,3.0,Female,Bronchiectasis,Hypertonic Saline,High
+Shortness of breath that gets worse during flare-ups,2.0,Female,Bronchiectasis,Hypertonic Saline,High
+Chest pain,71.0,Female,Bronchiectasis,Hypertonic Saline,High
+Chest pain,78.0,Male,Bronchiectasis,Hypertonic Saline,High
+Chest pain,74.0,Male,Bronchiectasis,Hypertonic Saline,High
+Chest pain,67.0,Male,Bronchiectasis,Hypertonic Saline,High
+Shortness of breath that gets worse during flare-ups,65.0,Male,Bronchiectasis,Hypertonic Saline,High
+Chest pain,57.0,Male,Bronchiectasis,Hypertonic Saline,High
+Chest pain,76.0,Male,Bronchiectasis,Hypertonic Saline,High
+Chest pain,66.0,Male,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,66.0,Male,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,66.0,Male,Bronchiectasis,Intrapulmonary Percussive Ventilation,Unspecified
+Coughing up blood,66.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,68.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,11.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,12.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,10.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,70.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,80.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,76.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing up blood,67.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Coughing,77.0,Female,Bronchiectasis,Intrapulmonary Percussive Ventilation,High
+Cold,88.0,Female,Bronchiolitis,Inhaler,Medium
+Cold,13.0,Female,Bronchiolitis,Inhaler,Medium
+Runny nose,12.0,Female,Bronchiolitis,Consult Doctor,Medium
+Runny nose,11.0,Female,Bronchiolitis,Consult Doctor,Medium
+Runny nose,10.0,Female,Bronchiolitis,Not Specified,Medium
+Runny nose,1.0,Female,Bronchiolitis,Consult Doctor,Medium
+Runny nose,2.0,Female,Bronchiolitis,Inhaler,Medium
+Runny nose,3.0,Male,Bronchiolitis,Consult Doctor,Medium
+Runny nose,4.0,Male,Bronchiolitis,Consult Doctor,High
+Runny nose,5.0,Male,Bronchiolitis,Consult Doctor,High
+Runny nose,67.0,Male,Bronchiolitis,Consult Doctor,High
+Runny nose,13.0,Male,Bronchiolitis,Consult Doctor,High
+Fever,12.0,Male,Bronchiolitis,Inhaler,High
+Stuffy nose,56.0,Male,Bronchiolitis,Not Specified,High
+Stuffy nose,35.0,Male,Bronchiolitis,Not Specified,High
+Stuffy nose,33.0,Male,Bronchiolitis,Not Specified,High
+Stuffy nose,32.0,Male,Bronchiolitis,Not Specified,Medium
+Stuffy nose,34.0,Male,Bronchiolitis,Not Specified,Medium
+Stuffy nose,11.0,Male,Bronchiolitis,Not Specified,Medium
+Stuffy nose,10.0,Female,Bronchiolitis,Saline Nose Drops,Medium
+Stuffy nose,9.0,Female,Bronchiolitis,Saline Nose Drops,Medium
+Stuffy nose,8.0,Not Disclosed,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,6.0,Not Disclosed,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,7.0,Not Disclosed,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,9.0,Female,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,10.0,Female,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,11.0,Female,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,13.0,Female,Unspecified,Not Specified,High
+Stuffy nose,12.0,Male,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,5.0,Male,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,6.0,Male,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,7.0,Male,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,67.0,Female,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,65.0,Female,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,78.0,Female,Bronchiolitis,Saline Nose Drops,High
+Stuffy nose,45.0,Unspecified,Bronchiolitis,Saline Nose Drops,Medium
+Stuffy nose,23.0,Male,Bronchiolitis,Saline Nose Drops,Medium
+Stuffy nose,14.0,Male,Bronchiolitis,Saline Nose Drops,Medium
+Stuffy nose,21.0,Male,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,54.0,Male,Unspecified,Not Specified,Medium
+Loss of appetite,45.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,43.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,11.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,12.0,Male,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,13.0,Male,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,13.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,14.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,1.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,15.0,Male,Bronchiolitis,Not Specified,Medium
+Loss of appetite,15.0,Female,Bronchiolitis,Not Specified,Medium
+Loss of appetite,16.0,Female,Bronchiolitis,Not Specified,Medium
+Loss of appetite,1.0,Female,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,12.0,Female,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,13.0,Female,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,11.0,Female,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,11.0,Male,Bronchiolitis,Saline Nose Drops,Medium
+Loss of appetite,11.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,16.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,15.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,13.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,12.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,9.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,8.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,56.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,56.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,45.0,Female,Bronchiolitis,Saline Nose Drops,Low
+Cough,47.0,Female,Bronchiolitis,Saline Nose Drops,Low
+Cough,49.0,Female,Bronchiolitis,Saline Nose Drops,Low
+Cough,35.0,Female,Bronchiolitis,Saline Nose Drops,Low
+Cough,78.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,75.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,72.0,Male,Bronchiolitis,Not Specified,High
+Cough,74.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,71.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,78.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,87.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,89.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,88.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,82.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,84.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,67.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,25.0,Female,Bronchiolitis,Saline Nose Drops,Low
+Loss of appetite,4.0,Female,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,3.0,Male,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,56.0,Female,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,76.0,Unspecified,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,35.0,Female,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,67.0,Female,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,88.0,Female,Bronchiolitis,Saline Nose Drops,High
+Loss of appetite,67.0,Male,Bronchiolitis,Saline Nose Drops,High
+Cough,,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,26.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,25.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,14.0,Female,Bronchiolitis,Saline Nose Drops,High
+Cough,76.0,Female,Bronchiolitis,Saline Nose Drops,High
+Runny nose,10.0,Male,Bronchitis,Antibiotics,Medium
+Stuffy nose,10.0,Male,Bronchitis,Antibiotics,Medium
+Low-grade fever,10.0,Male,Bronchitis,Antibiotics,Medium
+Chest congestion,10.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,10.0,Male,Bronchitis,Antibiotics,Medium
+Whistling sound while breathing,10.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,10.0,Male,Bronchitis,Antibiotics,Medium
+Feeling run-down or tired,10.0,Male,Bronchitis,Antibiotics,Medium
+Runny nose,10.0,Female,Bronchitis,Antibiotics,Medium
+Runny nose,11.0,Female,Bronchitis,Antibiotics,Medium
+Runny nose,1.0,Female,Bronchitis,Antibiotics,Medium
+Runny nose,32.0,Female,Bronchitis,Antibiotics,Medium
+Runny nose,44.0,Male,Bronchitis,Antibiotics,Medium
+Runny nose,42.0,Male,Bronchitis,Antibiotics,Medium
+Runny nose,24.0,Not Disclosed,Bronchitis,Antibiotics,Medium
+Runny nose,12.0,Not Disclosed,Bronchitis,Antibiotics,Unspecified
+Runny nose,54.0,Not Disclosed,Bronchitis,Antibiotics,Unspecified
+Stuffy nose,56.0,Male,Bronchitis,Antibiotics,Medium
+Stuffy nose,77.0,Male,Bronchitis,Antibiotics,Medium
+Stuffy nose,87.0,Female,Bronchitis,Antibiotics,Medium
+Stuffy nose,83.0,Female,Bronchitis,Antibiotics,Medium
+Stuffy nose,73.0,Male,Bronchitis,Antibiotics,Medium
+Stuffy nose,63.0,Male,Bronchitis,Antibiotics,Medium
+Stuffy nose,61.0,Female,Bronchitis,Antibiotics,Medium
+Stuffy nose,33.0,Female,Bronchitis,Antibiotics,Medium
+Stuffy nose,43.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,34.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,12.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,11.0,Male,Bronchitis,Antibiotics,Medium
+Low-grade fever,13.0,Male,Bronchitis,Antibiotics,Medium
+Low-grade fever,7.0,Male,Bronchitis,Antibiotics,Medium
+Low-grade fever,6.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,8.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,9.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,7.0,Female,Bronchitis,Antibiotics,Medium
+Low-grade fever,5.0,Female,Bronchitis,Antibiotics,Medium
+Chest congestion,78.0,Female,Bronchitis,Antibiotics,Medium
+Chest congestion,76.0,Male,Bronchitis,Antibiotics,High
+Chest congestion,67.0,Male,Bronchitis,Antibiotics,High
+Chest congestion,64.0,Male,Bronchitis,Antibiotics,High
+Chest congestion,63.0,Male,Bronchitis,Antibiotics,High
+Chest congestion,46.0,Male,Bronchitis,Antibiotics,High
+Chest congestion,33.0,Male,Bronchitis,Antibiotics,High
+Wheezing,21.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,20.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,15.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,18.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,19.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,12.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,11.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,4.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,6.0,Male,Bronchitis,Antibiotics,Medium
+Wheezing,7.0,Female,Bronchitis,Antibiotics,Medium
+Wheezing,35.0,Female,Bronchitis,Antibiotics,Medium
+Wheezing,10.0,Female,Bronchitis,Antibiotics,Medium
+Wheezing,10.0,Female,Bronchitis,Not Specified,Medium
+Whistling sound while breathing,10.0,Female,Bronchitis,Not Specified,High
+Whistling sound while breathing,10.0,Female,Bronchitis,Antibiotics,High
+Whistling sound while breathing,11.0,Female,Bronchitis,Antibiotics,High
+Whistling sound while breathing,1.0,Female,Bronchitis,Not Specified,High
+Whistling sound while breathing,32.0,Not Disclosed,Bronchitis,Antibiotics,High
+Whistling sound while breathing,44.0,Not Disclosed,Bronchitis,Antibiotics,High
+Whistling sound while breathing,42.0,Unspecified,Bronchitis,Not Specified,High
+Yellow cough,24.0,Unspecified,Bronchitis,Antibiotics,High
+Yellow cough,12.0,Female,Bronchitis,Not Specified,High
+Yellow cough,54.0,Female,Bronchitis,Antibiotics,Medium
+Yellow cough,56.0,Female,Bronchitis,Antibiotics,Medium
+Yellow cough,77.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,87.0,Male,Bronchitis,Not Specified,Medium
+Yellow cough,83.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,73.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,63.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,61.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,33.0,Female,Bronchitis,Not Specified,Medium
+Yellow cough,43.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,34.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,12.0,Male,Bronchitis,Antibiotics,Medium
+Yellow cough,11.0,Male,Bronchitis,Antibiotics,Medium
+Feeling run-down or tired,13.0,Male,Bronchitis,Antibiotics,Medium
+Feeling run-down or tired,7.0,Male,Bronchitis,Antibiotics,High
+Feeling run-down or tired,6.0,Male,Bronchitis,Antibiotics,High
+Feeling run-down or tired,8.0,Male,Bronchitis,Antibiotics,High
+Feeling run-down or tired,9.0,Male,Bronchitis,Antibiotics,High
+Feeling run-down or tired,5.0,Male,Bronchitis,Antibiotics,Medium
+Feeling run-down or tired,12.0,Male,Bronchitis,Antibiotics,Medium
+Feeling run-down or tired,78.0,Male,Bronchitis,Antibiotics,Medium
+Feeling run-down or tired,76.0,Male,Bronchitis,Not Specified,Medium
+Mucus,67.0,Male,Chronic Bronchitis,Steroids To Reduce Inflammation,Medium
+Mucus,64.0,Male,Chronic Bronchitis,Steroids To Reduce Inflammation,Medium
+Mucus,63.0,Male,Chronic Bronchitis,Steroids To Reduce Inflammation,Medium
+Mucus,46.0,Female,Chronic Bronchitis,Steroids To Reduce Inflammation,Medium
+Mucus,33.0,Female,Chronic Bronchitis,X-Ray,Medium
+Mucus,21.0,Female,Chronic Bronchitis,Inhaler,Medium
+Mucus,20.0,Female,Chronic Bronchitis,Inhaler,High
+Mucus,15.0,Female,Chronic Bronchitis,X-Ray,High
+Mucus,18.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Wheezing,19.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Wheezing,12.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Wheezing,11.0,Female,Chronic Bronchitis,X-Ray,High
+Wheezing,4.0,Female,Chronic Bronchitis,X-Ray,High
+Wheezing,6.0,Female,Chronic Bronchitis,X-Ray,High
+Wheezing,7.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Wheezing,35.0,Female,Chronic Bronchitis,Steroids To Reduce Inflammation,Medium
+Wheezing,10.0,Female,Chronic Bronchitis,Steroids To Reduce Inflammation,Unspecified
+Wheezing,10.0,Male,Chronic Bronchitis,Inhaler,Unspecified
+Wheezing,10.0,Male,Chronic Bronchitis,Oxygen Therapy,Medium
+Chest pain,10.0,Male,Chronic Bronchitis,Steroids To Reduce Inflammation,Medium
+Chest pain,10.0,Male,Chronic Bronchitis,X-Ray,Medium
+Chest pain,11.0,Male,Chronic Bronchitis,X-Ray,Medium
+Chest pain,1.0,Male,Chronic Bronchitis,X-Ray,Medium
+Chest pain,32.0,Male,Chronic Bronchitis,X-Ray,High
+Chest pain,44.0,Female,Chronic Bronchitis,X-Ray,High
+Chest pain,42.0,Female,Chronic Bronchitis,X-Ray,High
+Shortness of breath,24.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Shortness of breath,12.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Shortness of breath,54.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Shortness of breath,56.0,Female,Chronic Bronchitis,Steroids To Reduce Inflammation,High
+Shortness of breath,77.0,Female,Chronic Bronchitis,Steroids To Reduce Inflammation,High
+Shortness of breath,87.0,Female,Chronic Bronchitis,Inhaler,High
+Shortness of breath,83.0,Female,Chronic Bronchitis,Inhaler,High
+Shortness of breath,73.0,Female,Chronic Bronchitis,Oxygen Therapy,High
+Shortness of breath,63.0,Female,Chronic Bronchitis,Steroids To Reduce Inflammation,High
+Shortness of breath,61.0,Female,Chronic Bronchitis,X-Ray,High
+Unspecified,33.0,Female,Chronic Cough,Not Specified,High
+Cold,43.0,Female,Chronic Cough,Not Specified,Medium
+Cold,34.0,Not Disclosed,Chronic Cough,Not Specified,Medium
+Cold,12.0,Not Disclosed,Chronic Cough,Not Specified,Medium
+Cold,11.0,Not Disclosed,Chronic Cough,Not Specified,Medium
+Cold,13.0,Not Disclosed,Chronic Cough,Not Specified,Medium
+Cold,10.0,Male,Chronic Cough,Not Specified,Medium
+Cold,7.0,Male,Chronic Cough,Not Specified,Medium
+Cold,6.0,Male,Chronic Cough,Not Specified,Medium
+Shortness of breath,8.0,Male,Chronic Cough,Not Specified,High
+Shortness of breath,9.0,Male,Chronic Cough,Not Specified,High
+Shortness of breath,7.0,Male,Chronic Cough,Not Specified,High
+Shortness of breath,5.0,Male,Chronic Cough,Not Specified,High
+Shortness of breath,12.0,Male,Chronic Cough,Not Specified,High
+Shortness of breath,78.0,Male,Chronic Cough,Not Specified,High
+Shortness of breath,76.0,Female,Chronic Cough,Not Specified,High
+Shortness of breath,67.0,Female,Chronic Cough,Not Specified,High
+Shortness of breath,64.0,Female,Chronic Cough,Not Specified,High
+Chronic cough,67.0,Female,COPD,Consult Doctor,High
+Chronic cough,63.0,Female,COPD,Pulmonary Rehabilitation,High
+Chronic cough,46.0,Male,COPD,Pulmonary Rehabilitation,High
+Chronic cough,33.0,Male,COPD,Pulmonary Rehabilitation,High
+Chronic cough,21.0,Male,COPD,Pulmonary Rehabilitation,High
+Chronic cough,20.0,Male,COPD,Pulmonary Rehabilitation,High
+Chronic cough,15.0,Male,COPD,Pulmonary Rehabilitation,High
+Chronic cough,18.0,Male,COPD,Pulmonary Rehabilitation,High
+Chronic cough,19.0,Male,COPD,Pulmonary Rehabilitation,High
+Shortness of breath,12.0,Male,COPD,Pulmonary Rehabilitation,High
+Shortness of breath,11.0,Male,COPD,Pulmonary Rehabilitation,High
+Shortness of breath,4.0,Male,COPD,Pulmonary Rehabilitation,High
+Shortness of breath,6.0,Female,COPD,Pulmonary Rehabilitation,High
+Shortness of breath,7.0,Female,COPD,Pulmonary Rehabilitation,High
+Shortness of breath,35.0,Female,COPD,Oxygen Therapy,High
+Shortness of breath,76.0,Female,COPD,Oxygen Therapy,High
+Shortness of breath,85.0,Female,COPD,Oxygen Therapy,High
+Shortness of breath,52.0,Male,COPD,Oxygen Therapy,High
+Shortness of breath,50.0,Male,COPD,Oxygen Therapy,High
+Shortness of breath,26.0,Male,COPD,Oxygen Therapy,High
+Shortness of breath,11.0,Male,COPD,Oxygen Therapy,High
+Fatigue,12.0,Male,COPD,Oxygen Therapy,High
+Fatigue,47.0,Male,COPD,Oxygen Therapy,High
+Fatigue,72.0,Male,COPD,Oxygen Therapy,High
+Fatigue,68.0,Male,COPD,Oxygen Therapy,High
+Fatigue,62.0,Male,COPD,Oxygen Therapy,High
+Fatigue,60.0,Male,COPD,Oxygen Therapy,High
+Fatigue,63.0,Female,COPD,Oxygen Therapy,High
+Fatigue,69.0,Female,COPD,Oxygen Therapy,High
+Fatigue,55.0,Female,COPD,Oxygen Therapy,High
+Fatigue,51.0,Female,COPD,Oxygen Therapy,High
+Fatigue,88.0,Male,COPD,Oxygen Therapy,High
+Fatigue,85.0,Male,COPD,Oxygen Therapy,High
+Fatigue,86.0,Male,COPD,Oxygen Therapy,High
+Fatigue,90.0,Male,COPD,Surgery,High
+Fatigue,80.0,Male,COPD,Surgery,High
+Fatigue,70.0,Male,COPD,Surgery,High
+Fatigue,60.0,Male,COPD,Surgery,High
+Fatigue,50.0,Male,COPD,Surgery,High
+Fatigue,40.0,Male,COPD,Surgery,High
+Fatigue,30.0,Male,COPD,Surgery,High
+Fatigue,20.0,Female,COPD,Inhaler,High
+Chronic cough,14.0,Female,COPD,Inhaler,High
+Chronic cough,15.0,Female,COPD,Oxygen Therapy,High
+Chronic cough,17.0,Female,COPD,Inhaler,High
+Mucus,15.0,Female,COPD,Consult Doctor,High
+Mucus,14.0,Male,COPD,Consult Doctor,High
+Mucus,67.0,Male,COPD,Consult Doctor,High
+Mucus,60.0,Male,COPD,Consult Doctor,High
+Mucus,63.0,Male,COPD,Consult Doctor,High
+Mucus,69.0,Male,COPD,Consult Doctor,High
+Mucus,55.0,Male,COPD,Consult Doctor,High
+Mucus,51.0,Male,COPD,Consult Doctor,High
+Mucus,88.0,Male,COPD,Consult Doctor,High
+Mucus,85.0,Male,COPD,Pulmonary Rehabilitation,High
+Mucus,86.0,Male,COPD,Pulmonary Rehabilitation,High
+Mucus,90.0,Female,COPD,Oxygen Therapy,High
+Mucus,80.0,Female,COPD,Oxygen Therapy,High
+Mucus,70.0,Female,COPD,Pulmonary Rehabilitation,High
+Wheezing,60.0,Female,COPD,Pulmonary Rehabilitation,High
+Wheezing,50.0,Female,COPD,Pulmonary Rehabilitation,High
+Wheezing,40.0,Male,COPD,Pulmonary Rehabilitation,High
+Wheezing,30.0,Male,COPD,Pulmonary Rehabilitation,High
+Wheezing,20.0,Male,COPD,Consult Doctor,High
+Wheezing,14.0,Male,COPD,Consult Doctor,High
+Wheezing,15.0,Male,COPD,Consult Doctor,High
+Wheezing,17.0,Male,COPD,Consult Doctor,High
+Chronic cough,15.0,Male,COPD,Consult Doctor,High
+Chronic cough,14.0,Male,COPD,Consult Doctor,High
+Chronic cough,67.0,Male,COPD,Consult Doctor,High
+Chronic cough,89.0,Male,COPD,Consult Doctor,High
+Chronic cough,46.0,Female,COPD,Consult Doctor,High
+Chronic cough,34.0,Female,COPD,Consult Doctor,High
+Cold,42.0,Female,COPD,Pulmonary Rehabilitation,High
+Cold,13.0,Female,COPD,Pulmonary Rehabilitation,High
+Cold,52.0,Female,COPD,Pulmonary Rehabilitation,High
+Cold,11.0,Unspecified,COPD,Consult Doctor,High
+Cold,10.0,Unspecified,COPD,Consult Doctor,High
+Cold,9.0,Unspecified,COPD,Not Specified,High
+Cold,8.0,Not Disclosed,COPD,Not Specified,High
+Cold,7.0,Not Disclosed,COPD,Not Specified,High
+Unspecified,,Unspecified,Mesothelioma,Chemotherapy,High
+Shortness of breath,6.0,Female,Mesothelioma,Chemotherapy,High
+Shortness of breath,7.0,Female,Mesothelioma,Chemotherapy,High
+Shortness of breath,35.0,Male,Mesothelioma,Chemotherapy,High
+Shortness of breath,76.0,Male,Mesothelioma,Chemotherapy,High
+Shortness of breath,85.0,Male,Mesothelioma,Chemotherapy,High
+Shortness of breath,52.0,Male,Mesothelioma,Chemotherapy,High
+Shortness of breath,50.0,Male,Mesothelioma,Consult Doctor,High
+Shortness of breath,26.0,Male,Mesothelioma,Consult Doctor,High
+Shortness of breath,11.0,Male,Mesothelioma,Consult Doctor,High
+Shortness of breath,12.0,Male,Mesothelioma,Consult Doctor,High
+Shortness of breath,47.0,Male,Mesothelioma,Consult Doctor,High
+Shortness of breath,72.0,Male,Mesothelioma,Consult Doctor,High
+Shortness of breath,68.0,Female,Mesothelioma,Chemotherapy,High
+Chest pain,62.0,Female,Mesothelioma,Chemotherapy,High
+Chest pain,60.0,Female,Mesothelioma,Chemotherapy,High
+Chest pain,63.0,Female,Mesothelioma,Chemotherapy,High
+Chest pain,69.0,Female,Mesothelioma,Chemotherapy,High
+Chest pain,55.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,51.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,88.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,85.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,86.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,90.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,80.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,70.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,60.0,Male,Mesothelioma,Chemotherapy,High
+Chest pain,50.0,Male,Mesothelioma,Chemotherapy,High
+Lower back pain,40.0,Female,Mesothelioma,Chemotherapy,High
+Lower back pain,30.0,Female,Mesothelioma,Chemotherapy,High
+Lower back pain,20.0,Female,Mesothelioma,Chemotherapy,High
+Lower back pain,14.0,Female,Mesothelioma,Chemotherapy,High
+Lower back pain,15.0,Female,Mesothelioma,Chemotherapy,High
+Lower back pain,17.0,Female,Mesothelioma,Chemotherapy,High
+Lower back pain,14.0,Male,Mesothelioma,Chemotherapy,High
+Lower back pain,67.0,Male,Mesothelioma,Chemotherapy,High
