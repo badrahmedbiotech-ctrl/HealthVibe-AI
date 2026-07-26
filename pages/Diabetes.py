@@ -6,6 +6,7 @@ require_patient()
 
 import joblib
 import pandas as pd
+from utils.db import insert_patient  # أو حسب المسار الخاص بالـ database عندك
 
 # ==========================
 # LOGIN CHECK
@@ -36,6 +37,10 @@ from components.ai_gauge import ai_gauge
 from components.loading_animation import ai_loading
 from components.pdf_report import create_pdf
 
+from components.stepper import stepper
+from components.glass_card import open_card, close_card
+from components.language import apply_language
+from translations import get_text
 from components.database import (
     create_tables,
     save_patient
@@ -56,6 +61,8 @@ with open("style.css", encoding="utf-8") as f:
         f"<style>{f.read()}</style>",
         unsafe_allow_html=True
     )
+
+lang = apply_language()
 
 sidebar()
 
@@ -88,13 +95,13 @@ if "saved" not in st.session_state:
 # HERO
 # ==========================================
 
-st.markdown("""
+st.markdown(f"""
 <div class="hero">
 
-<h1>🩸 Diabetes Assessment</h1>
+<h1>{get_text(lang, "diabetes_hero_title")}</h1>
 
 <p>
-Complete the following assessment to estimate diabetes risk.
+{get_text(lang, "diabetes_hero_desc")}
 </p>
 
 </div>
@@ -110,7 +117,7 @@ st.write("")
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Patient Information")
+    st.subheader(get_text(lang, "step1_header"))
 
     name = profile["full_name"] or ""
     age = profile["age"] or 20
@@ -132,6 +139,39 @@ if st.session_state.step == 1:
         st.number_input("Height (cm)", value=float(height), disabled=True)
 
     st.write("")
+    name = st.text_input(
+        get_text(lang, "full_name"),
+        value=st.session_state.patient.get("name", "")
+    )
+
+    age = st.number_input(
+        get_text(lang, "age"),
+        1,
+        120,
+        st.session_state.patient.get("age", 30)
+    )
+
+    gender = st.selectbox(
+        get_text(lang, "gender"),
+        [get_text(lang, "male"), get_text(lang, "female")],
+        index=0 if st.session_state.patient.get("gender", get_text(lang, "male")) == get_text(lang, "male") else 1
+    )
+
+    weight = st.number_input(
+        get_text(lang, "weight"),
+        20,
+        250,
+        st.session_state.patient.get("weight", 70)
+    )
+
+    height = st.number_input(
+        get_text(lang, "height"),
+        80,
+        250,
+        st.session_state.patient.get("height", 170)
+    )
+
+    c1, c2 = st.columns([1, 1])
 
     if st.button(
         "Next ➜",
@@ -144,9 +184,10 @@ if st.session_state.step == 1:
         st.session_state.patient["gender"] = gender
         st.session_state.patient["weight"] = weight
         st.session_state.patient["height"] = height
+        if st.button(get_text(lang, "next"), use_container_width=True):
 
-        st.session_state.step = 2
-        st.rerun()
+              st.session_state.step = 2
+    st.rerun()
 
 # ==========================================
 # STEP 2
@@ -154,43 +195,45 @@ if st.session_state.step == 1:
 
 elif st.session_state.step == 2:
 
-    st.subheader("🩺 Medical Information")
+    st.subheader(get_text(lang, "step2_header"))
 
     pregnancies = st.number_input(
-        "Pregnancies",
+        get_text(lang, "pregnancies_label"),
         min_value=0,
         max_value=20,
         value=st.session_state.patient.get("pregnancies", 0)
     )
 
     glucose = st.number_input(
-        "Glucose",
+        get_text(lang, "glucose_label"),
         min_value=50,
         max_value=300,
         value=st.session_state.patient.get("glucose", 120)
     )
 
     blood_pressure = st.number_input(
-        "Blood Pressure",
+        get_text(lang, "blood_pressure_label"),
         min_value=40,
         max_value=200,
         value=st.session_state.patient.get("blood_pressure", 70)
     )
 
     insulin = st.number_input(
-        "Insulin",
+        get_text(lang, "insulin_label"),
         min_value=0,
         max_value=900,
         value=st.session_state.patient.get("insulin", 80)
     )
 
     st.write("")
+    c1, c2 = st.columns(2)
 
     col1, col2 = st.columns(2)
 
     with col1:
+        if st.button(get_text(lang, "back"), use_container_width=True):
 
-        if st.button(
+         if st.button(
             "⬅ Back",
             key="back_step2",
             use_container_width=True
@@ -205,6 +248,7 @@ elif st.session_state.step == 2:
             key="next_step2",
             use_container_width=True
         ):
+         if st.button(get_text(lang, "next"), use_container_width=True):
 
             st.session_state.patient["pregnancies"] = pregnancies
             st.session_state.patient["glucose"] = glucose
@@ -221,27 +265,28 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader("📊 Additional Measurements")
+    st.subheader(get_text(lang, "step3_header"))
 
     skin_thickness = st.number_input(
-        "Skin Thickness",
+        get_text(lang, "skin_thickness_label"),
         min_value=0,
         max_value=100,
         value=st.session_state.patient.get("skin_thickness", 20)
     )
 
     bmi = st.number_input(
-        "BMI",
+        get_text(lang, "bmi_label"),
         min_value=10.0,
         max_value=70.0,
         value=st.session_state.patient.get("bmi", 25.0)
     )
 
     pedigree = st.number_input(
-        "Diabetes Pedigree Function",
+        get_text(lang, "pedigree_label"),
         min_value=0.0,
         max_value=3.0,
         value=st.session_state.patient.get("pedigree", 0.500),
+        value=st.session_state.patient.get("pedigree", 0.50),
         format="%.3f"
     )
 
@@ -250,8 +295,9 @@ elif st.session_state.step == 3:
     col1, col2 = st.columns(2)
 
     with col1:
+        if st.button(get_text(lang, "back"), use_container_width=True):
 
-        if st.button(
+         if st.button(
             "⬅ Back",
             key="back_step3",
             use_container_width=True
@@ -266,6 +312,7 @@ elif st.session_state.step == 3:
             key="analyze_ai",
             use_container_width=True
         ):
+         if st.button(get_text(lang, "analyze_ai_button"), use_container_width=True):
 
             st.session_state.patient["skin_thickness"] = skin_thickness
             st.session_state.patient["bmi"] = bmi
@@ -279,7 +326,7 @@ elif st.session_state.step == 3:
 
 elif st.session_state.step == 4:
 
-    st.subheader("🤖 AI Analysis Result")
+    st.subheader(get_text(lang, "step4_header"))
 
     patient = st.session_state.patient
 
@@ -331,6 +378,78 @@ elif st.session_state.step == 4:
     ai_gauge(probability)
 
     st.write("")
+    # ==========================
+    # Prediction
+    # ==========================
+
+    prediction = model.predict(input_data)[0]
+
+    try:
+        probability = model.predict_proba(input_data)[0][1]
+    except:
+        probability = None
+
+    # ==========================
+    # SAVE RESULT TO DATABASE
+    # ==========================
+
+    patient["prediction"] = int(prediction)
+    patient["probability"] = float(probability) if probability is not None else 0.0
+
+    if "saved" not in st.session_state:
+        save_patient(patient)
+        st.session_state.saved = True
+
+    # ==========================
+    # SUCCESS
+    # ==========================
+
+    st.success(get_text(lang, "analysis_success_diabetes"))
+
+    st.write("")
+
+    # ==========================
+    # AI Gauge
+    # ==========================
+
+    ai_gauge(probability)
+
+    st.write("")
+
+    # ==========================================
+    # SAVE TO DATABASE
+    # ==========================================
+
+    insert_patient(
+            patient["name"],
+
+            patient["age"],
+
+            patient["gender"],
+
+            patient["weight"],
+
+            patient["height"],
+
+            patient["pregnancies"],
+
+            patient["glucose"],
+
+            patient["blood_pressure"],
+
+            patient["skin_thickness"],
+
+            patient["insulin"],
+
+            patient["bmi"],
+
+            patient["pedigree"],
+
+            int(prediction),
+
+            float(probability if probability is not None else 0)
+
+        )
 
     result_card(
         prediction,
@@ -363,6 +482,45 @@ elif st.session_state.step == 4:
     st.divider()
 
     st.subheader("📄 Medical Report")
+    result_card(prediction, probability)
+
+    st.write("")
+
+    # ==========================
+    # Recommendation
+    # ==========================
+
+    recommendation(prediction)
+
+    st.write("")
+
+    # ==========================
+    # Patient Summary
+    # ==========================
+
+    patient_summary({
+
+        get_text(lang, "full_name"): patient["name"],
+        get_text(lang, "age"): patient["age"],
+        get_text(lang, "gender"): patient["gender"],
+        get_text(lang, "weight"): patient["weight"],
+        get_text(lang, "height"): patient["height"],
+        get_text(lang, "pregnancies_label"): patient["pregnancies"],
+        get_text(lang, "glucose_label"): patient["glucose"],
+        get_text(lang, "blood_pressure_label"): patient["blood_pressure"],
+        get_text(lang, "skin_thickness_label"): patient["skin_thickness"],
+        get_text(lang, "insulin_label"): patient["insulin"],
+        get_text(lang, "bmi_label"): patient["bmi"],
+        get_text(lang, "pedigree_label"): patient["pedigree"]
+
+    })
+
+    # ==========================================
+    # PDF REPORT
+    # ==========================================
+
+    st.write("")
+    st.subheader(get_text(lang, "medical_report_header"))
 
     pdf_file = create_pdf(patient)
 
@@ -371,6 +529,7 @@ elif st.session_state.step == 4:
         st.download_button(
 
             "⬇ Download PDF Report",
+            label=get_text(lang, "download_pdf_report_button"),
 
             data=pdf,
 
@@ -381,6 +540,9 @@ elif st.session_state.step == 4:
             use_container_width=True
 
         )
+
+    st.write("")
+
 
     st.divider()
 
@@ -397,6 +559,11 @@ elif st.session_state.step == 4:
             use_container_width=True
 
         ):
+            col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button(get_text(lang, "back"), use_container_width=True):
 
             st.session_state.step = 3
 
@@ -423,25 +590,34 @@ elif st.session_state.step == 4:
 # ==========================================
 # FOOTER
 # ==========================================
+        if st.button(get_text(lang, "new_assessment_button"), use_container_width=True):
+
+            st.session_state.step = 1
+            st.session_state.patient = {}
+            if "saved" in st.session_state:
+                del st.session_state.saved
+
+            st.rerun()
+
+    close_card()
 
 st.divider()
 
-st.markdown("""
-
+st.markdown(f"""
 <div class="footer">
 
 <h2 style="color:#00C2FF;">
-HealthVibe AI
+{get_text(lang, "app_title")}
 </h2>
 
 <p>
-AI-powered Diabetes Prediction System
+{get_text(lang, "footer_desc_diabetes")}
 </p>
 
 <hr>
 
 <p style="color:#94A3B8;">
-Developed by <b>Badr Ahmed</b>
+{get_text(lang, "footer_developed_by")}
 </p>
 
 </div>
