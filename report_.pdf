@@ -1,8 +1,9 @@
 %PDF-1.4
-%“Œ‹ž ReportLab Generated PDF document (opensource)
+%ï¿½ï¿½ï¿½ï¿½ ReportLab Generated PDF document (opensource)
 1 0 obj
 <<
 /F1 2 0 R /F2 3 0 R
+/F1 2 0 R /F2 3 0 R /F3 4 0 R
 >>
 endobj
 2 0 obj
@@ -18,6 +19,12 @@ endobj
 4 0 obj
 <<
 /Contents 8 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 7 0 R /Resources <<
+/BaseFont /ZapfDingbats /Name /F3 /Subtype /Type1 /Type /Font
+>>
+endobj
+5 0 obj
+<<
+/Contents 9 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 8 0 R /Resources <<
 /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 >> /Rotate 0 /Trans <<
 
@@ -34,11 +41,16 @@ endobj
 <<
 /Author (\(anonymous\)) /CreationDate (D:20260727013804+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260727013804+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
   /Subject (\(unspecified\)) /Title (\(anonymous\)) /Trapped /False
+6 0 obj
+<<
+/PageMode /UseNone /Pages 8 0 R /Type /Catalog
 >>
 endobj
 7 0 obj
 <<
 /Count 1 /Kids [ 4 0 R ] /Type /Pages
+/Author (\(anonymous\)) /CreationDate (D:20260725112821+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260725112821+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (\(unspecified\)) /Title (\(anonymous\)) /Trapped /False
 >>
 endobj
 8 0 obj
@@ -71,4 +83,38 @@ trailer
 >>
 startxref
 1326
+/Count 1 /Kids [ 5 0 R ] /Type /Pages
+>>
+endobj
+9 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 315
+>>
+stream
+Gat=e:M[g4&B4,6'^m5J_3inMf1g.k<%W@!Yk2gseZS+.6bYc*f0:QI9Tan>]U@Z(1J:9K.(mM?GVL%0#p`p0TJTDP(3hX_:IOBkZ,Sc"=R/ZP":Id4W_LF<FN*e.Sl#QbO!l03+Arn(+Z8S_7"9)U]DDERI9B8#T4#)]!t:Ynm/=cNoU!m*s0a1`B/FUc``jcub7Lej>h.-r3ksacBh[?@hkj1-2MXuo_,Zda#bP7,g+#UcO/B4^HLK0HF6ju'g61_rq"O5kYgTH0<jm*=m1)>#r?KBR/RAs:m7Q[P4uB6@T\&a#oF(T[TZd~>endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000061 00000 n 
+0000000112 00000 n 
+0000000219 00000 n 
+0000000331 00000 n 
+0000000414 00000 n 
+0000000617 00000 n 
+0000000685 00000 n 
+0000000965 00000 n 
+0000001024 00000 n 
+trailer
+<<
+/ID 
+[<6bd3e0157074d5c1c606dda45d9e656c><6bd3e0157074d5c1c606dda45d9e656c>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 7 0 R
+/Root 6 0 R
+/Size 10
+>>
+startxref
+1429
 %%EOF

@@ -130,5 +130,3 @@ if st.button(
 ):
 
     st.switch_page("pages/Login.py")
-
-    

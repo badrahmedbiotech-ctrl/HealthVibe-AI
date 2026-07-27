@@ -247,9 +247,9 @@ if analyze:
 
     risk_score = 0
 
-    # ==========================
-    # Total Cholesterol
-    # ==========================
+# ==========================
+# Total Cholesterol
+# ==========================
 
     st.subheader("🩸 Total Cholesterol")
 
@@ -262,9 +262,9 @@ if analyze:
         st.error("🔴 High")
         risk_score += 2
 
-    # ==========================
-    # LDL
-    # ==========================
+# ==========================
+# LDL
+# ==========================
 
     st.subheader("🧬 LDL")
 
@@ -280,9 +280,9 @@ if analyze:
         st.error("🔴 High")
         risk_score += 3
 
-    # ==========================
-    # HDL
-    # ==========================
+# ==========================
+# HDL
+# ==========================
     risk_score = 0
     st.subheader("💙 HDL")
 
@@ -294,9 +294,9 @@ if analyze:
         st.error("🔴 Low HDL")
         risk_score += 2
 
-    # ==========================
-    # Triglycerides
-    # ==========================
+# ==========================
+# Triglycerides
+# ==========================
 
     st.subheader("🧪 Triglycerides")
 
@@ -329,9 +329,9 @@ if analyze:
 
     st.divider()
 
-   # ==========================
-   # Personalized Recommendations
-   # ==========================
+# ==========================
+# Personalized Recommendations
+# ==========================
 
     st.header("💡 Personalized Recommendations")
     recommendations = []
@@ -433,9 +433,9 @@ if analyze:
 
     st.divider()
 
-   # =====================================
-   # Health Score
-   # =====================================
+# =====================================
+# Health Score
+# =====================================
 
     st.header("❤️ Health Score")
 
@@ -486,9 +486,9 @@ if analyze:
 
     st.divider()
 
-   # =====================================
-   # Lipid Profile Chart
-   # =====================================
+# =====================================
+# Lipid Profile Chart
+# =====================================
 
     st.header("📊 Lipid Profile Chart")
 
@@ -527,9 +527,9 @@ if analyze:
 
     st.divider()
 
-   # =====================================
-   # PDF Report
-   # =====================================
+# =====================================
+# PDF Report
+# =====================================
 if st.session_state.analyzed:
 
     st.header("📄 Download Your Report")
@@ -558,4 +558,3 @@ if st.session_state.analyzed:
             file_name="HealthVibe_Lipid_Report.pdf",
             mime="application/pdf"
         )
-    

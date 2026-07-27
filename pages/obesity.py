@@ -217,7 +217,7 @@ if st.button("🔍 Predict"):
     }
 
     result = labels[int(prediction[0])]
-    # ======================
+# ======================
 # Prediction Summary
 # ======================
 
@@ -249,9 +249,9 @@ if prediction is not None:
 
     st.divider()
 
-    # ======================
-    # Risk Level
-    # ======================
+# ======================
+# Risk Level
+# ======================
 
     if bmi < 25:
         risk = "🟢 Low"
@@ -269,9 +269,9 @@ if prediction is not None:
 
     st.info(risk)
 
-    # ======================
-    # BMI Status
-    # ======================
+# ======================
+# BMI Status 
+# ======================
 
     if bmi < 18.5:
         st.info("🟡 Underweight")
@@ -290,7 +290,7 @@ if prediction is not None:
 
     else:
         st.error("🚨 Severe Obesity")
-        # ======================
+# ======================
 # Risk Factors
 # ======================
 
@@ -357,7 +357,7 @@ if prediction is not None:
         st.error("🏃 Exercise at least 150 minutes weekly.")
         st.error("🥦 Increase vegetables and fruits.")
         st.error("🩺 Consult a nutrition specialist.")
-        # ======================
+# ======================
 # Obesity Lab Analysis
 # ======================
 
@@ -465,7 +465,7 @@ if st.button("🧪 Analyze Lab Results"):
         st.warning(
             "⚠️ Some laboratory values are outside the normal range. Please consult your physician for further evaluation."
         )
-        # ======================
+# ======================
 # Footer
 # ======================
 
