@@ -74,7 +74,6 @@ nbformat==5.10.4
 nest-asyncio2==1.7.2
 notebook_shim==0.2.4
 numpy==2.5.1
-nvidia-nccl-cu12==2.30.7
 opencv-python-headless==5.0.0.93
 packaging==26.2
 pandas==3.0.3
