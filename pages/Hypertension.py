@@ -10,19 +10,6 @@ from datetime import datetime
 import pandas as pd
 import joblib
 
-# ================= EMAIL CONFIGURATION =================
-# البيانات دي بتتقرا من ملف .streamlit/secrets.toml (مش مكتوبة هنا في الكود)،
-# عشان تقدري ترفعي/تشاركي الملف ده من غير ما الباسورد يبان لحد.
-#
-# لتفعيل إرسال الإيميل تلقائيًا:
-#   1. فعّلي "2-Step Verification" في حساب الجيميل بتاعك من: myaccount.google.com/security
-#   2. روحي على: https://myaccount.google.com/apppasswords
-#   3. اعملي App Password جديد باسم "Mail"، وهيديكي كود 16 حرف
-#   4. جوه فولدر مشروعك اعملي فولدر اسمه بالظبط ".streamlit" (لو مش موجود)
-#   5. جواه اعملي ملف اسمه بالظبط "secrets.toml" وحطي فيه:
-#        EMAIL_USER = "healthvibe.ai@gmail.com"
-#        EMAIL_APP_PASSWORD = "الكود المكون من 16 حرف من غير مسافات"
-#   (فيه ملف مثال جاهز اسمه secrets.toml.example تقدري تنسخيه وتعدلي عليه)
 def _get_email_credentials():
     try:
         return st.secrets["EMAIL_USER"], st.secrets["EMAIL_APP_PASSWORD"]

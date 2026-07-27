@@ -72,26 +72,89 @@ except:
     available = 0
 
 # ==========================================
-# HERO
+# HERO SECTION
 # ==========================================
 
-emoji = "👨‍⚕️" if role == "Doctor" else "👤"
+col1, col2 = st.columns([1, 4])
 
-st.markdown(f"""
-<div class="hero">
+with col1:
 
-<h1>{emoji} Welcome, {username}</h1>
-
-<p>
-HealthVibe AI Clinical Decision Support Platform
-</p>
-
+  st.markdown("""
+<div style="text-align:center;">
+    <h1 style="font-size:70px;">🩺</h1>
+    <h2 style="color:#00C2FF;">HealthVibe AI</h2>
 </div>
 """, unsafe_allow_html=True)
 
-st.success("🟢 System Online")
+with col2:
+
+    st.markdown(f"""
+    <h1 style="
+    color:white;
+    margin-bottom:-10px;
+    ">
+    Welcome Back, {username} 👋
+    </h1>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <h4 style="color:#9CA3AF;">
+    AI Clinical Decision Support System
+    </h4>
+    """, unsafe_allow_html=True)
 
 st.write("")
+
+# ==========================================
+# HEALTH SCORE
+# ==========================================
+
+left, right = st.columns([2, 1])
+
+with left:
+
+    st.markdown("""
+    <div style="
+    background:#111827;
+    padding:25px;
+    border-radius:20px;
+    border:1px solid #1F2937;
+    ">
+
+    <h3 style="color:white;">
+    ❤️ Health Score
+    </h3>
+
+    <h1 style="
+    color:#22C55E;
+    font-size:55px;
+    ">
+    96%
+    </h1>
+
+    <p style="color:#9CA3AF;">
+    Your overall health status is excellent.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with right:
+
+    st.metric(
+        "Patients",
+        patients
+    )
+
+    st.metric(
+        "Predictions",
+        history
+    )
+
+    st.metric(
+        "Doctors",
+        doctors
+    )
 
 # ==========================================
 # METRICS
@@ -135,149 +198,109 @@ st.write("")
 
 if role == "Patient":
 
-    st.subheader("🧑‍💻 Patient Dashboard")
+    st.subheader("🚀 AI Prediction Modules")
 
-    p1, p2, p3 = st.columns(3)
+    row1 = st.columns(4)
 
-    with p1:
+    cards = [
 
-        with st.container(border=True):
+        ("🩸", "Diabetes", "pages/Diabetes.py"),
 
-            st.markdown("## 🩸 Diabetes Assessment")
+        ("❤️", "Hypertension", "pages/Hypertension.py"),
 
-            st.write("Predict diabetes risk using AI.")
+        ("⚖️", "Obesity", "pages/obesity.py"),
 
-            if st.button(
-                "Open Diabetes",
-                key="patient_diabetes",
-                use_container_width=True
-            ):
-                st.switch_page("pages/Diabetes.py")
+        ("🫀", "Lipid", "pages/lipid.py"),
 
-    with p2:
+    ]
 
-        with st.container(border=True):
+    for col, card in zip(row1, cards):
 
-            st.markdown("## ❤️ Hypertension")
+        with col:
 
-            st.write("Predict hypertension risk.")
+            st.markdown(f"""
+            <div style="
+            background:#111827;
+            border-radius:20px;
+            padding:20px;
+            text-align:center;
+            border:1px solid #1F2937;
+            min-height:180px;
+            ">
 
-            if st.button(
-                "Open Hypertension",
-                key="patient_hyper",
-                use_container_width=True
-            ):
-                st.switch_page("pages/Hypertension.py")
+            <h1>{card[0]}</h1>
 
-    with p3:
+            <h4 style="color:white;">
+            {card[1]}
+            </h4>
 
-        with st.container(border=True):
-
-            st.markdown("## 🫀 Lipid Profile")
-
-            st.write("Analyze cholesterol levels.")
+            </div>
+            """, unsafe_allow_html=True)
 
             if st.button(
-                "Open Lipid",
-                key="patient_lipid",
+                f"Open {card[1]}",
+                key=card[1],
                 use_container_width=True
             ):
-                st.switch_page("pages/lipid.py")
+                st.switch_page(card[2])
 
     st.write("")
 
-    p4, p5, p6 = st.columns(3)
+    row2 = st.columns(4)
 
-    with p4:
+    cards2 = [
 
-        with st.container(border=True):
+        ("🧬", "Thrombosis", "pages/thrombosis_app.py"),
 
-            st.markdown("## 🩸 Thrombosis")
+        ("🫁", "Pulmonary", "pages/Pulmonary_Fibrosis.py"),
 
-            st.write("Blood clot prediction.")
+        ("🩻", "CT Scan", "pages/CT_Scan_AI.py"),
 
-            if st.button(
-                "Open Thrombosis",
-                key="patient_throm",
-                use_container_width=True
-            ):
-                st.switch_page("pages/thrombosis_app.py")
+        ("🤖", "AI Assistant", "pages/chatbot.py"),
 
-    with p5:
+    ]
 
-        with st.container(border=True):
+    for col, card in zip(row2, cards2):
 
-            st.markdown("## 📄 My Reports")
+        with col:
 
-            st.write("Download your medical reports.")
+            st.markdown(f"""
+            <div style="
+            background:#111827;
+            border-radius:20px;
+            padding:20px;
+            text-align:center;
+            border:1px solid #1F2937;
+            min-height:180px;
+            ">
 
-            if st.button(
-                "Open Reports",
-                key="patient_reports",
-                use_container_width=True
-            ):
-                st.info("Coming Soon")
+            <h1>{card[0]}</h1>
 
-    with p6:
+            <h4 style="color:white;">
+            {card[1]}
+            </h4>
 
-        with st.container(border=True):
-
-            st.markdown("## 📈 My History")
-
-            st.write("View previous predictions.")
+            </div>
+            """, unsafe_allow_html=True)
 
             if st.button(
-                "Open History",
-                key="patient_history",
+                f"Open {card[1]}",
+                key="btn"+card[1],
                 use_container_width=True
             ):
-                st.info("Coming Soon")
+                st.switch_page(card[2])
 
     st.write("")
 
-    st.subheader("✨ Patient Features")
+    c1, c2 = st.columns(2)
 
-    left, right = st.columns(2)
+    with c1:
 
-    with left:
+        st.info("📄 Last Prediction\n\nNo prediction yet.")
 
-        st.checkbox(
-            "AI Diagnosis",
-            value=True,
-            disabled=True
-        )
+    with c2:
 
-        st.checkbox(
-            "PDF Reports",
-            value=True,
-            disabled=True
-        )
-
-        st.checkbox(
-            "Medical History",
-            value=True,
-            disabled=True
-        )
-
-    with right:
-
-        st.checkbox(
-            "Doctor Appointment",
-            value=False,
-            disabled=True
-        )
-
-        st.checkbox(
-            "Medicine Reminder",
-            value=False,
-            disabled=True
-        )
-
-        st.checkbox(
-            "Telemedicine",
-            value=False,
-            disabled=True
-        )
+        st.info("📋 Medical History\n\nNo records available.")
 
 # ==========================================
 # DOCTOR DASHBOARD

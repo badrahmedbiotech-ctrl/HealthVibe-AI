@@ -10,8 +10,9 @@ from components.auth import (
 
 st.set_page_config(
     page_title="HealthVibe AI | Login",
-    page_icon="🔐",
-    layout="centered"
+    page_icon="🩺",
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 create_users_table()
@@ -21,58 +22,116 @@ create_users_table()
 # ==========================================
 
 with open("style.css", encoding="utf-8") as f:
-    st.markdown(
-        f"<style>{f.read()}</style>",
-        unsafe_allow_html=True
-    )
-
-# ==========================================
-# SESSION DEFAULTS
-# ==========================================
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if "user" not in st.session_state:
-    st.session_state.user = None
-
-if "username" not in st.session_state:
-    st.session_state.username = ""
-
-if "role" not in st.session_state:
-    st.session_state.role = "Patient"
-
-if "email" not in st.session_state:
-    st.session_state.email = ""
-
-if "user_id" not in st.session_state:
-    st.session_state.user_id = None
-
-# ==========================================
-# HEADER
-# ==========================================
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 st.markdown("""
-<div style="text-align:center;padding-top:30px;">
+<style>
 
-<h1 style="color:#00C2FF;">
-🩺 HealthVibe AI
-</h1>
+#MainMenu{visibility:hidden;}
+header{visibility:hidden;}
+footer{visibility:hidden;}
 
-<h3>Login</h3>
+.stApp{
+background:#0B1120;
+}
 
-<p style="color:#94A3B8;">
-Welcome Back
-</p>
+.block-container{
+max-width:480px;
+padding-top:2rem;
+}
 
+.login-card{
+background:#111827;
+padding:35px;
+border-radius:24px;
+border:1px solid rgba(255,255,255,.08);
+box-shadow:0 10px 40px rgba(0,0,0,.35);
+}
+
+.title{
+text-align:center;
+font-size:36px;
+font-weight:700;
+color:white;
+margin-bottom:5px;
+}
+
+.subtitle{
+text-align:center;
+color:#94A3B8;
+margin-bottom:30px;
+}
+
+.stButton>button{
+width:100%;
+height:50px;
+border-radius:14px;
+border:none;
+font-size:18px;
+font-weight:600;
+background:linear-gradient(90deg,#10B981,#2563EB);
+color:white;
+transition:0.3s;
+}
+
+.stButton>button:hover{
+transform:scale(1.02);
+}
+
+[data-testid="stTextInput"] input{
+background:#1F2937;
+color:white;
+border-radius:12px;
+border:1px solid #374151;
+height:48px;
+}
+
+[data-testid="stRadio"]{
+padding-bottom:10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# SESSION
+# ==========================================
+
+defaults = {
+    "logged_in": False,
+    "user": None,
+    "username": "",
+    "role": "Patient",
+    "email": "",
+    "user_id": None,
+}
+
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+# ==========================================
+# LOGIN CARD
+# ==========================================
+
+st.markdown('<div class="login-card">', unsafe_allow_html=True)
+
+st.markdown("""
+<div style="text-align:center;">
+    <h1 style="font-size:70px;">🩺</h1>
+    <h2 style="color:#00C2FF;">HealthVibe AI</h2>
 </div>
 """, unsafe_allow_html=True)
 
-st.write("")
+st.markdown(
+    '<div class="title">HealthVibe AI</div>',
+    unsafe_allow_html=True
+)
 
-# ==========================================
-# ROLE
-# ==========================================
+st.markdown(
+    '<div class="subtitle">Welcome Back</div>',
+    unsafe_allow_html=True
+)
 
 role = st.radio(
     "Login As",
@@ -80,29 +139,27 @@ role = st.radio(
     horizontal=True
 )
 
-st.write("")
-
-# ==========================================
-# LOGIN FORM
-# ==========================================
-
-email = st.text_input("Email")
+email = st.text_input(
+    "📧 Email",
+    placeholder="Enter your email"
+)
 
 password = st.text_input(
-    "Password",
-    type="password"
+    "🔒 Password",
+    type="password",
+    placeholder="Enter your password"
 )
 
 remember = st.checkbox("Remember me")
-
-st.write("")
 
 # ==========================================
 # LOGIN BUTTON
 # ==========================================
 
+st.write("")
+
 if st.button(
-    "🔐 Login",
+    "🚀 Login",
     use_container_width=True
 ):
 
@@ -110,7 +167,7 @@ if st.button(
 
     if user is None:
 
-        st.error("Invalid Email or Password")
+        st.error("❌ Invalid Email or Password")
 
     elif user["role"] != role:
 
@@ -122,26 +179,30 @@ if st.button(
 
         st.session_state.logged_in = True
 
-        # كامل بيانات المستخدم
         st.session_state.user = dict(user)
 
-        # بيانات منفصلة
         st.session_state.user_id = user["id"]
         st.session_state.username = user["full_name"]
         st.session_state.email = user["email"]
         st.session_state.role = user["role"]
 
-        st.success("Login Successful ✅")
+        st.success("✅ Login Successful")
+
+        st.balloons()
 
         st.switch_page("pages/Dashboard.py")
 
-# ==========================================
-# REGISTER
-# ==========================================
 
-st.divider()
+st.markdown("<br>", unsafe_allow_html=True)
 
-st.write("Don't have an account?")
+st.markdown(
+"""
+<div style="text-align:center;color:#94A3B8;">
+Don't have an account?
+</div>
+""",
+unsafe_allow_html=True
+)
 
 if st.button(
     "📝 Create New Account",
@@ -151,3 +212,6 @@ if st.button(
     st.session_state.role = role
 
     st.switch_page("pages/Register.py")
+
+
+st.markdown("</div>", unsafe_allow_html=True)

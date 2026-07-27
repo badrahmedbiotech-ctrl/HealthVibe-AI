@@ -1,4 +1,7 @@
 import streamlit as st
+import streamlit as st
+
+st.switch_page("pages/Splash.py")
 
 st.set_page_config(
     page_title="HealthVibe AI",

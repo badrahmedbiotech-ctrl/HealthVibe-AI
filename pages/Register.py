@@ -5,92 +5,143 @@ from components.auth import (
     register_user
 )
 
-# ==========================================
-# PAGE CONFIG
-# ==========================================
-
 st.set_page_config(
-    page_title="Register",
-    page_icon="📝",
-    layout="centered"
+    page_title="HealthVibe AI | Register",
+    page_icon="🩺",
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 create_users_table()
 
 with open("style.css", encoding="utf-8") as f:
-    st.markdown(
-        f"<style>{f.read()}</style>",
-        unsafe_allow_html=True
-    )
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# ==========================================
-# HEADER
-# ==========================================
+st.markdown("""
+<style>
 
-role = st.session_state.get("role", "Patient")
+#MainMenu{visibility:hidden;}
+header{visibility:hidden;}
+footer{visibility:hidden;}
 
-st.markdown(f"""
+.stApp{
+background:#0B1120;
+}
 
-<div style="text-align:center;padding-top:30px;">
+.block-container{
+max-width:500px;
+padding-top:2rem;
+}
 
-<h1 style="color:#00C2FF;">
-📝 Create {role} Account
-</h1>
+.register-card{
+background:#111827;
+padding:35px;
+border-radius:24px;
+border:1px solid rgba(255,255,255,.08);
+box-shadow:0 10px 40px rgba(0,0,0,.35);
+}
 
-<p style="color:#94A3B8;">
-Join HealthVibe AI
-</p>
+.title{
+text-align:center;
+font-size:34px;
+font-weight:700;
+color:white;
+margin-bottom:5px;
+}
 
-</div>
+.subtitle{
+text-align:center;
+color:#94A3B8;
+margin-bottom:30px;
+}
 
+.stButton>button{
+width:100%;
+height:50px;
+border-radius:14px;
+border:none;
+font-size:18px;
+font-weight:600;
+background:linear-gradient(90deg,#10B981,#2563EB);
+color:white;
+transition:.3s;
+}
+
+.stButton>button:hover{
+transform:scale(1.02);
+}
+
+[data-testid="stTextInput"] input{
+background:#1F2937;
+color:white;
+border-radius:12px;
+border:1px solid #374151;
+height:48px;
+}
+
+</style>
 """, unsafe_allow_html=True)
 
-st.write("")
+role = st.session_state.get("role","Patient")
 
-# ==========================================
-# FORM
-# ==========================================
+st.markdown('<div class="register-card">',unsafe_allow_html=True)
 
-full_name = st.text_input("Full Name")
+st.image("assets/logo.png",width=120)
 
-email = st.text_input("Email")
+st.markdown(
+'<div class="title">Create Account</div>',
+unsafe_allow_html=True
+)
+
+st.markdown(
+f'<div class="subtitle">Register as {role}</div>',
+unsafe_allow_html=True
+)
+
+full_name = st.text_input(
+    "👤 Full Name",
+    placeholder="Enter your full name"
+)
+
+email = st.text_input(
+    "📧 Email",
+    placeholder="Enter your email"
+)
 
 password = st.text_input(
-    "Password",
-    type="password"
+    "🔒 Password",
+    type="password",
+    placeholder="Create password"
 )
 
 confirm = st.text_input(
-    "Confirm Password",
-    type="password"
+    "🔒 Confirm Password",
+    type="password",
+    placeholder="Confirm password"
 )
 
 st.write("")
 
-# ==========================================
-# REGISTER
-# ==========================================
-
 if st.button(
-    "Create Account",
+    "🚀 Create Account",
     use_container_width=True
 ):
 
     if not full_name.strip():
 
-        st.error("Enter your name")
+        st.error("Please enter your name.")
 
     elif not email.strip():
 
-        st.error("Enter email")
+        st.error("Please enter your email.")
 
     elif password != confirm:
 
-        st.error("Passwords do not match")
+        st.error("Passwords do not match.")
 
     elif len(password) < 6:
 
-        st.error("Password must be at least 6 characters")
+        st.error("Password must be at least 6 characters.")
 
     else:
 
@@ -108,7 +159,7 @@ if st.button(
 
         if success:
 
-            st.success("Account Created Successfully ✅")
+            st.success("✅ Account Created Successfully")
 
             st.balloons()
 
@@ -116,17 +167,23 @@ if st.button(
 
         else:
 
-            st.error("Email already exists")
+            st.error("This email already exists.")
 
-# ==========================================
-# BACK
-# ==========================================
+st.markdown("<br>",unsafe_allow_html=True)
 
-st.divider()
+st.markdown(
+"""
+<div style="text-align:center;color:#94A3B8;">
+Already have an account?
+</div>
+""",
+unsafe_allow_html=True
+)
 
 if st.button(
-    "⬅ Back To Login",
+    "🔐 Login",
     use_container_width=True
 ):
-
     st.switch_page("pages/Login.py")
+
+st.markdown("</div>",unsafe_allow_html=True)

@@ -80,7 +80,10 @@ st.title("🩸 Thrombosis Risk Assessment & AI Screening")
 st.write("Enter the patient health parameters below to analyze the risk of Thrombosis (Blood Clots).")
 render_sidebar()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 with st.form("thrombosis_form"):
     col1, col2 = st.columns(2)
     with col1:
@@ -95,6 +98,10 @@ with st.form("thrombosis_form"):
     submit = st.form_submit_button("Analyze Risk Status")
 
 if submit:
+<<<<<<< HEAD
+=======
+    # 1. 
+>>>>>>> origin/main
     risk_score = 0
     features = []
     contributions = []
@@ -200,9 +207,9 @@ if submit:
             'borderwidth': 2,
             'bordercolor': "gray",
             'steps' : [
-                {'range': [0, 35], 'color': "#1a9850"},   # الأخضر
-                {'range': [35, 70], 'color': "#fdae61"},  # البرتقالي
-                {'range': [70, 100], 'color': "#d73027"}  # الأحمر
+                {'range': [0, 35], 'color': "#1a9850"},   
+                {'range': [35, 70], 'color': "#fdae61"}, 
+                {'range': [70, 100], 'color': "#d73027"}  
             ],
         }
     ))
@@ -214,6 +221,10 @@ if submit:
     )
     st.plotly_chart(fig_gauge, use_container_width=True)
 
+<<<<<<< HEAD
+=======
+    
+>>>>>>> origin/main
     if "High Risk" in result_status:
         st.error(f"🔴 Result: {result_status}")
     elif "Moderate Risk" in result_status:
