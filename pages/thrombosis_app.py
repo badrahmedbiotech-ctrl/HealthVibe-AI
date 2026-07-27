@@ -7,7 +7,6 @@ import io
 import plotly.graph_objects as go
 from utils.sidebar import render_sidebar
 
-# دالة لتوليد تقرير الـ PDF بالشكل الطبي والمُنظم
 def generate_pdf(user_data, result, recommendations, medications):
     pdf = FPDF()
     pdf.add_page()
@@ -24,7 +23,6 @@ def generate_pdf(user_data, result, recommendations, medications):
     
     pdf.ln(8)
     
-    # 2. البيانات
     pdf.set_font("Arial", "B", 14)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 10, "Patient Clinical Parameters:", ln=1)
@@ -37,7 +35,6 @@ def generate_pdf(user_data, result, recommendations, medications):
     
     pdf.ln(5)
     
-    # 3. النتيجة
     pdf.set_font("Arial", "B", 14)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 10, "AI Screening Evaluation:", ln=1)
@@ -50,7 +47,6 @@ def generate_pdf(user_data, result, recommendations, medications):
     pdf.multi_cell(180, 10, f"Result Status: {result}", border=1, align="C", fill=True)
     pdf.ln(8)
     
-    # 4. الأدوية المقترحة
     pdf.set_font("Arial", "B", 14)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 10, "Suggested Medications & Medical Options (Consult Doctor):", ln=1)
@@ -62,7 +58,6 @@ def generate_pdf(user_data, result, recommendations, medications):
         
     pdf.ln(5)
     
-    # 5. التوصيات
     pdf.set_font("Arial", "B", 14)
     pdf.set_text_color(44, 62, 80)
     pdf.cell(0, 10, "Personalized Recommendations:", ln=1)
@@ -80,14 +75,12 @@ def generate_pdf(user_data, result, recommendations, medications):
         
     return bytes(pdf.output())
 
-# إعدادات الصفحة الخاصة بـ Streamlit والأيقونة
 st.set_page_config(page_title="Thrombosis Assessment", page_icon="🩸")
 
 st.title("🩸 Thrombosis Risk Assessment & AI Screening")
 st.write("Enter the patient health parameters below to analyze the risk of Thrombosis (Blood Clots).")
 render_sidebar()
 
-# بناء الاستمارة (Form) ليدخل المريض بياناته
 with st.form("thrombosis_form"):
     col1, col2 = st.columns(2)
     with col1:
@@ -101,9 +94,8 @@ with st.form("thrombosis_form"):
         
     submit = st.form_submit_button("Analyze Risk Status")
 
-# عند ضغط زر التحليل وحساب النتيجة
 if submit:
-    # 1. حساب الـ Risk Score ومساهمات الأعراض
+    # 1. 
     risk_score = 0
     features = []
     contributions = []
@@ -133,7 +125,6 @@ if submit:
         features.append("Age > 60")
         contributions.append(1)
 
-    # حالة عدم وجود أعراض
     if not features:
         features.append("No Risk Factors Present")
         contributions.append(0)
@@ -147,7 +138,6 @@ if submit:
         "Prolonged Immobility": mobility
     }
 
-    # 2. تحديد النتيجة والأدوية والتوصيات
     if d_dimer < 500:
         if history == "Yes" and swelling == "Yes":
             result_status = "Moderate Risk (D-Dimer Normal, but Clinical Signs Present)"
@@ -196,7 +186,6 @@ if submit:
 
     st.subheader("Analysis Results:")
 
-    # 3. رسم مؤشر النسبة (Gauge Chart)
     st.write("---")
     percentage_value = min((risk_score / 8) * 100, 100) 
         
@@ -212,9 +201,9 @@ if submit:
             'borderwidth': 2,
             'bordercolor': "gray",
             'steps' : [
-                {'range': [0, 35], 'color': "#1a9850"},   # الأخضر
-                {'range': [35, 70], 'color': "#fdae61"},  # البرتقالي
-                {'range': [70, 100], 'color': "#d73027"}  # الأحمر
+                {'range': [0, 35], 'color': "#1a9850"},   
+                {'range': [35, 70], 'color': "#fdae61"}, 
+                {'range': [70, 100], 'color': "#d73027"}  
             ],
         }
     ))
@@ -226,7 +215,7 @@ if submit:
     )
     st.plotly_chart(fig_gauge, use_container_width=True)
 
-    # عرض النتيجة الملونة
+    
     if "High Risk" in result_status:
         st.error(f"🔴 Result: {result_status}")
     elif "Moderate Risk" in result_status:
@@ -259,7 +248,6 @@ if submit:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    # 5. عرض التوصيات والأدوية في الواجهة
     st.write("---")
     st.write("**Suggested Medications / Clinical Approach:**")
     for m in meds:
@@ -269,7 +257,6 @@ if submit:
     for r in recs:
         st.write(f"- {r}")
         
-    # 6. زر تحميل الـ PD
     pdf_bytes = generate_pdf(user_data, result_status, recs, meds)
     st.download_button(
             label="📥 Download PDF Medical Report",

@@ -8,7 +8,7 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # بيلقط المفاتيح من ملف .env تلقائياً
+load_dotenv() 
 # ==========================
 # Page Config
 # ==========================
@@ -25,15 +25,13 @@ st.title("🩺 HealthVibe AI")
 st.caption("Your healthcare assistant")
 
 # ==========================
-# LOAD DATASETS (تلقائي في الخلفية)
+# LOAD DATASETS
 # ==========================
 
 @st.cache_resource
 def load_datasets():
-    """تحميل جميع ملفات البيانات تلقائياً"""
     datasets = {}
     
-    # تحديد المسار للـ dataset سواء كانت برة أو جوة مجلد dataset
     base_path = "dataset/" if os.path.exists("dataset") else ""
     
     try:
@@ -58,7 +56,6 @@ def load_datasets():
     
     return datasets
 
-# تحميل البيانات تلقائياً في الخلفية
 if "datasets" not in st.session_state:
     st.session_state.datasets = load_datasets()
 
@@ -106,7 +103,6 @@ with st.sidebar:
             st.session_state.current_chat = cid
             st.rerun()
 
-# تعيين الرسائل للمحادثة الحالية
 current_chat_id = st.session_state.current_chat
 st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
 
@@ -114,7 +110,6 @@ st.session_state.messages = st.session_state.all_chats[current_chat_id]["message
 # Groq Client
 # ==========================
 
-# هيحاول يقرأ الأول من st.secrets، ولو مش لاقيه هيقرأ من os.getenv
 api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
@@ -123,13 +118,11 @@ client = Groq(api_key=api_key)
 # ==========================
 
 def search_in_dataset(query, datasets):
-    """البحث عن معلومات في الـ Dataset"""
     results = []
     
     if datasets.get("medical_data") is not None:
         medical = datasets["medical_data"]
         
-        # البحث في الأعراض والأمراض
         symptoms = medical[
             medical["Symptoms"].str.contains(query, case=False, na=False)
         ] if "Symptoms" in medical.columns else []
@@ -176,26 +169,22 @@ if prompt := st.chat_input("اكتب سؤالك..."):
     if not prompt:
         st.stop()
     
-    # إضافة رسالة المستخدم
     st.session_state.messages.append({
         "role": "user",
         "content": prompt
     })
     
-    # تحديث عنوان المحادثة إذا كانت الرسالة الأولى من المستخدم
     if len(st.session_state.messages) == 2:
         title = prompt[:30] + ("..." if len(prompt) > 30 else "")
         st.session_state.all_chats[current_chat_id]["title"] = title
     
-    # عرض رسالة المستخدم فوراً
     with st.chat_message("user"):
         st.write(prompt)
     
-    # إنشاء الرد من المساعد الذكي
     with st.chat_message("assistant"):
         with st.spinner("جاري التفكير..."):
             try:
-                # البحث في Dataset
+        
                 search_results = search_in_dataset(prompt, st.session_state.datasets)
                 
                 context_data = ""
@@ -206,7 +195,7 @@ if prompt := st.chat_input("اكتب سؤالك..."):
                         elif result["type"] == "disease":
                             context_data += f"- مرض: {result['disease']} علاج مقترح: {result['treatment']}.\n"
                 
-                # إعداد System Prompt المحسّن
+                
                 formatted_context = context_data if context_data else "No direct match in local dataset."
                 
                 system_prompt = f"""You are HealthVibe AI, a medical assistant that provides educational health information in Arabic.
@@ -247,7 +236,7 @@ Context from dataset:
 {formatted_context}
 """
 
-                # إرسال الطلب لـ Groq
+            
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     temperature=0.2,
@@ -263,14 +252,14 @@ Context from dataset:
                 
                 answer = response.choices[0].message.content.strip()
                 
-                # عرض الرد وإضافته للجلسة
+            
                 st.write(answer)
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": answer
                 })
                 
-                # حفظ المخرجات في سجل المحادثة
+                
                 st.session_state.all_chats[current_chat_id]["messages"] = st.session_state. messages
                 
             except Exception as e:
