@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 from utils.navigation import sidebar
+from components.language import apply_language
+from translations import get_text
 
 # =============================
 # TensorFlow
@@ -24,6 +26,8 @@ st.set_page_config(
     layout="wide"
 )
 
+lang = apply_language()
+
 sidebar()
 
 # =============================
@@ -43,17 +47,17 @@ except:
 # HEADER
 # =============================
 
-st.markdown("""
+st.markdown(f"""
 <div class="hero">
 
-<h1>🩻 Lung CT Scan AI</h1>
+<h1>{get_text(lang, "ct_title")}</h1>
 
 <p>
-Artificial Intelligence for Lung Cancer Detection
+{get_text(lang, "ct_subtitle")}
 </p>
 
 </div>
-""",unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 st.divider()
 
@@ -62,16 +66,7 @@ st.divider()
 # =============================
 
 if not TF_AVAILABLE:
-
-    st.error("""
-TensorFlow غير موجود على الجهاز.
-
-سبب المشكلة هو أن المعالج الحالي لا يدعم
-الإصدار الحديث من TensorFlow.
-
-يمكنك استخدام Google Colab أو جهاز أحدث.
-""")
-
+    st.error(get_text(lang, "tf_not_available"))
     st.stop()
 
 # =============================
@@ -80,57 +75,59 @@ TensorFlow غير موجود على الجهاز.
 
 @st.cache_resource
 def load_model():
-
     return tf.keras.models.load_model(
         "models/lung_cancer_model.keras"
     )
 
-model=None
-model_loaded=False
+model = None
+model_loaded = False
 
 try:
-
-    model=load_model()
-
-    model_loaded=True
-
+    model = load_model()
+    model_loaded = True
 except Exception as e:
-
-    st.error("❌ Unable to load AI Model")
-
+    st.error(get_text(lang, "model_load_error"))
     st.code(str(e))
 
 # =============================
-# Classes
+# Classes (internal names - matches model output order, don't translate here)
 # =============================
 
-classes=[
-
-"Adenocarcinoma",
-
-"Large Cell Carcinoma",
-
-"Normal",
-
-"Squamous Cell Carcinoma"
-
+classes = [
+    "Adenocarcinoma",
+    "Large Cell Carcinoma",
+    "Normal",
+    "Squamous Cell Carcinoma"
 ]
+
+# ربط كل اسم داخلي بمفتاح الترجمة الخاص بيه
+DISEASE_KEYS = {
+    "Adenocarcinoma": "adenocarcinoma",
+    "Large Cell Carcinoma": "large_cell",
+    "Normal": "normal",
+    "Squamous Cell Carcinoma": "squamous",
+}
+
+def disease_label(disease_name: str) -> str:
+    """يرجع اسم المرض مترجم للعرض للمستخدم"""
+    key = DISEASE_KEYS.get(disease_name)
+    return get_text(lang, f"disease_{key}") if key else disease_name
 
 # =============================
 # Instructions
 # =============================
 
-st.info("""
+st.info(f"""
 
-### Instructions
+### {get_text(lang, "instructions_header")}
 
-• Upload CT Scan
+• {get_text(lang, "instructions_upload")}
 
-• Click Analyze
+• {get_text(lang, "instructions_analyze")}
 
-• Wait for AI
+• {get_text(lang, "instructions_wait")}
 
-• Review Results
+• {get_text(lang, "instructions_review")}
 
 """)
 
@@ -138,99 +135,69 @@ st.info("""
 # Upload
 # =============================
 
-uploaded=st.file_uploader(
-
-"Upload Lung CT Scan",
-
-type=["png","jpg","jpeg"]
-
+uploaded = st.file_uploader(
+    get_text(lang, "upload_label"),
+    type=["png", "jpg", "jpeg"]
 )
 
-prediction=None
-confidence=None
-disease=None
+prediction = None
+confidence = None
+disease = None
 
 if uploaded is not None:
 
-    image=Image.open(uploaded).convert("RGB")
+    image = Image.open(uploaded).convert("RGB")
 
-    left,right=st.columns([1,1])
+    left, right = st.columns([1, 1])
 
     with left:
-
         st.image(
-
             image,
-
             use_container_width=True,
-
-            caption="Uploaded CT"
-
+            caption=get_text(lang, "uploaded_caption")
         )
 
-    img=image.resize((224,224))
-
-    img=np.array(img)
-
-    img=img.astype(np.float32)/255.0
-
-    img=np.expand_dims(img,0)
+    img = image.resize((224, 224))
+    img = np.array(img)
+    img = img.astype(np.float32) / 255.0
+    img = np.expand_dims(img, 0)
 
     with right:
-
-        st.subheader("AI Analysis")
+        st.subheader(get_text(lang, "ai_analysis_header"))
 
         if st.button(
-
-            "🤖 Analyze CT Scan",
-
+            get_text(lang, "analyze_button"),
             use_container_width=True
-
         ):
-
             if not model_loaded:
-
-                st.error("Model Not Loaded")
-
+                st.error(get_text(lang, "model_not_loaded"))
                 st.stop()
 
-            with st.spinner("Analyzing..."):
-
-                prediction=model.predict(
-
+            with st.spinner(get_text(lang, "analyzing")):
+                prediction = model.predict(
                     img,
-
                     verbose=0
-
                 )
 
-            pred=np.argmax(prediction)
+            pred = np.argmax(prediction)
+            confidence = float(np.max(prediction)) * 100
+            disease = classes[pred]
 
-            confidence=float(np.max(prediction))*100
-
-            disease=classes[pred]
-
-            st.success("Analysis Completed")
+            st.success(get_text(lang, "analysis_completed"))
 
             st.metric(
-
-                "Prediction",
-
-                disease
-
+                get_text(lang, "prediction_label"),
+                disease_label(disease)
             )
 
             st.metric(
-
-                "Confidence",
-
+                get_text(lang, "confidence_label"),
                 f"{confidence:.2f}%"
-
             )
 
             st.progress(int(confidence))
 
-            # =====================================
+# =====================================
 # Diagnosis Dashboard
 # =====================================
 
@@ -238,197 +205,91 @@ if disease is not None:
 
     st.divider()
 
-    st.subheader("🩺 AI Diagnosis Dashboard")
+    st.subheader(get_text(lang, "diagnosis_dashboard_header"))
 
     col1, col2 = st.columns(2)
 
     with col1:
-
         st.metric(
-            "Detected Disease",
-            disease
+            get_text(lang, "detected_disease_label"),
+            disease_label(disease)
         )
 
         st.metric(
-            "Confidence",
+            get_text(lang, "confidence_label"),
             f"{confidence:.2f}%"
         )
 
     with col2:
-
-        st.write("### AI Confidence Level")
+        st.write(f"### {get_text(lang, 'ai_confidence_level_header')}")
 
         st.progress(int(confidence))
 
         if confidence >= 90:
-
-            st.success("🟢 Very High Confidence")
-
+            st.success(get_text(lang, "conf_very_high"))
         elif confidence >= 75:
-
-            st.info("🔵 High Confidence")
-
+            st.info(get_text(lang, "conf_high"))
         elif confidence >= 50:
-
-            st.warning("🟡 Moderate Confidence")
-
+            st.warning(get_text(lang, "conf_moderate"))
         else:
+            st.error(get_text(lang, "conf_low"))
 
-            st.error("🔴 Low Confidence")
-
-# =====================================
-# Probability Distribution
-# =====================================
+    # =====================================
+    # Probability Distribution
+    # =====================================
 
     st.divider()
 
-    st.subheader("📊 Prediction Probability")
+    st.subheader(get_text(lang, "prob_dist_header"))
 
     probs = prediction[0]
 
     chart = {}
-
     for i in range(len(classes)):
-
-        chart[classes[i]] = float(probs[i] * 100)
+        chart[disease_label(classes[i])] = float(probs[i] * 100)
 
     st.bar_chart(chart)
 
-# =====================================
-# AI Summary
-# =====================================
+    # =====================================
+    # AI Summary
+    # =====================================
 
     st.divider()
 
-    st.subheader("🤖 AI Summary")
+    st.subheader(get_text(lang, "ai_summary_header"))
+
+    summary_key = DISEASE_KEYS.get(disease)
+    summary_text = get_text(lang, f"summary_{summary_key}")
 
     if disease == "Normal":
+        st.success(summary_text)
+    else:
+        st.error(summary_text)
 
-        st.success("""
-
-No obvious abnormality detected.
-
-The lungs appear normal according
-to the trained AI model.
-
-""")
-
-    elif disease == "Adenocarcinoma":
-
-        st.error("""
-
-Possible Adenocarcinoma detected.
-
-Further investigations are required.
-
-""")
-
-    elif disease == "Large Cell Carcinoma":
-
-        st.error("""
-
-Possible Large Cell Carcinoma detected.
-
-Immediate clinical evaluation is recommended.
-
-""")
-
-    elif disease == "Squamous Cell Carcinoma":
-
-        st.error("""
-
-Possible Squamous Cell Carcinoma detected.
-
-Smoking history should be reviewed.
-
-""")
-
-# =====================================
-# Disease Information
-# =====================================
+    # =====================================
+    # Disease Information
+    # =====================================
 
     st.divider()
 
-    st.subheader("📖 Disease Information")
+    st.subheader(get_text(lang, "disease_info_header"))
 
-    if disease == "Normal":
+    info_key = DISEASE_KEYS.get(disease)
+    desc_text = get_text(lang, f"desc_{info_key}")
+    rec_text = get_text(lang, f"rec_{info_key}")
 
-        st.info("""
+    st.info(f"""
 
-### Description
+### {get_text(lang, "description_label")}
 
-Healthy lung appearance.
+{desc_text}
 
-### Recommendation
+### {get_text(lang, "recommendation_label")}
 
-• Regular medical check-up
-
-• Healthy lifestyle
-
-• Avoid smoking
+{rec_text}
 
 """)
 
-    elif disease == "Adenocarcinoma":
-
-        st.info("""
-
-### Description
-
-Most common type of lung cancer.
-
-Usually develops in the outer lung.
-
-### Recommendation
-
-• Chest CT
-
-• PET Scan
-
-• Biopsy
-
-• Oncology consultation
-
-""")
-
-    elif disease == "Large Cell Carcinoma":
-
-        st.info("""
-
-### Description
-
-Aggressive non-small cell lung cancer.
-
-### Recommendation
-
-• Immediate specialist referral
-
-• Additional imaging
-
-• Tissue biopsy
-
-""")
-
-    elif disease == "Squamous Cell Carcinoma":
-
-        st.info("""
-
-### Description
-
-Usually associated with smoking.
-
-Often develops near central bronchi.
-
-### Recommendation
-
-• Smoking cessation
-
-• Bronchoscopy
-
-• Oncology consultation
-
-""")
-        
 # =====================================
 # Risk Indicator
 # =====================================
@@ -437,73 +298,42 @@ if disease is not None:
 
     st.divider()
 
-    st.subheader("🚨 Risk Assessment")
+    st.subheader(get_text(lang, "risk_assessment_header"))
 
     if confidence >= 90:
-
-        st.success("🟢 AI Confidence: Very High")
-
+        st.success(get_text(lang, "risk_very_high"))
     elif confidence >= 75:
-
-        st.info("🔵 AI Confidence: High")
-
+        st.info(get_text(lang, "risk_high"))
     elif confidence >= 50:
-
-        st.warning("🟡 AI Confidence: Moderate")
-
+        st.warning(get_text(lang, "risk_moderate"))
     else:
+        st.error(get_text(lang, "risk_low"))
 
-        st.error("🔴 AI Confidence: Low")
-
-# =====================================
-# Future PDF Report
-# =====================================
+    # =====================================
+    # Future PDF Report
+    # =====================================
 
     st.divider()
 
-    st.subheader("📄 Medical Report")
+    st.subheader(get_text(lang, "medical_report_header"))
 
-    st.info("""
-PDF Report will include:
-
-• Patient Information
-
-• AI Prediction
-
-• Confidence Score
-
-• CT Scan Result
-
-• Medical Recommendations
-
-• Doctor Notes
-
-(Coming Soon)
-""")
+    st.info(get_text(lang, "pdf_report_info"))
 
     st.button(
-        "📥 Download PDF Report",
+        get_text(lang, "download_pdf_button"),
         disabled=True,
         use_container_width=True
     )
 
-# =====================================
-# Future Grad-CAM
-# =====================================
+    # =====================================
+    # Future Grad-CAM
+    # =====================================
 
     st.divider()
 
-    st.subheader("🧠 Explainable AI")
+    st.subheader(get_text(lang, "explainable_ai_header"))
 
-    st.info("""
-Grad-CAM Visualization
-
-This feature will highlight the region
-that the AI focused on while making
-its prediction.
-
-(Coming Soon)
-""")
+    st.info(get_text(lang, "gradcam_info"))
 
 # =====================================
 # Recommendations
@@ -511,29 +341,19 @@ its prediction.
 
 st.divider()
 
-st.subheader("📋 General Recommendations")
+st.subheader(get_text(lang, "general_recommendations_header"))
 
-st.write("✅ Always consult a chest physician.")
-
-st.write("✅ AI results should never replace medical diagnosis.")
-
-st.write("✅ Compare the CT scan with previous examinations.")
-
-st.write("✅ Additional laboratory investigations may be required.")
-
-st.write("✅ Early diagnosis significantly improves treatment outcomes.")
+st.write(get_text(lang, "rec_bullet_1"))
+st.write(get_text(lang, "rec_bullet_2"))
+st.write(get_text(lang, "rec_bullet_3"))
+st.write(get_text(lang, "rec_bullet_4"))
+st.write(get_text(lang, "rec_bullet_5"))
 
 # =====================================
 # Disclaimer
 # =====================================
 
-st.warning("""
-This application is intended for educational
-and research purposes only.
-
-HealthVibe AI does NOT replace
-professional medical diagnosis.
-""")
+st.warning(get_text(lang, "disclaimer_text"))
 
 # =====================================
 # Footer
@@ -544,14 +364,12 @@ st.divider()
 c1, c2, c3 = st.columns(3)
 
 with c1:
-    st.metric("AI Model", "EfficientNetB0")
+    st.metric(get_text(lang, "ai_model_label"), "EfficientNetB0")
 
 with c2:
-    st.metric("Image Size", "224 × 224")
+    st.metric(get_text(lang, "image_size_label"), "224 × 224")
 
 with c3:
-    st.metric("Classes", "4")
+    st.metric(get_text(lang, "classes_label"), "4")
 
-st.caption(
-    "HealthVibe AI © 2026 | Artificial Intelligence for Healthcare"
-)
+st.caption(get_text(lang, "footer_caption"))
