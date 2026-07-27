@@ -1,6 +1,4 @@
 import streamlit as st
-from components.language import apply_language
-from translations import get_text
 
 st.set_page_config(
     page_title="HealthVibe AI",
@@ -8,39 +6,37 @@ st.set_page_config(
     layout="wide"
 )
 
-lang = apply_language()
+st.title("🩺 HealthVibe AI")
 
-st.title(get_text(lang, "home_title"))
+st.markdown("""
+## Welcome to HealthVibe AI
 
-st.markdown(f"""
-{get_text(lang, "home_welcome_header")}
+An AI-powered platform for early disease prediction and medical decision support.
 
-{get_text(lang, "home_intro")}
+### Available AI Modules
 
-{get_text(lang, "home_modules_header")}
-
-- {get_text(lang, "home_module_heart")}
-- {get_text(lang, "home_module_diabetes")}
-- {get_text(lang, "home_module_pf")}
-- {get_text(lang, "home_module_ct")}
+- ❤️ Heart Disease Prediction
+- 🩸 Diabetes Prediction
+- 🫁 Pulmonary Fibrosis Prediction
+- 🩻 Lung CT Scan Analysis
 
 ---
 
-{get_text(lang, "home_features_header")}
+### Features
 
-{get_text(lang, "home_feature_ai_diagnosis")}
+✅ AI Diagnosis
 
-{get_text(lang, "home_feature_reports")}
+✅ Patient Reports
 
-{get_text(lang, "home_feature_risk")}
+✅ Risk Assessment
 
-{get_text(lang, "home_feature_dashboard")}
+✅ Medical Dashboard
 
-{get_text(lang, "home_feature_easy")}
+✅ Fast & Easy to Use
 
 ---
 
-{get_text(lang, "home_developed_by")}
+Developed by **Badr Ahmed**
 """)
 
-st.success(get_text(lang, "home_ready_msg"))
+st.success("🚀 HealthVibe AI is Ready")

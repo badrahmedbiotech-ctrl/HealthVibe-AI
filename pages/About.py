@@ -57,4 +57,3 @@ with col2:
     st.success("👨‍⚕️ Clinical Decision Support")
     st.success("❤️ Patient-Centered Care")
     st.success("🌍 Innovation & Accessibility")
-    
