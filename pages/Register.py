@@ -86,7 +86,12 @@ role = st.session_state.get("role","Patient")
 
 st.markdown('<div class="register-card">',unsafe_allow_html=True)
 
-st.image("assets/logo.png",width=120)
+st.markdown("""
+<div style="text-align:center;padding-bottom:15px;">
+    <h1 style="font-size:70px;">🩺</h1>
+    <h2 style="color:#00C2FF;">HealthVibe AI</h2>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown(
 '<div class="title">Create Account</div>',
