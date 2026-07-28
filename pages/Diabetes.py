@@ -85,17 +85,64 @@ if "saved" not in st.session_state:
     st.session_state.saved = False
 
 # ==========================================
-# HERO
+# PREMIUM HERO
 # ==========================================
 
-st.markdown("""
+progress = (st.session_state.step / 4) * 100
+
+st.markdown(f"""
 <div class="hero">
 
-<h1>🩸 Diabetes Assessment</h1>
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:30px;
+">
+
+<div>
+
+<h1>
+🩸 Diabetes Prediction
+</h1>
 
 <p>
-Complete the following assessment to estimate diabetes risk.
+AI Clinical Decision Support System
 </p>
+
+<br>
+
+<div style="
+background:rgba(255,255,255,.08);
+height:10px;
+border-radius:20px;
+overflow:hidden;
+width:320px;
+">
+
+<div style="
+width:{progress}%;
+height:100%;
+background:linear-gradient(90deg,#00C2FF,#2563EB);
+">
+</div>
+
+</div>
+
+<p style="margin-top:10px;">
+Assessment Progress : Step {st.session_state.step} of 4
+</p>
+
+</div>
+
+<div style="
+font-size:95px;
+">
+🩸
+</div>
+
+</div>
 
 </div>
 """, unsafe_allow_html=True)
@@ -110,7 +157,8 @@ st.write("")
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Patient Information")
+    st.markdown("## 👤 Patient Information")
+    st.caption("Basic information loaded automatically from your profile.")
 
     name = profile["full_name"] or ""
     age = profile["age"] or 20
@@ -119,6 +167,19 @@ if st.session_state.step == 1:
     height = profile["height"] or 170.0
 
     st.success("✅ Patient information loaded from your profile.")
+    m1, m2, m3 = st.columns(3)
+
+    with m1:
+      st.metric("Age", age)
+
+    with m2:
+      st.metric("Weight", f"{weight} kg")
+
+    with m3:
+      st.metric("Height", f"{height} cm")
+
+    st.write("")
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
@@ -147,7 +208,7 @@ if st.session_state.step == 1:
 
         st.session_state.step = 2
         st.rerun()
-
+    st.markdown("</div>", unsafe_allow_html=True)
 # ==========================================
 # STEP 2
 # ==========================================
@@ -155,7 +216,7 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
 
     st.subheader("🩺 Medical Information")
-
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     pregnancies = st.number_input(
         "Pregnancies",
         min_value=0,
@@ -214,14 +275,17 @@ elif st.session_state.step == 2:
             st.session_state.step = 3
             st.rerun()
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 
 # ==========================================
 # STEP 3
 # ==========================================
-
 elif st.session_state.step == 3:
 
     st.subheader("📊 Additional Measurements")
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     skin_thickness = st.number_input(
         "Skin Thickness",
@@ -267,81 +331,160 @@ elif st.session_state.step == 3:
             use_container_width=True
         ):
 
+            st.session_state.patient["pregnancies"] = pregnancies
+            st.session_state.patient["glucose"] = glucose
+            st.session_state.patient["blood_pressure"] = blood_pressure
             st.session_state.patient["skin_thickness"] = skin_thickness
+            st.session_state.patient["insulin"] = insulin
             st.session_state.patient["bmi"] = bmi
             st.session_state.patient["pedigree"] = pedigree
+            st.session_state.patient["age"] = age
 
             st.session_state.step = 4
             st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 # ==========================================
 # STEP 4
 # ==========================================
 
 elif st.session_state.step == 4:
 
-    st.subheader("🤖 AI Analysis Result")
+    st.markdown("""
+    <div class="hero">
+
+    <h1>🤖 AI Analysis Result</h1>
+
+    <p>
+    Your prediction has been successfully generated using our AI model.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
 
     patient = st.session_state.patient
 
     input_data = pd.DataFrame(
-        [[
-            patient["pregnancies"],
-            patient["glucose"],
-            patient["blood_pressure"],
-            patient["skin_thickness"],
-            patient["insulin"],
-            patient["bmi"],
-            patient["pedigree"],
-            patient["age"]
-        ]],
-        columns=[
-            "Pregnancies",
-            "Glucose",
-            "BloodPressure",
-            "SkinThickness",
-            "Insulin",
-            "BMI",
-            "DiabetesPedigreeFunction",
-            "Age"
-        ]
-    )
+    [[
+        patient.get("pregnancies", 0),
+        patient.get("glucose", 120),
+        patient.get("blood_pressure", 70),
+        patient.get("skin_thickness", 20),
+        patient.get("insulin", 80),
+        patient.get("bmi", 25.0),
+        patient.get("pedigree", 0.5),
+        patient.get("age", 20)
+    ]],
+    columns=[
+        "Pregnancies",
+        "Glucose",
+        "BloodPressure",
+        "SkinThickness",
+        "Insulin",
+        "BMI",
+        "DiabetesPedigreeFunction",
+        "Age"
+    ]
+)
+
 
     ai_loading()
 
+
     prediction = model.predict(input_data)[0]
+
 
     try:
         probability = model.predict_proba(input_data)[0][1]
+
     except Exception:
         probability = 0
 
+
+
     patient["prediction"] = int(prediction)
     patient["probability"] = float(probability)
+
+
 
     if not st.session_state.saved:
 
         patient["user_id"] = st.session_state.user["id"]
 
-        save_patient(patient)
+        try:
+          save_patient(patient)
+        except Exception as e:
+          st.warning(f"Patient record was not saved: {e}")
 
         st.session_state.saved = True
 
+
+
     st.success("Analysis Completed Successfully ✅")
+
+    st.balloons()
+
+
 
     ai_gauge(probability)
 
-    st.write("")
 
-    result_card(
-        prediction,
-        probability
-    )
 
     st.write("")
 
-    recommendation(prediction)
+
+    # ==============================
+    # RESULT CARD
+    # ==============================
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>🩺 Prediction Result</h2>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+
+    col1, col2 = st.columns(2)
+
+
+    with col1:
+
+        st.metric(
+            "Risk Status",
+            "Positive" if prediction else "Negative"
+        )
+
+
+    with col2:
+
+        st.metric(
+            "AI Confidence",
+            f"{probability*100:.1f}%"
+        )
+
+
 
     st.write("")
+
+
+    # ==============================
+    # PATIENT SUMMARY
+    # ==============================
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>👤 Patient Summary</h2>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+
 
     patient_summary({
 
@@ -360,11 +503,34 @@ elif st.session_state.step == 4:
 
     })
 
+
+
+    st.write("")
     st.divider()
 
-    st.subheader("📄 Medical Report")
+
+
+    # ==============================
+    # MEDICAL REPORT
+    # ==============================
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>📄 Medical Report</h2>
+
+    <p>
+    Download your complete AI-generated medical report.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+
 
     pdf_file = create_pdf(patient)
+
+
 
     with open(pdf_file, "rb") as pdf:
 
@@ -382,36 +548,55 @@ elif st.session_state.step == 4:
 
         )
 
+
+
+    st.write("")
     st.divider()
 
+
+
+    # ==============================
+    # ACTION BUTTONS
+    # ==============================
+
+
+    st.markdown("""
+    <div class="card">
+
+    <h2>⚡ Quick Actions</h2>
+
+    <p>
+    Start a new prediction or edit your data.
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+
+
     col1, col2 = st.columns(2)
+
+
 
     with col1:
 
         if st.button(
-
             "⬅ Back",
-
             key="back_step4",
-
             use_container_width=True
-
         ):
 
             st.session_state.step = 3
-
             st.rerun()
+
+
 
     with col2:
 
         if st.button(
-
             "🔄 New Assessment",
-
             key="new_assessment",
-
             use_container_width=True
-
         ):
 
             st.session_state.step = 1
@@ -419,31 +604,3 @@ elif st.session_state.step == 4:
             st.session_state.saved = False
 
             st.rerun()
-
-# ==========================================
-# FOOTER
-# ==========================================
-
-st.divider()
-
-st.markdown("""
-
-<div class="footer">
-
-<h2 style="color:#00C2FF;">
-HealthVibe AI
-</h2>
-
-<p>
-AI-powered Diabetes Prediction System
-</p>
-
-<hr>
-
-<p style="color:#94A3B8;">
-Developed by <b>Badr Ahmed</b>
-</p>
-
-</div>
-
-""", unsafe_allow_html=True)
