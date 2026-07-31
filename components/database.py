@@ -21,7 +21,6 @@ def connect():
     conn.row_factory = sqlite3.Row
     return conn
 
-
 # ==========================================
 # HASH PASSWORD
 # ==========================================
@@ -30,7 +29,7 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
- # ==========================================
+# ==========================================
 # CREATE TABLES
 # ==========================================
 
@@ -39,7 +38,9 @@ def create_tables():
     conn = connect()
     cur = conn.cursor()
 
-    # ---------------- USERS ----------------
+    # ======================================
+    # USERS
+    # ======================================
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
@@ -59,7 +60,9 @@ def create_tables():
     )
     """)
 
-    # ---------------- PATIENT PROFILE ----------------
+    # ======================================
+    # PATIENT PROFILE
+    # ======================================
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS patient_profiles(
@@ -71,6 +74,7 @@ def create_tables():
         full_name TEXT,
         age INTEGER,
         gender TEXT,
+
         weight REAL,
         height REAL,
 
@@ -92,29 +96,47 @@ def create_tables():
 
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-        FOREIGN KEY(user_id) REFERENCES users(id)
+        FOREIGN KEY(user_id)
+        REFERENCES users(id)
 
     )
     """)
 
-    # ---------------- PREDICTIONS ----------------
+    # ======================================
+    # ASSESSMENTS
+    # ======================================
 
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS patients(
+    CREATE TABLE IF NOT EXISTS assessments(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
         user_id INTEGER,
 
-        full_name TEXT,
+        disease TEXT,
 
-        age INTEGER,
+        prediction TEXT,
 
-        gender TEXT,
+        probability REAL,
 
-        weight REAL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-        height REAL,
+        FOREIGN KEY(user_id)
+        REFERENCES users(id)
+
+    )
+    """)
+
+    # ======================================
+    # DIABETES
+    # ======================================
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS diabetes(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        assessment_id INTEGER,
 
         pregnancies INTEGER,
 
@@ -130,13 +152,153 @@ def create_tables():
 
         pedigree REAL,
 
-        prediction INTEGER,
+        prediction TEXT,
 
-        probability REAL,
+        FOREIGN KEY(assessment_id)
+        REFERENCES assessments(id)
 
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    )
+    """)
 
-        FOREIGN KEY(user_id) REFERENCES users(id)
+    # ======================================
+    # HYPERTENSION
+    # ======================================
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS hypertension(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        assessment_id INTEGER,
+
+        systolic REAL,
+
+        diastolic REAL,
+
+        cholesterol REAL,
+
+        heart_rate REAL,
+
+        smoking TEXT,
+
+        activity TEXT,
+
+        salt TEXT,
+
+        alcohol TEXT,
+
+        stress TEXT,
+
+        sleep TEXT,
+
+        prediction TEXT,
+
+        FOREIGN KEY(assessment_id)
+        REFERENCES assessments(id)
+
+    )
+    """)
+
+    # ======================================
+    # LIPID
+    # ======================================
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS lipid(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        assessment_id INTEGER,
+
+        total_cholesterol REAL,
+
+        ldl REAL,
+
+        hdl REAL,
+
+        triglycerides REAL,
+
+        prediction TEXT,
+
+        FOREIGN KEY(assessment_id)
+        REFERENCES assessments(id)
+
+    )
+    """)
+
+    # ======================================
+    # OBESITY
+    # ======================================
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS obesity(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        assessment_id INTEGER,
+
+        bmi REAL,
+
+        waist REAL,
+
+        activity TEXT,
+
+        calories REAL,
+
+        prediction TEXT,
+
+        FOREIGN KEY(assessment_id)
+        REFERENCES assessments(id)
+
+    )
+    """)
+
+    # ======================================
+    # FIBROSIS
+    # ======================================
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS fibrosis(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        assessment_id INTEGER,
+
+        oxygen REAL,
+
+        fev1 REAL,
+
+        fvc REAL,
+
+        prediction TEXT,
+
+        FOREIGN KEY(assessment_id)
+        REFERENCES assessments(id)
+
+    )
+    """)
+
+    # ======================================
+    # THROMBOSIS
+    # ======================================
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS thrombosis(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        assessment_id INTEGER,
+
+        d_dimer REAL,
+
+        platelets REAL,
+
+        inr REAL,
+
+        prediction TEXT,
+
+        FOREIGN KEY(assessment_id)
+        REFERENCES assessments(id)
 
     )
     """)
@@ -172,7 +334,7 @@ def register_user(full_name, email, password, role):
 
         VALUES(?,?,?,?)
 
-        """,(
+        """, (
 
             full_name,
             email,
@@ -212,7 +374,7 @@ def login_user(email, password):
     WHERE email=?
     AND password=?
 
-    """,(
+    """, (
 
         email,
         hash_password(password)
@@ -347,25 +509,94 @@ def update_profile(data):
     conn.commit()
     conn.close()
 
+
 # ==========================================
-# SAVE PATIENT HISTORY
+# SAVE ASSESSMENT
 # ==========================================
 
-def save_patient(data):
+def save_assessment(
+    user_id,
+    disease,
+    prediction,
+    probability
+):
 
     conn = connect()
     cur = conn.cursor()
 
     cur.execute("""
 
-    INSERT INTO patients(
+    INSERT INTO assessments(
 
         user_id,
-        full_name,
-        age,
-        gender,
-        weight,
-        height,
+        disease,
+        prediction,
+        probability
+
+    )
+
+    VALUES(?,?,?,?)
+
+    """,(
+
+        user_id,
+        disease,
+        prediction,
+        probability
+
+    ))
+
+    conn.commit()
+
+    assessment_id = cur.lastrowid
+
+    conn.close()
+
+    return assessment_id
+
+# ==========================================
+# GET PATIENT HISTORY
+# ==========================================
+
+def get_patient_history(user_id):
+
+    conn = connect()
+
+    query = """
+    SELECT *
+    FROM assessments
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    """
+
+    df = pd.read_sql_query(
+        query,
+        conn,
+        params=(user_id,)
+    )
+
+    conn.close()
+
+    return df
+
+# ==========================================
+# SAVE DIABETES
+# ==========================================
+
+def save_diabetes(
+    assessment_id,
+    patient
+):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO diabetes(
+
+        assessment_id,
+
         pregnancies,
         glucose,
         blood_pressure,
@@ -373,30 +604,267 @@ def save_patient(data):
         insulin,
         bmi,
         pedigree,
-        prediction,
-        probability
+
+        prediction
 
     )
 
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES(?,?,?,?,?,?,?,?,?)
 
     """,(
 
-        data["user_id"],
-        data["name"],
-        data["age"],
-        data["gender"],
-        data["weight"],
-        data["height"],
-        data["pregnancies"],
-        data["glucose"],
-        data["blood_pressure"],
-        data["skin_thickness"],
-        data["insulin"],
-        data["bmi"],
-        data["pedigree"],
-        data["prediction"],
-        data["probability"]
+        assessment_id,
+
+        patient.get("pregnancies",0),
+        patient.get("glucose",0),
+        patient.get("blood_pressure",0),
+        patient.get("skin", 0),
+        patient.get("insulin",0),
+        patient.get("bmi",0),
+        patient.get("dpf", 0),
+
+        str(patient.get("prediction",""))
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ==========================================
+# SAVE HYPERTENSION
+# ==========================================
+
+def save_hypertension(
+    assessment_id,
+    patient
+):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO hypertension(
+
+        assessment_id,
+
+        systolic,
+        diastolic,
+        cholesterol,
+        heart_rate,
+
+        smoking,
+        activity,
+        salt,
+        alcohol,
+
+        stress,
+        sleep,
+
+        prediction
+
+    )
+
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+
+    """,(
+
+        assessment_id,
+
+        patient.get("systolic",120),
+        patient.get("diastolic",80),
+        patient.get("cholesterol",200),
+        patient.get("heart_rate",75),
+
+        patient.get("smoking","No"),
+        patient.get("activity",""),
+        patient.get("salt",""),
+        patient.get("alcohol",""),
+
+        patient.get("stress",""),
+        patient.get("sleep",""),
+
+        str(patient.get("prediction",""))
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ==========================================
+# SAVE LIPID
+# ==========================================
+
+def save_lipid(
+    assessment_id,
+    patient
+):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO lipid(
+
+        assessment_id,
+
+        total_cholesterol,
+        ldl,
+        hdl,
+        triglycerides,
+
+        prediction
+
+    )
+
+    VALUES(?,?,?,?,?,?)
+
+    """,(
+
+        assessment_id,
+
+        patient.get("total_cholesterol",0),
+        patient.get("ldl",0),
+        patient.get("hdl",0),
+        patient.get("triglycerides",0),
+
+        str(patient.get("prediction",""))
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+# ==========================================
+# SAVE OBESITY
+# ==========================================
+
+def save_obesity(
+    assessment_id,
+    patient
+):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO obesity(
+
+        assessment_id,
+
+        bmi,
+        waist,
+        activity,
+        calories,
+
+        prediction
+
+    )
+
+    VALUES(?,?,?,?,?,?)
+
+    """,(
+
+        assessment_id,
+
+        patient.get("bmi",0),
+        patient.get("waist",0),
+        patient.get("activity",""),
+        patient.get("calories",0),
+
+        str(patient.get("prediction",""))
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ==========================================
+# SAVE FIBROSIS
+# ==========================================
+
+def save_fibrosis(
+    assessment_id,
+    patient
+):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO fibrosis(
+
+        assessment_id,
+
+        oxygen,
+        fev1,
+        fvc,
+
+        prediction
+
+    )
+
+    VALUES(?,?,?,?,?)
+
+    """,(
+
+        assessment_id,
+
+        patient.get("oxygen",0),
+        patient.get("fev1",0),
+        patient.get("fvc",0),
+
+        str(patient.get("prediction",""))
+
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+# ==========================================
+# SAVE THROMBOSIS
+# ==========================================
+
+def save_thrombosis(
+    assessment_id,
+    patient
+):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("""
+
+    INSERT INTO thrombosis(
+
+        assessment_id,
+
+        d_dimer,
+        platelets,
+        inr,
+
+        prediction
+
+    )
+
+    VALUES(?,?,?,?,?)
+
+    """,(
+
+        assessment_id,
+
+        patient.get("d_dimer",0),
+        patient.get("platelets",0),
+        patient.get("inr",0),
+
+        str(patient.get("prediction",""))
 
     ))
 
@@ -412,23 +880,21 @@ def get_user_history(user_id):
 
     conn = connect()
 
-    df = pd.read_sql_query(
-
-        """
+    df = pd.read_sql_query("""
 
         SELECT *
 
-        FROM patients
+        FROM assessments
 
         WHERE user_id=?
 
         ORDER BY created_at DESC
 
-        """,
+    """,
 
-        conn,
+    conn,
 
-        params=(user_id,)
+    params=(user_id,)
 
     )
 
@@ -445,19 +911,17 @@ def get_all_history():
 
     conn = connect()
 
-    df = pd.read_sql_query(
-
-        """
+    df = pd.read_sql_query("""
 
         SELECT *
 
-        FROM patients
+        FROM assessments
 
         ORDER BY created_at DESC
 
-        """,
+    """,
 
-        conn
+    conn
 
     )
 
@@ -467,7 +931,7 @@ def get_all_history():
 
 
 # ==========================================
-# TOTAL PATIENTS
+# TOTAL ASSESSMENTS
 # ==========================================
 
 def total_patients():
@@ -476,9 +940,7 @@ def total_patients():
     cur = conn.cursor()
 
     cur.execute(
-
-        "SELECT COUNT(*) FROM patients"
-
+        "SELECT COUNT(*) FROM users WHERE role='Patient'"
     )
 
     total = cur.fetchone()[0]
@@ -486,3 +948,107 @@ def total_patients():
     conn.close()
 
     return total
+
+# ==========================================
+# DELETE HISTORY
+# ==========================================
+
+def delete_history(history_id):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM assessments WHERE id = ?",
+        (history_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+# ==========================================
+# TOTAL ASSESSMENTS
+# ==========================================
+
+def total_assessments():
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("SELECT COUNT(*) FROM assessments")
+
+    total = cur.fetchone()[0]
+
+    conn.close()
+
+    return total
+# ==========================================
+# DELETE ALL HISTORY FOR USER
+# ==========================================
+
+def delete_all_history(user_id):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM assessments WHERE user_id=?",
+        (user_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_user(user_id):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT * FROM users WHERE id=?",
+        (user_id,)
+    )
+
+    user = cur.fetchone()
+
+    conn.close()
+
+    return user
+
+# ==========================================
+# UPDATE USER NAME
+# ==========================================
+
+def update_user_name(user_id, full_name):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        UPDATE users
+        SET full_name=?
+        WHERE id=?
+        """,
+        (full_name, user_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+# ==========================================
+# DELETE USER
+# ==========================================
+
+def delete_user(user_id):
+
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM users WHERE id=?",
+        (user_id,)
+    )
+
+    conn.commit()
+    conn.close()

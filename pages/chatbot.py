@@ -8,6 +8,8 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
+from utils.navigation import sidebar
+
 load_dotenv() 
 # ==========================
 # Page Config
@@ -19,10 +21,51 @@ st.set_page_config(
 )
 
 # ==========================
+# CHAT INITIALIZATION
+# ==========================
+
+if "all_chats" not in st.session_state:
+    st.session_state.all_chats = {}
+
+if "current_chat" not in st.session_state:
+
+    chat_id = str(uuid.uuid4())
+
+    st.session_state.current_chat = chat_id
+
+    st.session_state.all_chats[chat_id] = {
+
+        "title": "New Chat",
+
+        "messages": [
+            {
+                "role": "assistant",
+                "content": "مرحباً 👋 أنا مساعدك الصحي الذكي HealthVibe AI. كيف يمكنني مساعدتك اليوم؟"
+            }
+        ]
+    }
+
+
+# ==========================
+# LOAD CURRENT CHAT
+# ==========================
+
+current_chat_id = st.session_state.current_chat
+
+st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
+
+# ==========================================
+# SIDEBAR
+# ==========================================
+
+sidebar()
+
+# ==========================
 # Title
 # ==========================
 st.title("🩺 HealthVibe AI")
 st.caption("Your healthcare assistant")
+
 
 # ==========================
 # LOAD DATASETS
@@ -58,53 +101,6 @@ def load_datasets():
 
 if "datasets" not in st.session_state:
     st.session_state.datasets = load_datasets()
-
-# ==========================
-# Sidebar (Chat History)
-# ==========================
-
-if "all_chats" not in st.session_state:
-    st.session_state.all_chats = {}
-
-if "current_chat" not in st.session_state:
-    chat_id = str(uuid.uuid4())
-    st.session_state.current_chat = chat_id
-    st.session_state.all_chats[chat_id] = {
-        "title": "New Chat",
-        "messages": [
-            {
-                "role": "assistant",
-                "content": "مرحباً 👋 أنا مساعدك الصحي الذكي HealthVibe AI. كيف يمكنني مساعدتك اليوم؟"
-            }
-        ]
-    }
-
-with st.sidebar:
-    st.subheader("Chat History")
-    
-    if st.button("➕ New Chat", use_container_width=True):
-        new_id = str(uuid.uuid4())
-        st.session_state.all_chats[new_id] = {
-            "title": "New Chat",
-            "messages": [
-                {
-                    "role": "assistant",
-                    "content": "مرحباً 👋 أنا مساعدك الصحي الذكي HealthVibe AI. كيف يمكنني مساعدتك اليوم؟"
-                }
-            ]
-        }
-        st.session_state.current_chat = new_id
-        st.rerun()
-    
-    st.divider()
-    
-    for cid, data in list(st.session_state.all_chats.items()):
-        if st.button(data["title"], key=cid, use_container_width=True):
-            st.session_state.current_chat = cid
-            st.rerun()
-
-current_chat_id = st.session_state.current_chat
-st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
 
 # ==========================
 # Groq Client

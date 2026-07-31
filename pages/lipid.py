@@ -1,16 +1,48 @@
 import streamlit as st
 import pandas as pd
-import os
-import io
+import joblib
 from datetime import datetime
+import os
 
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from components.database import save_lipid
+from components.auth_guard import require_patient
+from components.database import (
+    create_tables,
+    save_assessment,
+    save_lipid,
+    get_profile
+)
 
-# ==========================================
+from utils.navigation import sidebar
+
+from components.loading_animation import ai_loading
+from components.ai_gauge import ai_gauge
+from components.result_card import result_card
+from components.recommendation import recommendation
+from components.patient_summary import patient_summary
+from components.pdf_report import create_pdf
+
+# ==========================================================
+# AUTH
+# ==========================================================
+
+from components.auth_guard import require_patient
+require_patient()
+
+# ==========================================================
+# DATABASE
+# ==========================================================
+
+from components.database import (
+    create_tables,
+    get_profile,
+    save_assessment,
+    save_lipid
+)
+
+# ==========================================================
 # PAGE CONFIG
-# ==========================================
+# ==========================================================
 
 st.set_page_config(
     page_title="Lipid Profile Assessment - HealthVibe AI",
@@ -18,6 +50,53 @@ st.set_page_config(
     layout="wide"
 )
 
+require_patient()
+
+if "user" not in st.session_state:
+    st.switch_page("pages/Login.py")
+    st.stop()
+
+user = st.session_state.user
+
+profile = get_profile(user["id"])
+
+if profile is None:
+    st.warning("Please complete your profile first.")
+    st.switch_page("pages/Profile.py")
+    st.stop()
+
+sidebar()
+
+create_tables()
+
+# ==========================================================
+# LOGIN CHECK
+# ==========================================================
+
+if "user" not in st.session_state:
+    st.switch_page("pages/Login.py")
+    st.stop()
+
+user = st.session_state.user
+
+# ==========================================================
+# LOAD PROFILE
+# ==========================================================
+
+profile = get_profile(user["id"])
+
+if profile is None:
+
+    st.warning("Please complete your profile first.")
+
+    st.switch_page("pages/Profile.py")
+
+    st.stop()
+
+
+profile = dict(profile)
+
+create_tables()
 
 # ==========================================
 # THEME
@@ -192,6 +271,8 @@ unsafe_allow_html=True)
 # SESSION STATE
 # ==========================================
 
+if "saved" not in st.session_state:
+    st.session_state.saved = False
 
 if "step" not in st.session_state:
 
@@ -300,245 +381,178 @@ unsafe_allow_html=True
 
 
 st.write("")
-# ==========================================
+# ==========================================================
 # STEP 1
 # PERSONAL INFORMATION
-# ==========================================
-
+# ==========================================================
 
 if st.session_state.step == 1:
 
+    st.subheader("👤 Patient Information")
 
-    st.markdown("""
-    <div class="card">
+    name = profile["full_name"] or ""
+    age = profile["age"] or 30
+    gender = profile["gender"] or "Male"
+    weight = profile["weight"] or 70
+    height = profile["height"] or 170
 
-    <h2>
-    👤 Personal Information
-    </h2>
-
-    """,
-    unsafe_allow_html=True)
-
-
+    st.success("✅ Patient information loaded from your profile.")
 
     c1, c2, c3 = st.columns(3)
 
-
-
     with c1:
-
-
-        patient["name"] = st.text_input(
+        st.text_input(
             "Full Name",
-            value=patient.get("name","")
+            value=name,
+            disabled=True
         )
 
-
-        patient["age"] = st.number_input(
+        st.number_input(
             "Age",
-            min_value=1,
-            max_value=120,
-            value=patient.get("age",30)
+            value=int(age),
+            disabled=True
         )
-
-
 
     with c2:
 
-
-        patient["gender"] = st.selectbox(
+        st.text_input(
             "Gender",
-            [
-                "Male",
-                "Female"
-            ],
-            index=
-            0 if patient.get("gender","Male")=="Male"
-            else 1
+            value=gender,
+            disabled=True
         )
 
-
-
-        patient["height"] = st.number_input(
+        st.number_input(
             "Height (cm)",
-            min_value=100,
-            max_value=250,
-            value=patient.get("height",170)
+            value=float(height),
+            disabled=True
         )
-
-
 
     with c3:
 
-
-        patient["weight"] = st.number_input(
+        st.number_input(
             "Weight (kg)",
-            min_value=20,
-            max_value=250,
-            value=patient.get("weight",70)
+            value=float(weight),
+            disabled=True
         )
 
-
-        patient["smoker"] = st.selectbox(
+        smoker = st.selectbox(
             "Smoking Status",
-            [
-                "Never",
-                "Former",
-                "Current"
-            ]
+            ["Never", "Former", "Current"],
+            index=0
         )
 
+    bmi = weight / ((height / 100) ** 2)
 
+    st.info(f"📐 Calculated BMI : {bmi:.2f}")
 
-    bmi = patient["weight"] / (
-        (patient["height"]/100)**2
-    )
-
-
-    patient["bmi"] = bmi
-
-
-
-    st.info(
-        f"📐 Calculated BMI : {bmi:.2f}"
-    )
-
-
-
-    st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-    )
-
-
-
-    st.button(
-        "Next →",
-        on_click=next_step,
+    if st.button(
+        "Next ➜",
+        key="lipid_step1",
         use_container_width=True
-    )
+    ):
 
+        patient["name"] = name
+        patient["age"] = age
+        patient["gender"] = gender
+        patient["weight"] = weight
+        patient["height"] = height
+        patient["bmi"] = bmi
+        patient["smoker"] = smoker
 
+        st.session_state.step = 2
+        st.rerun()
 
-
-# ==========================================
+# ==========================================================
 # STEP 2
 # LIFESTYLE & MEDICAL HISTORY
-# ==========================================
-
+# ==========================================================
 
 elif st.session_state.step == 2:
 
-
-
     st.markdown("""
     <div class="card">
+    <h2>🩺 Lifestyle & Medical History</h2>
+    """, unsafe_allow_html=True)
 
-    <h2>
-    🩺 Lifestyle & Medical History
-    </h2>
-
-    """,
-    unsafe_allow_html=True)
-
-
-
-    c1,c2 = st.columns(2)
-
-
+    c1, c2 = st.columns(2)
 
     with c1:
 
-
-        patient["diabetes"] = st.selectbox(
+        diabetes = st.selectbox(
             "Diabetes",
-            [
-                "No",
-                "Yes"
-            ]
+            ["No", "Yes"],
+            index=0 if patient.get("diabetes", "No") == "No" else 1
         )
 
-
-
-        patient["hypertension"] = st.selectbox(
+        hypertension = st.selectbox(
             "Hypertension",
-            [
-                "No",
-                "Yes"
-            ]
+            ["No", "Yes"],
+            index=0 if patient.get("hypertension", "No") == "No" else 1
         )
 
-
-
-        patient["family_history"] = st.selectbox(
+        family_history = st.selectbox(
             "Family History of Heart Disease",
-            [
-                "No",
-                "Yes"
-            ]
+            ["No", "Yes"],
+            index=0 if patient.get("family_history", "No") == "No" else 1
         )
-
-
 
     with c2:
 
-
-        patient["exercise"] = st.slider(
+        exercise = st.slider(
             "Exercise Days / Week",
             0,
             7,
-            3
+            patient.get("exercise", 3)
         )
 
-
-
-        patient["sleep"] = st.slider(
+        sleep = st.slider(
             "Sleep Hours",
             3,
             12,
-            7
+            patient.get("sleep", 7)
         )
 
-
-
-        patient["diet"] = st.selectbox(
+        diet = st.selectbox(
             "Diet Quality",
-            [
-                "Poor",
-                "Average",
-                "Healthy"
-            ]
+            ["Poor", "Average", "Healthy"],
+            index=["Poor", "Average", "Healthy"].index(
+                patient.get("diet", "Average")
+            )
         )
 
+    st.markdown("</div>", unsafe_allow_html=True)
 
-
-    st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-    )
-
-
-
-    col1,col2 = st.columns(2)
-
+    col1, col2 = st.columns(2)
 
     with col1:
 
-        st.button(
-            "← Back",
-            on_click=back_step,
+        if st.button(
+            "⬅ Back",
+            key="lipid_back2",
             use_container_width=True
-        )
-
+        ):
+            st.session_state.step = 1
+            st.rerun()
 
     with col2:
 
-        st.button(
-            "Next →",
-            on_click=next_step,
+        if st.button(
+            "Next ➜",
+            key="lipid_next2",
             use_container_width=True
-        )
-        # ==========================================
+        ):
+
+            patient["diabetes"] = diabetes
+            patient["hypertension"] = hypertension
+            patient["family_history"] = family_history
+            patient["exercise"] = exercise
+            patient["sleep"] = sleep
+            patient["diet"] = diet
+
+            st.session_state.step = 3
+            st.rerun()
+            
+# ==========================================
 # STEP 3
 # LIPID MEASUREMENTS
 # ==========================================
@@ -633,14 +647,13 @@ elif st.session_state.step == 3:
             use_container_width=True
         ):
 
-
             risk_score = 0
 
 
 
-            # ==========================
-            # Cholesterol
-            # ==========================
+# ==========================
+# Cholesterol
+# ==========================
 
 
             if patient["total_chol"] >= 240:
@@ -655,9 +668,9 @@ elif st.session_state.step == 3:
 
 
 
-            # ==========================
-            # LDL
-            # ==========================
+# ==========================
+# LDL
+# ==========================
 
 
             if patient["ldl"] >= 160:
@@ -677,9 +690,9 @@ elif st.session_state.step == 3:
 
 
 
-            # ==========================
-            # HDL
-            # ==========================
+# ==========================
+# HDL
+# ==========================
 
 
             if patient["hdl"] < 40:
@@ -689,9 +702,9 @@ elif st.session_state.step == 3:
 
 
 
-            # ==========================
-            # Triglycerides
-            # ==========================
+# ==========================
+# Triglycerides
+# ==========================
 
 
             if patient["triglycerides"] >= 500:
@@ -711,9 +724,9 @@ elif st.session_state.step == 3:
 
 
 
-            # ==========================
-            # Lifestyle Factors
-            # ==========================
+# ==========================
+# Lifestyle Factors
+# ==========================
 
 
             if patient["bmi"] >= 25:
@@ -748,9 +761,9 @@ elif st.session_state.step == 3:
 
 
 
-            # ==========================
-            # Risk Classification
-            # ==========================
+# ==========================
+# Risk Classification
+# ==========================
 
 
             if risk_score <= 3:
@@ -759,7 +772,6 @@ elif st.session_state.step == 3:
 
 
             elif risk_score <= 7:
-
                 risk_level = "Moderate Risk"
 
 
@@ -777,9 +789,9 @@ elif st.session_state.step == 3:
 
 
 
-            # ==========================
-            # Recommendations
-            # ==========================
+# ==========================
+# Recommendations
+# ==========================
 
 
             recommendations = []
@@ -873,637 +885,174 @@ elif st.session_state.step == 3:
 
 
             st.rerun()
-            # ==========================================
+# ==========================================================
 # STEP 4
-# AI ANALYSIS RESULT
-# ==========================================
-
+# AI RESULT
+# ==========================================================
 
 elif st.session_state.step == 4:
 
+    st.subheader("🤖 AI Analysis Result")
 
-    result = st.session_state.result
+    ai_loading()
 
+    # ==========================================
+    # AI SCORING
+    # ==========================================
 
+    risk_score = 0
 
-    st.markdown("""
-    <div class="hero">
+    if patient["total_chol"] >= 240:
+        risk_score += 2
+    elif patient["total_chol"] >= 200:
+        risk_score += 1
 
-    <h1>
-    🤖 AI Lipid Analysis Result
-    </h1>
+    if patient["ldl"] >= 160:
+        risk_score += 3
+    elif patient["ldl"] >= 130:
+        risk_score += 2
+    elif patient["ldl"] >= 100:
+        risk_score += 1
 
-    <p>
-    Your lipid profile has been analyzed successfully.
-    </p>
+    if patient["hdl"] < 40:
+        risk_score += 2
 
-    </div>
+    if patient["triglycerides"] >= 500:
+        risk_score += 3
+    elif patient["triglycerides"] >= 200:
+        risk_score += 2
+    elif patient["triglycerides"] >= 150:
+        risk_score += 1
 
-    """,
-    unsafe_allow_html=True)
+    if patient["bmi"] >= 25:
+        risk_score += 1
 
+    if patient["smoker"] == "Current":
+        risk_score += 2
 
+    if patient["diabetes"] == "Yes":
+        risk_score += 2
 
-    risk_level = result["risk_level"]
+    if patient["hypertension"] == "Yes":
+        risk_score += 2
 
-    health_score = result["health_score"]
+    if patient["exercise"] < 3:
+        risk_score += 1
 
+    if patient["sleep"] < 6:
+        risk_score += 1
 
+    # ==========================================
+    # RESULT
+    # ==========================================
 
-    # ==========================
-    # RESULT CARD
-    # ==========================
+    if risk_score <= 3:
+        prediction = 0
+        risk_level = "Low Risk"
 
-
-    if risk_level == "High Risk":
-
-        card = "danger-card"
-
-        icon = "🔴"
-
-
-    elif risk_level == "Moderate Risk":
-
-        card = ""
-
-        icon = "🟡"
-
+    elif risk_score <= 7:
+        prediction = 1
+        risk_level = "Moderate Risk"
 
     else:
+        prediction = 2
+        risk_level = "High Risk"
 
-        card = "success-card"
+    probability = min(risk_score / 12, 1.0)
 
-        icon = "🟢"
+    patient["prediction"] = prediction
+    patient["probability"] = probability
 
+    # ==========================================
+    # SAVE
+    # ==========================================
 
+    recommendations = []
 
+    if patient["total_chol"] >= 200:
+        recommendations.append("Reduce saturated fats and processed foods.")
 
-    st.markdown(
-    f"""
-    <div class="result-card {card}">
+    if patient["ldl"] >= 130:
+        recommendations.append("Increase fiber intake and healthy fats.")
 
-    <h2>
-    {icon} {risk_level}
-    </h2>
+    if patient["hdl"] < 40:
+        recommendations.append("Exercise regularly to improve HDL levels.")
 
-    <h3>
-    Overall Health Score
-    </h3>
+    if patient["triglycerides"] >= 150:
+        recommendations.append("Reduce sugar and refined carbohydrates.")
 
-    <h1 style="color:#06b6d4;">
-    {health_score}/100
-    </h1>
+    if patient["bmi"] >= 25:
+        recommendations.append("Weight management can improve cardiovascular health.")
 
+    if patient["smoker"] == "Current":
+        recommendations.append("Smoking cessation is strongly recommended.")
 
-    </div>
+    if patient["diabetes"] == "Yes":
+        recommendations.append("Maintain good blood glucose control.")
 
-    """,
-    unsafe_allow_html=True
-    )
+    if len(recommendations) == 0:
+        recommendations.append("Maintain your healthy lifestyle and regular checkups.")
 
+    health_score = max(0, 100 - risk_score * 8)
 
+    if not st.session_state.saved:
 
-    st.write("")
-
-
-
-    # ==========================
-    # PATIENT SUMMARY
-    # ==========================
-
-
-    st.markdown("""
-    <div class="card">
-
-    <h2>
-    👤 Patient Summary
-    </h2>
-
-    """,
-    unsafe_allow_html=True)
-
-
-
-    c1,c2 = st.columns(2)
-
-
-
-    with c1:
-
-        st.write(
-        f"""
-        **Name:** {patient.get('name','-')}
-
-        **Age:** {patient.get('age','-')}
-
-        **Gender:** {patient.get('gender','-')}
-
-        **BMI:** {patient.get('bmi',0):.2f}
-
-        """
+        assessment_id = save_assessment(
+            user_id=st.session_state.user["id"],
+            disease="Lipid Profile",
+            prediction=risk_level,
+            probability=float(probability)
         )
 
-
-
-    with c2:
-
-        st.write(
-        f"""
-        **Total Cholesterol:** {patient.get('total_chol')} mg/dL
-
-        **LDL:** {patient.get('ldl')} mg/dL
-
-        **HDL:** {patient.get('hdl')} mg/dL
-
-        **Triglycerides:** {patient.get('triglycerides')} mg/dL
-
-        """
+        save_lipid(
+            assessment_id,
+            patient
         )
 
+        st.session_state.saved = True
 
+    st.success("Analysis Completed Successfully ✅")
 
-    st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-    )
+    st.balloons()
 
+    st.metric("Risk Level", risk_level)
+    st.metric("Health Score", f"{health_score}/100")
+    st.metric("Probability", f"{probability*100:.1f}%")
 
-
-    # ==========================
-    # RECOMMENDATIONS
-    # ==========================
-
-
-    st.markdown("""
-    <div class="card">
-
-    <h2>
-    💡 Personalized Recommendations
-    </h2>
-
-    """,
-    unsafe_allow_html=True)
-
-
-
-    for rec in result["recommendations"]:
-
-        st.write(
-            "✔️",
-            rec
-        )
-
-
-
-    st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-    )
-
-
-
-    # ==========================
-    # CHART
-    # ==========================
-
-
-    st.markdown("""
-    <div class="card">
-
-    <h2>
-    📊 Lipid Profile Chart
-    </h2>
-
-    """,
-    unsafe_allow_html=True)
-
-
-
-    chart = pd.DataFrame({
-
-        "Test":
-
-        [
-
+    summary = pd.DataFrame({
+        "Item": [
             "Total Cholesterol",
-
             "LDL",
-
             "HDL",
-
-            "Triglycerides"
-
+            "Triglycerides",
+            "BMI"
         ],
-
-
-        "Value":
-
-        [
-
+        "Value": [
             patient["total_chol"],
-
             patient["ldl"],
-
             patient["hdl"],
-
-            patient["triglycerides"]
-
+            patient["triglycerides"],
+            round(patient["bmi"], 2)
         ]
-
     })
 
+    st.dataframe(summary, use_container_width=True)
 
+    st.subheader("Recommendations")
 
-    st.bar_chart(
+    for rec in recommendations:
+        st.success(rec)
 
-        chart,
-
-        x="Test",
-
-        y="Value"
-
-    )
-
-
-
-    st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-    )
-
-
-
-    # ==========================
-    # HEALTH GUIDANCE
-    # ==========================
-
-
-    st.markdown("""
-    <div class="card">
-
-    <h2>
-    ⚕️ Medical Guidance
-    </h2>
-
-    """,
-    unsafe_allow_html=True)
-
-
-
-    if risk_level == "Low Risk":
-
-
-        st.success(
-        """
-        Your lipid profile looks healthy.
-        Continue your current lifestyle and perform regular checkups.
-        """
-        )
-
-
-    elif risk_level == "Moderate Risk":
-
-
-        st.warning(
-        """
-        Some lipid values need improvement.
-        Lifestyle modifications and follow-up testing are recommended.
-        """
-        )
-
-
-    else:
-
-
-        st.error(
-        """
-        Your lipid profile indicates increased cardiovascular risk.
-        Please consult a healthcare professional.
-        """
-        )
-
-
-
-    st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-    )
-
-
-
-    st.caption(
-    "⚕️ This AI assessment provides an estimated risk evaluation and does not replace professional medical diagnosis."
-    )
-
-
-
-    st.divider()
-
-
-
-    col1,col2 = st.columns(2)
-
-
+    col1, col2 = st.columns(2)
 
     with col1:
-
-
-        if st.button(
-            "⬅ Back",
-            use_container_width=True
-        ):
-
+        if st.button("⬅ Back", use_container_width=True):
             st.session_state.step = 3
-
             st.rerun()
-
-
 
     with col2:
-
-
-        if st.button(
-            "🔄 New Assessment",
-            use_container_width=True
-        ):
-
-
+        if st.button("🔄 New Assessment", use_container_width=True):
             st.session_state.step = 1
-
             st.session_state.patient = {}
-
-            st.session_state.result = {}
-
-            st.session_state.analyzed = False
-
+            st.session_state.saved = False
             st.rerun()
-            # ==========================================
-# PDF REPORT
-# ==========================================
-
-
-def generate_pdf(patient, result):
-
-
-    file_name = "HealthVibe_Lipid_Report.pdf"
-
-
-    doc = SimpleDocTemplate(
-        file_name,
-        pagesize=A4
-    )
-
-
-    styles = getSampleStyleSheet()
-
-
-    elements = []
-
-
-
-    elements.append(
-        Paragraph(
-            "<b>HealthVibe AI</b>",
-            styles["Title"]
-        )
-    )
-
-
-    elements.append(
-        Paragraph(
-            "Lipid Profile Assessment Report",
-            styles["Heading2"]
-        )
-    )
-
-
-    elements.append(Spacer(1,20))
-
-
-
-    elements.append(
-        Paragraph(
-            f"""
-            Name: {patient.get('name','-')}<br/>
-            Age: {patient.get('age','-')}<br/>
-            Gender: {patient.get('gender','-')}<br/>
-            BMI: {patient.get('bmi',0):.2f}
-            """,
-            styles["BodyText"]
-        )
-    )
-
-
-
-    elements.append(Spacer(1,15))
-
-
-
-    elements.append(
-        Paragraph(
-            f"""
-            Total Cholesterol:
-            {patient.get('total_chol')} mg/dL<br/>
-
-            LDL:
-            {patient.get('ldl')} mg/dL<br/>
-
-            HDL:
-            {patient.get('hdl')} mg/dL<br/>
-
-            Triglycerides:
-            {patient.get('triglycerides')} mg/dL
-            """,
-            styles["BodyText"]
-        )
-    )
-
-
-
-    elements.append(Spacer(1,20))
-
-
-
-    elements.append(
-        Paragraph(
-            f"""
-            Risk Level:
-            {result.get('risk_level')}<br/>
-
-            Health Score:
-            {result.get('health_score')}/100
-            """,
-            styles["Heading2"]
-        )
-    )
-
-
-
-    elements.append(
-        Paragraph(
-            "Recommendations:",
-            styles["Heading2"]
-        )
-    )
-
-
-
-    for item in result.get("recommendations",[]):
-
-        elements.append(
-            Paragraph(
-                f"• {item}",
-                styles["BodyText"]
-            )
-        )
-
-
-
-    elements.append(Spacer(1,20))
-
-
-    elements.append(
-        Paragraph(
-            """
-            This report is generated by HealthVibe AI.
-            It is an AI-based assessment and does not replace professional medical advice.
-            """,
-            styles["BodyText"]
-        )
-    )
-
-
-
-    doc.build(elements)
-
-
-
-    return file_name
-
-
-
-
-
-# ==========================================
-# DOWNLOAD REPORT
-# ==========================================
-
-
-if st.session_state.analyzed:
-
-
-
-    st.divider()
-
-
-
-    st.markdown("""
-    <div class="card">
-
-    <h2>
-    📄 Medical Report
-    </h2>
-
-    <p>
-    Generate and download your complete AI lipid assessment report.
-    </p>
-
-    </div>
-
-    """,
-    unsafe_allow_html=True)
-
-
-
-    if st.button(
-        "📄 Generate PDF Report",
-        use_container_width=True
-    ):
-
-
-
-        pdf_file = generate_pdf(
-            patient,
-            st.session_state.result
-        )
-
-
-
-        with open(pdf_file,"rb") as file:
-
-
-            st.download_button(
-
-                "⬇ Download PDF Report",
-
-                data=file,
-
-                file_name=
-                "HealthVibe_Lipid_Report.pdf",
-
-                mime=
-                "application/pdf",
-
-                use_container_width=True
-
-            )
-
-
-
-
-
-# ==========================================
-# FOOTER
-# ==========================================
-
-
-st.divider()
-
-
-
-st.markdown("""
-
-<div class="footer">
-
-
-<h2 style="color:#00C2FF;">
-
-🩺 HealthVibe AI
-
-</h2>
-
-
-
-<p>
-
-AI-powered Lipid Profile Assessment Platform
-
-</p>
-
-
-
-<hr>
-
-
-
-<p>
-
-Made with ❤️ using Streamlit & AI
-
-</p>
-
-
-
-<p style="color:#94A3B8;">
-
-© 2026 HealthVibe AI • All Rights Reserved
-
-</p>
-
-
-
-</div>
-
-
-""",
-unsafe_allow_html=True)

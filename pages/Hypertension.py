@@ -74,7 +74,8 @@ from utils.navigation import sidebar
 
 from components.database import (
     create_tables,
-    save_patient
+    save_assessment,
+    save_hypertension
 )
 
 from components.stepper import stepper
@@ -599,12 +600,16 @@ elif st.session_state.step == 2:
 
 
             patient["systolic"] = systolic
-
             patient["diastolic"] = diastolic
-
             patient["cholesterol"] = cholesterol
 
+            patient["heart_rate"] = patient.get("heart_rate", 75)
 
+            patient["age"] = profile["age"] or 30
+            patient["weight"] = profile["weight"] or 70
+            patient["height"] = profile["height"] or 170
+            patient["gender"] = profile["gender"] or "Male"
+            patient["name"] = profile["full_name"] or ""
 
             st.session_state.step = 3
 
@@ -923,122 +928,72 @@ elif st.session_state.step == 5:
 # LIFESTYLE
 # ==========================================================
 
-
 elif st.session_state.step == 6:
 
-
-
-    st.subheader(
-        "🏃 Lifestyle Information"
-    )
-
-
+    st.subheader("🏃 Lifestyle Information")
 
     smoking = st.selectbox(
-
         "Do you smoke?",
-
-        [
-            "No",
-            "Yes"
-        ]
-
+        ["No", "Yes"],
+        index=0 if patient.get("smoking", "No") == "No" else 1
     )
 
+    cigs_per_day = patient.get("cigs_per_day", 0)
 
+    if smoking == "Yes":
+        cigs_per_day = st.number_input(
+            "Cigarettes Per Day",
+            min_value=1,
+            max_value=60,
+            value=max(1, cigs_per_day)
+        )
 
     activity = st.selectbox(
-
         "Physical Activity Level",
-
-        ACTIVITY_LEVELS
-
+        ACTIVITY_LEVELS,
+        index=0
     )
-
-
 
     salt = st.selectbox(
-
         "Salt Intake",
-
-        [
-            "Low",
-            "Moderate",
-            "High"
-        ]
-
+        ["Low", "Moderate", "High"],
+        index=1
     )
-
-
 
     alcohol = st.selectbox(
-
         "Alcohol Consumption",
-
-        [
-            "Never",
-            "Sometimes",
-            "Regularly"
-        ]
-
+        ["Never", "Sometimes", "Regularly"],
+        index=0
     )
 
-
-
-    col1,col2 = st.columns(2)
-
-
+    col1, col2 = st.columns(2)
 
     with col1:
 
-
         if st.button(
-
             "⬅ Back",
-
             key="life_back",
-
             use_container_width=True
-
         ):
-
-
             st.session_state.step = 5
-
             st.rerun()
-
-
 
     with col2:
 
-
         if st.button(
-
             "Next ➜",
-
             key="life_next",
-
             use_container_width=True
-
         ):
 
-
             patient["smoking"] = smoking
-
+            patient["cigs_per_day"] = cigs_per_day
             patient["activity"] = activity
-
             patient["salt"] = salt
-
             patient["alcohol"] = alcohol
 
-
             st.session_state.step = 7
-
             st.rerun()
-
-
-
-
 
 
 
@@ -1138,221 +1093,176 @@ elif st.session_state.step == 7:
 # AI ANALYSIS
 # ==========================================================
 
-
 elif st.session_state.step == 8:
 
-
-
-    st.subheader(
-        "🤖 AI Analysis Result"
-    )
-
-
+    st.subheader("🤖 AI Analysis Result")
 
     ai_loading()
 
+    # -----------------------------
+    # Feature Engineering
+    # -----------------------------
 
+    male = 1 if patient.get("gender") == "Male" else 0
 
-    input_data = pd.DataFrame(
+    currentSmoker = 1 if patient.get("smoking") == "Yes" else 0
 
-        [[
+    cigsPerDay = patient.get("cigs_per_day", 0)
 
-            patient["age"],
+    BPMeds = 1 if patient.get("taking_medicine") == "Yes" else 0
 
-            patient["systolic"],
+    diabetes = 1 if patient.get("diabetes") == "Yes" else 0
 
-            patient["diastolic"],
+    age = patient.get("age", 30)
 
-            patient["cholesterol"],
+    sysBP = patient.get("systolic", 120)
 
-            patient["heart_rate"]
+    diaBP = patient.get("diastolic", 80)
 
-        ]],
+    totChol = patient.get("cholesterol", 200)
 
-        columns=[
-
-            "age",
-
-            "sysBP",
-
-            "diaBP",
-
-            "totChol",
-
-            "heartRate"
-
-        ]
-
+    BMI = round(
+        patient.get("weight",70)
+        /
+        ((patient.get("height",170)/100)**2),
+        2
     )
 
+    heartRate = patient.get("heart_rate",75)
 
+    glucose = patient.get("glucose",100)
 
-    prediction = model.predict(
+    pulse_pressure = sysBP - diaBP
 
-        input_data
+    mean_arterial_pressure = (sysBP + 2*diaBP)/3
 
-    )[0]
+    age_bmi = age * BMI
 
+    smoking_load = currentSmoker * cigsPerDay
 
+    # -----------------------------
+    # MODEL INPUT
+    # -----------------------------
+
+    input_data = pd.DataFrame([[
+
+        male,
+        age,
+        currentSmoker,
+        cigsPerDay,
+        BPMeds,
+        diabetes,
+        totChol,
+        sysBP,
+        diaBP,
+        BMI,
+        heartRate,
+        glucose,
+        pulse_pressure,
+        mean_arterial_pressure,
+        age_bmi,
+        smoking_load
+
+    ]],
+
+    columns=[
+
+        "male",
+        "age",
+        "currentSmoker",
+        "cigsPerDay",
+        "BPMeds",
+        "diabetes",
+        "totChol",
+        "sysBP",
+        "diaBP",
+        "BMI",
+        "heartRate",
+        "glucose",
+        "pulse_pressure",
+        "mean_arterial_pressure",
+        "age_bmi",
+        "smoking_load"
+
+    ])
+
+     # -----------------------------
+    # Prediction
+    # -----------------------------
+
+    prediction = model.predict(input_data)[0]
 
     try:
-
-        probability = model.predict_proba(
-
-            input_data
-
-        )[0][1]
-
-
+        probability = model.predict_proba(input_data)[0][1]
     except:
+        probability = float(prediction)
 
-        probability = 0
+    patient["prediction"] = int(prediction)
+    patient["probability"] = float(probability)
 
-
-
-    patient["prediction"] = int(
-        prediction
-    )
-
-
-    patient["probability"] = float(
-        probability
-    )
-
-
+    # -----------------------------
+    # SAVE
+    # -----------------------------
 
     if not st.session_state.saved:
 
-
-        patient["user_id"] = (
-            st.session_state.user["id"]
+        assessment_id = save_assessment(
+            user_id=st.session_state.user["id"],
+            disease="Hypertension",
+            prediction=str(prediction),
+            probability=float(probability)
         )
 
 
-        save_patient(
+        save_hypertension(
+            assessment_id,
             patient
         )
 
-
         st.session_state.saved = True
 
+    # -----------------------------
+    # RESULT UI
+    # -----------------------------
 
-
-    st.success(
-        "Analysis Completed Successfully ✅"
-    )
-
+    st.success("Analysis Completed Successfully ✅")
 
     st.balloons()
 
-
-
-    ai_gauge(
-        probability
-    )
-
-
-    st.write("")
-
-
+    ai_gauge(probability)
 
     result_card(
-
         prediction,
-
         probability
-
     )
 
-
-    st.write("")
-
-
-
-    recommendation(
-
-        prediction
-
-    )
-
-
-
-    st.write("")
-
-
+    recommendation(prediction)
 
     patient_summary({
 
-        "Full Name":
-            patient["name"],
-
-        "Age":
-            patient["age"],
-
-        "Gender":
-            patient["gender"],
-
-        "Weight":
-            patient["weight"],
-
-        "Height":
-            patient["height"],
-
-        "Systolic BP":
-            patient["systolic"],
-
-        "Diastolic BP":
-            patient["diastolic"],
-
-        "Cholesterol":
-            patient["cholesterol"],
-
-        "Heart Rate":
-            patient["heart_rate"]
+        "Full Name": patient["name"],
+        "Age": patient["age"],
+        "Gender": patient["gender"],
+        "Weight": patient["weight"],
+        "Height": patient["height"],
+        "Systolic BP": sysBP,
+        "Diastolic BP": diaBP,
+        "Heart Rate": heartRate,
+        "BMI": BMI
 
     })
 
-
     st.divider()
-    # ==========================================================
-# MEDICAL REPORT
-# ==========================================================
-
-
-    st.write("")
-
-    st.divider()
-
-
-    st.markdown(
-    """
-    <div class="hero">
-
-    <h2>📄 Medical Report</h2>
-
-    <p>
-    Download your AI generated hypertension assessment report.
-    </p>
-
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-
 
     pdf_file = create_pdf(patient)
 
-
-
     with open(pdf_file, "rb") as pdf:
-
 
         st.download_button(
 
             "⬇ Download PDF Report",
 
-            data=pdf,
+            pdf,
 
             file_name=pdf_file,
 
@@ -1362,113 +1272,26 @@ elif st.session_state.step == 8:
 
         )
 
-
-
-
-    st.write("")
-
-    st.divider()
-
-
-
-# ==========================================================
-# ACTION BUTTONS
-# ==========================================================
-
-
-    col1,col2 = st.columns(2)
-
-
+    col1, col2 = st.columns(2)
 
     with col1:
 
-
         if st.button(
-
             "⬅ Back",
-
-            key="hypertension_back_result",
-
-            use_container_width=True
-
+            use_container_width=True,
+            key="bp_back_result"
         ):
-
-
             st.session_state.step = 7
-
             st.rerun()
-
-
-
 
     with col2:
 
-
         if st.button(
-
             "🔄 New Assessment",
-
-            key="hypertension_new",
-
-            use_container_width=True
-
+            use_container_width=True,
+            key="bp_new"
         ):
-
-
             st.session_state.step = 1
-
             st.session_state.patient = {}
-
             st.session_state.saved = False
-
-            st.session_state.result = None
-
-
             st.rerun()
-
-
-
-
-
-# ==========================================================
-# FOOTER
-# ==========================================================
-
-
-st.divider()
-
-
-
-st.markdown(
-"""
-<div class="footer">
-
-
-<h2 style="color:#00C2FF;">
-🩺 HealthVibe AI
-</h2>
-
-
-<p>
-AI-powered Hypertension Prediction Platform
-</p>
-
-
-<hr>
-
-
-<p style="color:#94A3B8;">
-Developed with ❤️ using Streamlit & Artificial Intelligence
-</p>
-
-
-<p style="color:#94A3B8;">
-© 2026 HealthVibe AI • All Rights Reserved
-</p>
-
-
-</div>
-
-""",
-unsafe_allow_html=True
-)

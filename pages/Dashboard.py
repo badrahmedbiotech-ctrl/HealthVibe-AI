@@ -1,9 +1,13 @@
 import streamlit as st
+import pandas as pd
+from datetime import datetime
+
 from utils.navigation import sidebar
 
 from components.database import (
     total_patients,
-    get_all_history
+    get_all_history,
+    get_profile
 )
 
 from components.doctor_db import (
@@ -12,31 +16,29 @@ from components.doctor_db import (
 )
 
 # ==========================================
-# SESSION PROTECTION
-# ==========================================
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if not st.session_state.logged_in:
-    st.switch_page("app.py")
-    st.stop()
-
-username = st.session_state.get("username", "User")
-role = st.session_state.get("role", "Patient")
-
-# ==========================================
 # PAGE CONFIG
 # ==========================================
 
 st.set_page_config(
     page_title="HealthVibe AI Dashboard",
     page_icon="🩺",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ==========================================
-# LOAD CSS
+# SESSION
+# ==========================================
+
+if "logged_in" not in st.session_state:
+    st.switch_page("app.py")
+    st.stop()
+username = st.session_state.get("username", "User")
+role = st.session_state.get("role", "Patient")
+user_id = st.session_state.get("user_id")
+
+# ==========================================
+# CSS
 # ==========================================
 
 with open("style.css", encoding="utf-8") as f:
@@ -47,29 +49,10 @@ with open("style.css", encoding="utf-8") as f:
 
 sidebar()
 
-# ==========================================
-# HELPERS
-# ==========================================
-
-def disease_card(icon, title, desc, page, key):
-
-    st.markdown(f"""
-    <div class="dashboard-card">
-        <h1>{icon}</h1>
-        <h4>{title}</h4>
-        <p>{desc}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if st.button(
-        "Analyze →",
-        key=key,
-        use_container_width=True
-    ):
-        st.switch_page(page)
+st.write("Dashboard Loaded Successfully")
 
 # ==========================================
-# DATABASE METRICS
+# LOAD DATABASE
 # ==========================================
 
 try:
@@ -78,9 +61,11 @@ except:
     patients = 0
 
 try:
-    history = len(get_all_history())
+    assessments = assessments = get_all_history()
 except:
-    history = 0
+    assessments = []
+
+history_count = len(assessments)
 
 try:
     doctors = doctors_count()
@@ -88,10 +73,90 @@ except:
     doctors = 0
 
 try:
-    available = available_doctors()
+    online_doctors = available_doctors()
 except:
-    available = 0
+    online_doctors = 0
 
+profile = get_profile(user_id)
+
+# ==========================================
+# HEALTH SCORE
+# ==========================================
+
+if history_count == 0:
+
+    health_score = 100
+    latest_prediction = "No Assessment"
+
+else:
+
+    latest = assessments.iloc[-1]
+
+    latest_prediction = latest["prediction"]
+
+    if latest_prediction == "Low Risk":
+        health_score = 95
+
+    elif latest_prediction == "Moderate Risk":
+        health_score = 75
+
+    else:
+        health_score = 45
+# ==========================================
+# NOTIFICATIONS
+# ==========================================
+
+notifications = []
+
+if history_count == 0:
+
+    notifications.append("Welcome to HealthVibe AI")
+
+else:
+
+    notifications.append(
+        f"Latest assessment : {latest_prediction}"
+    )
+
+if online_doctors > 0:
+
+    notifications.append(
+    f"{online_doctors} Doctors Online"
+    )
+
+notifications.append(
+    f"Last Login : {datetime.now().strftime('%d %b %Y')}"
+)
+
+# ==========================================
+# CARD
+# ==========================================
+
+def disease_card(icon, title, desc, page, key):
+
+    st.markdown(
+        f"""
+        <div class="dashboard-card">
+
+        <div style="font-size:55px;">
+        {icon}
+        </div>
+
+        <h3>{title}</h3>
+
+        <p>{desc}</p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    if st.button(
+        f"Open {title}",
+        key=key,
+        use_container_width=True
+    ):
+        st.switch_page(page)
 # ==========================================
 # HERO
 # ==========================================
@@ -99,33 +164,25 @@ except:
 st.markdown(f"""
 <div class="hero">
 
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+
+<div>
+
 <span class="hero-badge">
 🟢 AI System Online
 </span>
-
-<div style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
-gap:40px;
-">
-
-<div>
 
 <h1>
 👋 Welcome Back, {username}
 </h1>
 
 <p>
-Your AI Healthcare Assistant
+Your Intelligent Clinical Decision Support Platform
 </p>
 
 </div>
 
-<div style="
-font-size:110px;
-">
+<div style="font-size:110px;">
 🩺
 </div>
 
@@ -134,136 +191,87 @@ font-size:110px;
 </div>
 """, unsafe_allow_html=True)
 
-b1, b2 = st.columns(2)
+st.write("")
 
-with b1:
+# ==========================================
+# QUICK ACTIONS
+# ==========================================
+
+a1, a2, a3, a4 = st.columns(4)
+
+with a1:
 
     if st.button(
-        "🚀 Start Diagnosis",
+        "🩸 New Assessment",
         use_container_width=True
     ):
         st.switch_page("pages/Diabetes.py")
 
-with b2:
+with a2:
 
     if st.button(
-        "🤖 AI Chatbot",
+        "🤖 AI Assistant",
         use_container_width=True
     ):
         st.switch_page("pages/chatbot.py")
 
+with a3:
+
+    if st.button(
+        "📋 history_count",
+        use_container_width=True
+    ):
+        st.switch_page("pages/Patient_History.py")
+
+with a4:
+
+    if st.button(
+        "👤 Profile",
+        use_container_width=True
+    ):
+        st.switch_page("pages/Profile.py")
+
 st.write("")
 
 # ==========================================
-# QUICK STATS
+# DASHBOARD METRICS
 # ==========================================
 
-c1, c2, c3, c4 = st.columns(4)
+m1, m2, m3, m4 = st.columns(4)
 
-with c1:
+with m1:
+
     st.metric(
-        "Patients",
-        patients,
-        "+12"
+        "👥 Patients",
+        patients
     )
 
-with c2:
+with m2:
+
     st.metric(
-        "Predictions",
-        history,
-        "+18"
+        "📄 Assessments",
+        history_count
     )
 
-with c3:
+with m3:
+
     st.metric(
-        "Doctors",
+        "👨‍⚕️ Doctors",
         doctors,
-        f"{available} Online"
+        f"{online_doctors} Online"
     )
 
-with c4:
+with m4:
+
     st.metric(
-        "Accuracy",
-        "98.7%",
-        "+0.4%"
-    )
-
-st.write("")
-# ==========================================
-# AI PREDICTION MODULES
-# ==========================================
-
-st.markdown("""
-<h2 style='margin-top:10px;margin-bottom:20px;'>
-🩺 AI Prediction Modules
-</h2>
-""", unsafe_allow_html=True)
-
-row1 = st.columns(3)
-
-with row1[0]:
-    disease_card(
-        "🩸",
-        "Diabetes",
-        "Blood Sugar Prediction",
-        "pages/Diabetes.py",
-        "diabetes_card"
-    )
-
-with row1[1]:
-    disease_card(
-        "❤️",
-        "Hypertension",
-        "Blood Pressure Analysis",
-        "pages/Hypertension.py",
-        "hypertension_card"
-    )
-
-with row1[2]:
-    disease_card(
-        "🫀",
-        "Lipid",
-        "Lipid Profile Analysis",
-        "pages/lipid.py",
-        "lipid_card"
+        "❤️ Health Score",
+        f"{health_score}%"
     )
 
 st.write("")
 
-row2 = st.columns(3)
-
-with row2[0]:
-    disease_card(
-        "⚖️",
-        "Obesity",
-        "BMI & Risk Prediction",
-        "pages/obesity.py",
-        "obesity_card"
-    )
-
-with row2[1]:
-    disease_card(
-        "🫁",
-        "Pulmonary",
-        "Pulmonary Fibrosis",
-        "pages/Pulmonary_Fibrosis.py",
-        "pulmonary_card"
-    )
-
-with row2[2]:
-    disease_card(
-        "🩻",
-        "CT Scan AI",
-        "Medical Image Detection",
-        "pages/CT_Scan_AI.py",
-        "ct_card"
-    )
-
-st.write("")
-st.divider()
-
 # ==========================================
-# HEALTH SCORE + AI ASSISTANT
+# SUMMARY + RISK
 # ==========================================
 
 left, right = st.columns([2,1])
@@ -272,47 +280,192 @@ with left:
 
     st.markdown("""
     <div class="card">
-
-    <h3>❤️ Health Score</h3>
-
-    <h1 style="
-    color:#22C55E;
-    font-size:55px;
-    ">
-    96%
-    </h1>
-
-    <p>
-    Your overall health status is excellent.
-    Keep following your healthy lifestyle.
-    </p>
-
-    </div>
+    <h3>📈 Dashboard Summary</h3>
     """, unsafe_allow_html=True)
+
+    st.write(f"**Username:** {username}")
+    st.write(f"**Role:** {role}")
+    st.write(f"**Total Assessments:** {history_count}")
+    st.write(f"**Latest Prediction:** {latest_prediction}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with right:
 
     st.markdown("""
     <div class="card">
+    <h3>❤️ Risk Indicator</h3>
+    """, unsafe_allow_html=True)
 
-    <h3>🤖 AI Assistant</h3>
+    st.progress(health_score/100)
+
+    if health_score >= 90:
+
+        st.success("Excellent")
+
+    elif health_score >= 70:
+
+        st.warning("Moderate")
+
+    else:
+
+        st.error("High Risk")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("")
+
+# ==========================================
+# CHART
+# ==========================================
+
+st.subheader("📊 Platform Statistics")
+
+chart = pd.DataFrame({
+
+    "Category":[
+        "Patients",
+        "Assessments",
+        "Doctors"
+    ],
+
+    "Value":[
+        patients,
+        history_count,
+        doctors
+    ]
+
+})
+
+st.bar_chart(
+    chart,
+    x="Category",
+    y="Value",
+    use_container_width=True
+)
+
+st.write("")
+# ==========================================
+# AI MODULES
+# ==========================================
+
+st.subheader("🩺 AI Disease Prediction Modules")
+
+r1 = st.columns(4)
+
+with r1[0]:
+    disease_card(
+        "🩸",
+        "Diabetes",
+        "Blood Glucose Risk Prediction",
+        "pages/Diabetes.py",
+        "db"
+    )
+
+with r1[1]:
+    disease_card(
+        "❤️",
+        "Hypertension",
+        "Blood Pressure Analysis",
+        "pages/Hypertension.py",
+        "ht"
+    )
+
+with r1[2]:
+    disease_card(
+        "🫀",
+        "Lipid Profile",
+        "Cholesterol Risk Assessment",
+        "pages/lipid.py",
+        "lp"
+    )
+
+with r1[3]:
+    disease_card(
+        "⚖️",
+        "Obesity",
+        "BMI & Weight Risk",
+        "pages/obesity.py",
+        "ob"
+    )
+
+st.write("")
+
+r2 = st.columns(4)
+
+with r2[0]:
+    disease_card(
+        "🫁",
+        "Pulmonary",
+        "Pulmonary Fibrosis",
+        "pages/Pulmonary_Fibrosis.py",
+        "pf"
+    )
+
+with r2[1]:
+    disease_card(
+        "🩻",
+        "CT Scan AI",
+        "Medical Image Detection",
+        "pages/CT_Scan_AI.py",
+        "ct"
+    )
+
+with r2[2]:
+    disease_card(
+        "🩸",
+        "Thrombosis",
+        "Blood Clot Prediction",
+        "pages/Thrombosis.py",
+        "thr"
+    )
+
+with r2[3]:
+
+    st.markdown("""
+    <div class="dashboard-card">
+
+    <div style="font-size:55px;">
+    🚀
+    </div>
+
+    <h3>Coming Soon</h3>
 
     <p>
-    Need medical help?
-
-    Our AI assistant is ready
-    to answer your questions.
+    More AI models are under development.
     </p>
 
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button(
-        "Open AI Chat",
-        use_container_width=True,
-        key="hero_chat"
-    ):
-        st.switch_page("pages/chatbot.py")
+st.write("")
+st.divider()
+
+# ==========================================
+# NOTIFICATIONS
+# ==========================================
+
+left, right = st.columns([2, 1])
+
+with left:
+
+    st.subheader("🔔 Notifications")
+
+    for note in notifications:
+
+        st.info(note)
+
+with right:
+
+    st.subheader("⚡ System Status")
+
+    st.success("🟢 AI Server")
+
+    st.success("🟢 Database")
+
+    st.success("🟢 Models")
+
+    st.success("🟢 Authentication")
 
 st.write("")
 st.divider()
@@ -323,74 +476,75 @@ st.divider()
 
 st.subheader("📈 Recent Activity")
 
-a1, a2 = st.columns(2)
+try:
+    history = get_all_history()
+except:
+    history = []
 
-with a1:
+if len(history) == 0:
 
-    st.success("🩸 Diabetes prediction completed")
+    st.info("No assessments yet.")
 
-    st.info("🩻 CT Scan uploaded")
+else:
 
-    st.info("🤖 AI Consultation")
+    for _, item in history.tail(5).iloc[::-1].iterrows():
 
-with a2:
+        with st.container(border=True):
 
-    st.info("🫀 Lipid Analysis")
+            c1, c2, c3 = st.columns([3,2,2])
 
-    st.info("🫁 Pulmonary Screening")
+            with c1:
+                st.write(f"**{item['disease']}**")
 
-    st.success("📄 Report Generated")
+            with c2:
+                st.write(item["prediction"])
+
+            with c3:
+                st.caption(item["created_at"])
 
 st.write("")
 st.divider()
+
 # ==========================================
 # LATEST REPORTS
 # ==========================================
 
-st.subheader("📄 Latest Reports")
+st.subheader("📄 Latest Assessments")
 
-reports = [
-    ("Ahmed Mohamed", "Diabetes", "Completed", "Today"),
-    ("Sara Ali", "Hypertension", "Pending", "Yesterday"),
-    ("Omar Hassan", "CT Scan", "Completed", "2 days ago"),
-    ("Mona Adel", "Pulmonary", "Review", "3 days ago"),
-]
+if len(history) == 0:
 
-for patient, disease, status, date in reports:
+    st.info("No reports yet.")
 
-    if status == "Completed":
-        badge = "🟢"
-    elif status == "Pending":
-        badge = "🟡"
-    else:
-        badge = "🔵"
+else:
 
-    with st.container(border=True):
+    for _, report in history.tail(10).iloc[::-1].iterrows():
 
-        c1, c2, c3, c4 = st.columns([3,2,2,2])
+        with st.container(border=True):
 
-        with c1:
-            st.write(f"**{patient}**")
+            c1, c2, c3, c4 = st.columns([3,2,2,2])
 
-        with c2:
-            st.write(disease)
+            with c1:
+                st.write(f"**{report['disease']}**")
 
-        with c3:
-            st.write(f"{badge} {status}")
+            with c2:
+                st.write(report["prediction"])
 
-        with c4:
-            st.caption(date)
+            with c3:
+                probability = report.get("probability", 0)
+                st.progress(float(probability))
+
+            with c4:
+                st.caption(report["created_at"])
 
 st.write("")
 st.divider()
-
 # ==========================================
 # PATIENT DASHBOARD
 # ==========================================
 
 if role == "Patient":
 
-    st.subheader("📊 Dashboard Summary")
+    st.subheader("👤 Patient Dashboard")
 
     c1, c2 = st.columns(2)
 
@@ -398,42 +552,61 @@ if role == "Patient":
 
         st.markdown("""
         <div class="card">
-
-        <h3>📈 Prediction Summary</h3>
-
-        <p>
-        • Total Predictions : <b>58</b><br>
-        • Successful Reports : <b>54</b><br>
-        • Pending Reviews : <b>4</b>
-
-        </p>
-
-        </div>
+        <h3>📊 Personal Statistics</h3>
         """, unsafe_allow_html=True)
+
+        st.metric(
+            "Assessments",
+            history_count
+        )
+
+        st.metric(
+            "Health Score",
+            f"{health_score}%"
+        )
+
+        st.metric(
+            "Latest Result",
+            latest_prediction
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
 
     with c2:
 
         st.markdown("""
         <div class="card">
-
-        <h3>💡 Health Tips</h3>
-
-        <p>
-
-        💧 Drink enough water<br><br>
-
-        🥗 Eat healthy food<br><br>
-
-        🚶 Walk 30 minutes daily<br><br>
-
-        😴 Sleep 7-8 hours
-
-        </p>
-
-        </div>
+        <h3>💡 Daily Health Tips</h3>
         """, unsafe_allow_html=True)
 
-    st.write("")
+        tips = [
+
+            "💧 Drink enough water",
+
+            "🥗 Eat healthy food",
+
+            "🏃 Exercise regularly",
+
+            "😴 Sleep 7-8 hours",
+
+            "🚭 Avoid smoking"
+
+        ]
+
+        for tip in tips:
+
+            st.write(tip)
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+        st.write("")
+        st.divider()
 # ==========================================
 # DOCTOR DASHBOARD
 # ==========================================
@@ -448,21 +621,21 @@ elif role == "Doctor":
 
         st.markdown("""
         <div class="card">
-
         <h3>👥 Patient Management</h3>
-
         <p>
-        Manage all registered patients,
-        review their medical history,
-        and monitor AI predictions.
+        View and manage all registered patients.
         </p>
-
         </div>
         """, unsafe_allow_html=True)
 
+        st.metric(
+            "Patients",
+            patients
+        )
+
         if st.button(
             "Open Patient Manager",
-            key="doctor_patient_manager",
+            key="doctor_patient",
             use_container_width=True
         ):
             st.switch_page("pages/doctor_db.py")
@@ -471,21 +644,21 @@ elif role == "Doctor":
 
         st.markdown("""
         <div class="card">
-
-        <h3>📊 AI Analytics</h3>
-
+        <h3>📈 AI Analytics</h3>
         <p>
-        View prediction statistics,
-        system analytics,
-        and AI performance.
+        Monitor AI performance and predictions.
         </p>
-
         </div>
         """, unsafe_allow_html=True)
 
+        st.metric(
+            "Assessments",
+            history_count
+        )
+
         if st.button(
-            "View Analytics",
-            key="doctor_analytics",
+            "Open Analytics",
+            key="doctor_ai",
             use_container_width=True
         ):
             st.switch_page("pages/doctor_db.py")
@@ -494,171 +667,351 @@ elif role == "Doctor":
 
         st.markdown("""
         <div class="card">
-
-        <h3>📄 Medical Reports</h3>
-
+        <h3>👨‍⚕️ Doctors</h3>
         <p>
-        Browse reports,
-        download results,
-        and review patient history.
+        Manage doctor accounts.
         </p>
-
         </div>
         """, unsafe_allow_html=True)
 
+        st.metric(
+            "Online Doctors",
+            online_doctors
+        )
+
         if st.button(
-            "Open Reports",
-            key="doctor_reports_new",
+            "Manage Doctors",
+            key="doctor_manage",
             use_container_width=True
         ):
-            st.info("Coming Soon")
-
-    st.write("")
-
-    st.subheader("⚙️ Doctor Features")
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.checkbox("Patient Management", value=True, disabled=True)
-        st.checkbox("Doctor Management", value=True, disabled=True)
-        st.checkbox("AI Prediction System", value=True, disabled=True)
-
-    with c2:
-        st.checkbox("Appointments", value=False, disabled=True)
-        st.checkbox("Hospital Integration", value=False, disabled=True)
-        st.checkbox("Medical Imaging", value=False, disabled=True)
+            st.switch_page("pages/doctor_db.py")
 
 st.write("")
 st.divider()
-
-# ==========================================
-# SYSTEM STATUS
-# ==========================================
-
-st.subheader("⚡ System Status")
-
-st.progress(96)
-
-m1, m2, m3 = st.columns(3)
-
-with m1:
-    st.success("🟢 AI Server Online")
-
-with m2:
-    st.info("🩺 Models Loaded")
-
-with m3:
-    st.success("🔒 Secure Connection")
-
-st.caption("HealthVibe AI Version 2.0")
 # ==========================================
 # QUICK ACCESS
 # ==========================================
 
-st.write("")
 st.subheader("⚡ Quick Access")
 
-q1, q2, q3 = st.columns(3)
+q1, q2, q3, q4 = st.columns(4)
 
 with q1:
 
-    st.markdown("""
-    <div class="card">
-
-    <h3>🤖 AI Assistant</h3>
-
-    <p>
-    Ask any medical question and
-    receive AI-powered assistance.
-    </p>
-
-    </div>
-    """, unsafe_allow_html=True)
-
     if st.button(
-        "Open Chatbot",
-        key="quick_chat",
+        "🤖 AI Chatbot",
+        key="qa_chat",
         use_container_width=True
     ):
         st.switch_page("pages/chatbot.py")
 
 with q2:
 
-    st.markdown("""
-    <div class="card">
-
-    <h3>📋 Medical History</h3>
-
-    <p>
-    Review your previous
-    AI predictions and reports.
-    </p>
-
-    </div>
-    """, unsafe_allow_html=True)
-
     if st.button(
-        "Open History",
-        key="history_btn",
+        "📋 Patient history_count",
+        key="qa_history_count",
         use_container_width=True
     ):
         st.switch_page("pages/Patient_History.py")
 
 with q3:
 
+    if st.button(
+        "👤 Profile",
+        key="qa_profile",
+        use_container_width=True
+    ):
+        st.switch_page("pages/Profile.py")
+
+with q4:
+
+    if st.button(
+        "⚙ Settings",
+        key="qa_settings",
+        use_container_width=True
+    ):
+        st.switch_page("pages/settings.py")
+
+st.write("")
+st.divider()
+# ==========================================
+# AI INSIGHTS
+# ==========================================
+
+st.write("")
+st.divider()
+
+st.subheader("🧠 AI Insights")
+
+i1, i2 = st.columns(2)
+
+with i1:
+
     st.markdown("""
     <div class="card">
 
-    <h3>👤 My Profile</h3>
+    <h3>📊 Risk Distribution</h3>
 
     <p>
-    Manage your account,
-    settings and personal data.
+    Based on your previous assessments,
+    your overall health trend is improving.
     </p>
 
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button(
-        "Open Profile",
-        key="profile_btn",
-        use_container_width=True
-    ):
-        st.switch_page("pages/Profile.py")
+    st.progress(72)
+
+with i2:
+
+    st.markdown("""
+    <div class="card">
+
+    <h3>💡 AI Recommendation</h3>
+
+    <p>
+
+    ✔ Continue regular screening.<br><br>
+
+    ✔ Maintain healthy diet.<br><br>
+
+    ✔ Exercise at least 150 min/week.<br><br>
+
+    ✔ Repeat laboratory tests every 6 months.
+
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==========================================
+# NOTIFICATIONS
+# ==========================================
 
 st.write("")
+st.divider()
 
+st.subheader("🔔 Notifications")
+
+notifications = [
+
+    ("🟢", "AI models updated successfully"),
+
+    ("🔵", "New medical report online_doctors"),
+
+    ("🟡", "Annual health check recommended"),
+
+    ("🟢", "Database synchronized")
+
+]
+
+for icon, msg in notifications:
+
+    st.info(f"{icon} {msg}")
 # ==========================================
-# LOGOUT
+# SYSTEM STATUS
 # ==========================================
+
+st.subheader("⚡ System Status")
+
+system1, system2, system3, system4 = st.columns(4)
+
+with system1:
+    st.success("🟢 AI Server Online")
+
+with system2:
+    st.success("🟢 Database Connected")
+
+with system3:
+    st.success("🟢 Models Loaded")
+
+with system4:
+    st.success("🟢 Secure Connection")
+
+st.progress(0.98)
 
 st.divider()
 
-if st.button(
-    "🚪 Logout",
-    key="logout_btn",
-    use_container_width=True
-):
+# ==========================================
+# PLATFORM ANALYTICS
+# ==========================================
 
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-    st.session_state.role = ""
-    st.session_state.email = ""
-    st.session_state.user_id = None
+st.subheader("📊 Platform Analytics")
 
-    st.switch_page("app.py")
+col1, col2 = st.columns([2, 1])
+
+with col1:
+
+    analytics = pd.DataFrame({
+        "Category": [
+            "Patients",
+            "Assessments",
+            "Doctors"
+        ],
+        "Value": [
+            patients,
+            history_count,
+            doctors
+        ]
+    })
+
+    st.bar_chart(
+        analytics,
+        x="Category",
+        y="Value",
+        use_container_width=True
+    )
+
+with col2:
+
+    st.metric("AI Accuracy", "98.7%")
+    st.metric("online_doctors Doctors", online_doctors)
+    st.metric("System Status", "Healthy")
+
+st.divider()
+# ==========================================
+# AI HEALTH INSIGHTS
+# ==========================================
+
+st.subheader("🧠 AI Health Insights")
+
+left, right = st.columns(2)
+
+with left:
+
+    st.markdown("""
+    <div class="card">
+    <h3>🤖 AI Recommendation</h3>
+    """, unsafe_allow_html=True)
+
+    if history_count == 0:
+
+        st.info("No assessments yet.")
+
+    elif history_count < 5:
+
+        st.success(
+            "Great start. Continue monitoring your health regularly."
+        )
+
+    elif history_count < 15:
+
+        st.warning(
+            "Keep following healthy habits and review your reports."
+        )
+
+    else:
+
+        st.error(
+            "You have many assessments. Regular physician follow-up is recommended."
+        )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with right:
+
+    st.markdown("""
+    <div class="card">
+    <h3>📈 AI Prediction Distribution</h3>
+    """, unsafe_allow_html=True)
+
+    chart = pd.DataFrame({
+
+        "Risk":[
+            "Low",
+            "Moderate",
+            "High"
+        ],
+
+        "Count":[
+            max(history_count-3,0),
+            min(history_count,3),
+            1 if history_count>0 else 0
+        ]
+
+    })
+
+    st.bar_chart(
+        chart,
+        x="Risk",
+        y="Count",
+        use_container_width=True
+    )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+st.divider()
+
+# ==========================================
+# UPCOMING FEATURES
+# ==========================================
+
+st.subheader("🚀 Upcoming Features")
+
+u1, u2, u3 = st.columns(3)
+
+with u1:
+    st.info("📅 Smart Appointment Booking")
+
+with u2:
+    st.info("💊 Medication Reminder")
+
+with u3:
+    st.info("📱 HealthVibe Mobile App")
+
+st.divider()
+
+
+# ==========================================
+# ACCOUNT INFORMATION
+# ==========================================
+
+st.subheader("👤 Account")
+
+c1, c2, c3 = st.columns(3)
+
+with c1:
+
+    st.metric(
+        "Username",
+        username
+    )
+
+with c2:
+
+    st.metric(
+        "Role",
+        role
+    )
+
+with c3:
+
+    st.metric(
+        "Status",
+        "Active"
+    )
+
+st.write("")
+st.divider()
 
 # ==========================================
 # FOOTER
 # ==========================================
 
 st.write("")
+st.divider()
 
 st.markdown("""
-<div class="footer">
+<div style="
+text-align:center;
+padding:25px;
+color:#94A3B8;
+">
 
-<h2 style="color:#00C2FF;">
+<h2 style="
+color:#00C2FF;
+margin-bottom:5px;
+">
 🩺 HealthVibe AI
 </h2>
 
@@ -666,13 +1019,20 @@ st.markdown("""
 AI Clinical Decision Support Platform
 </p>
 
-<hr>
-
-<p>
-Made with ❤️ using Streamlit & AI
+<p style="margin-top:15px;">
+Version 2.0 • Secure • Intelligent • Fast
 </p>
 
-<p style="color:#94A3B8;">
+<hr style="
+border:1px solid #2d3748;
+margin:20px 0;
+">
+
+<p>
+Made with ❤️ using Streamlit + AI
+</p>
+
+<p>
 © 2026 HealthVibe AI • All Rights Reserved
 </p>
 
