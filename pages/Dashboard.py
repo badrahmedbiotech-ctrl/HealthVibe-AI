@@ -154,7 +154,7 @@ def disease_card(icon, title, desc, page, key):
     if st.button(
         f"Open {title}",
         key=key,
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page(page)
 # ==========================================
@@ -203,7 +203,7 @@ with a1:
 
     if st.button(
         "🩸 New Assessment",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Diabetes.py")
 
@@ -211,7 +211,7 @@ with a2:
 
     if st.button(
         "🤖 AI Assistant",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/chatbot.py")
 
@@ -219,7 +219,7 @@ with a3:
 
     if st.button(
         "📋 history_count",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Patient_History.py")
 
@@ -227,7 +227,7 @@ with a4:
 
     if st.button(
         "👤 Profile",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Profile.py")
 
@@ -341,7 +341,7 @@ st.bar_chart(
     chart,
     x="Category",
     y="Value",
-    use_container_width=True
+    width="stretch"
 )
 
 st.write("")
@@ -636,7 +636,7 @@ elif role == "Doctor":
         if st.button(
             "Open Patient Manager",
             key="doctor_patient",
-            use_container_width=True
+            width="stretch"
         ):
             st.switch_page("pages/doctor_db.py")
 
@@ -659,7 +659,7 @@ elif role == "Doctor":
         if st.button(
             "Open Analytics",
             key="doctor_ai",
-            use_container_width=True
+            width="stretch"
         ):
             st.switch_page("pages/doctor_db.py")
 
@@ -682,7 +682,7 @@ elif role == "Doctor":
         if st.button(
             "Manage Doctors",
             key="doctor_manage",
-            use_container_width=True
+            width="stretch"
         ):
             st.switch_page("pages/doctor_db.py")
 
@@ -701,7 +701,7 @@ with q1:
     if st.button(
         "🤖 AI Chatbot",
         key="qa_chat",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/chatbot.py")
 
@@ -710,7 +710,7 @@ with q2:
     if st.button(
         "📋 Patient history_count",
         key="qa_history_count",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Patient_History.py")
 
@@ -719,7 +719,7 @@ with q3:
     if st.button(
         "👤 Profile",
         key="qa_profile",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Profile.py")
 
@@ -728,7 +728,7 @@ with q4:
     if st.button(
         "⚙ Settings",
         key="qa_settings",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/settings.py")
 
@@ -859,7 +859,7 @@ with col1:
         analytics,
         x="Category",
         y="Value",
-        use_container_width=True
+        width="stretch"
     )
 
 with col2:
@@ -935,7 +935,7 @@ with right:
         chart,
         x="Risk",
         y="Count",
-        use_container_width=True
+        width="stretch"
     )
 
     st.markdown("</div>", unsafe_allow_html=True)

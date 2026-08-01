@@ -4,8 +4,22 @@ import plotly.graph_objects as go
 from fpdf import FPDF
 import tempfile
 
+import numpy as np
+import joblib
+
 from utils.navigation import sidebar
 
+from components.database import (
+    save_assessment,
+    save_thrombosis
+)
+
+# ==========================================================
+# LOAD AI MODEL
+# ==========================================================
+
+model = joblib.load("models/thrombosis_model.pkl")
+scaler = joblib.load("models/thrombosis_scaler.pkl")
 
 # ==========================================================
 # PAGE CONFIG
@@ -18,95 +32,87 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-
 # ==========================================================
 # LOAD CSS
 # ==========================================================
 
 with open("style.css", encoding="utf-8") as f:
-
     st.markdown(
         f"<style>{f.read()}</style>",
         unsafe_allow_html=True
     )
 
-
 sidebar()
 
+# ==========================================================
+# SESSION DEFAULTS
+# ==========================================================
+
+defaults = {
+
+    "page":1,
+
+    "name":"",
+
+    "age":45,
+
+    "gender":"Male",
+
+    "height":170,
+
+    "weight":70,
+
+    "blood_type":"O",
+
+    "d_dimer":250.0,
+
+    "swelling":"No",
+
+    "pain":"No",
+
+    "history":"No",
+
+    "mobility":"No",
+
+    "surgery":"No",
+
+    "family_history":"No",
+
+    "smoking":"No",
+
+    "hypertension":"No",
+
+    "diabetes":"No",
+
+    "cholesterol":"No",
+
+    "risk_result":"",
+
+    "risk_score":0,
+
+    "saved_result":False
+
+}
+
+for key,value in defaults.items():
+
+    if key not in st.session_state:
+
+        st.session_state[key]=value
 
 # ==========================================================
-# SESSION STATE
+# PDF REPORT
 # ==========================================================
 
-if "page" not in st.session_state:
-    st.session_state.page = 1
-if "d_dimer" not in st.session_state:
-    st.session_state.d_dimer = 250.0
-
-
-if "age" not in st.session_state:
-    st.session_state.age = 45
-
-
-if "swelling" not in st.session_state:
-    st.session_state.swelling = "No"
-
-
-if "pain" not in st.session_state:
-    st.session_state.pain = "No"
-
-
-if "history" not in st.session_state:
-    st.session_state.history = "No"
-
-
-if "mobility" not in st.session_state:
-    st.session_state.mobility = "No"
-
-
-if "name" not in st.session_state:
-    st.session_state.name = ""
-
-if "analyzed" not in st.session_state:
-    st.session_state.analyzed = False
-
-
-if "risk_result" not in st.session_state:
-    st.session_state.risk_result = ""
-
-
-if "risk_score" not in st.session_state:
-    st.session_state.risk_score = 0
-
-
-
-# ==========================================================
-# PDF GENERATOR
-# ==========================================================
 def generate_pdf(data):
 
     pdf = FPDF()
 
     pdf.add_page()
 
-    pdf.set_auto_page_break(
-        auto=True,
-        margin=15
-    )
+    pdf.set_auto_page_break(auto=True, margin=15)
 
-    pdf.set_title(
-        "HealthVibe AI - Thrombosis Report"
-    )
-
-    # ==========================
-    # TITLE
-    # ==========================
-
-    pdf.set_font(
-        "Arial",
-        "B",
-        22
-    )
+    pdf.set_font("Arial","B",20)
 
     pdf.cell(
         0,
@@ -115,60 +121,34 @@ def generate_pdf(data):
         ln=True
     )
 
-    pdf.set_font(
-        "Arial",
-        "",
-        14
-    )
+    pdf.set_font("Arial","",14)
 
     pdf.cell(
         0,
         10,
-        "Thrombosis Risk Assessment Report",
+        "Thrombosis Assessment Report",
         ln=True
     )
 
-    pdf.ln(10)
+    pdf.ln(8)
 
-    # ==========================
-    # PATIENT INFORMATION
-    # ==========================
+    pdf.set_font("Arial","",12)
 
-    pdf.set_font(
-        "Arial",
-        "B",
-        14
-    )
+    for k,v in data.items():
 
-    pdf.cell(
-        0,
-        10,
-        "Patient Information",
-        ln=True
-    )
+        value = str(v)
 
-    pdf.set_font(
-        "Arial",
-        "",
-        12
-    )
-
-    for key, value in data.items():
-
-        clean_value = str(value)
-
-        clean_value = (
-            clean_value
-            .replace("🟢", "")
-            .replace("🟡", "")
-            .replace("🔴", "")
-            .replace("⚠️", "")
+        value = (
+            value
+            .replace("🟢","")
+            .replace("🟡","")
+            .replace("🔴","")
         )
 
         pdf.cell(
             0,
             8,
-            f"{key}: {clean_value}",
+            f"{k}: {value}",
             ln=True
         )
 
@@ -180,169 +160,138 @@ def generate_pdf(data):
     pdf.output(temp.name)
 
     return temp.name
-
 # ==========================================================
 # HERO
 # ==========================================================
 
 st.markdown(
-"""
-
+f"""
 <div class="hero">
 
+<span class="hero-badge">
+🩸 AI Disease Screening
+</span>
+
 <h1>
-🩸 Thrombosis AI
+Thrombosis Risk Prediction
 </h1>
 
-
 <p>
-Artificial Intelligence System for Blood Clot Risk Assessment
+Artificial Intelligence Based Blood Clot Screening System
 </p>
 
-
 </div>
-
 """,
 unsafe_allow_html=True
 )
 
-
+st.write("")
 
 # ==========================================================
 # DASHBOARD
 # ==========================================================
 
+st.subheader("📊 AI Dashboard")
 
-st.subheader(
-    "📊 AI Dashboard"
-)
+m1,m2,m3,m4 = st.columns(4)
 
-
-c1, c2, c3, c4 = st.columns(4)
-
-
-with c1:
-
+with m1:
     st.metric(
         "Disease",
         "Thrombosis"
     )
 
+with m2:
+    st.metric(
+        "AI Model",
+        "Random Forest"
+    )
 
-with c2:
-
+with m3:
     st.metric(
         "Risk Factors",
-        "6"
+        "10"
     )
 
-
-with c3:
-
-    st.metric(
-        "AI System",
-        "Active"
-    )
-
-
-with c4:
-
+with m4:
     st.metric(
         "Status",
-        "🟢 Online"
+        "🟢 Ready"
     )
-
-
 
 st.divider()
 
-
-
 # ==========================================================
-# PAGE 1 - PATIENT INFORMATION
+# PAGE 1
 # ==========================================================
-
 
 if st.session_state.page == 1:
 
+    st.header("👤 Patient Information")
 
-    st.header(
-        "👤 Patient Information"
-    )
+    col1,col2 = st.columns(2)
 
+    with col1:
 
-    left, right = st.columns(2)
-
-
-
-    with left:
-
-
-        name = st.text_input(
+        st.session_state.name = st.text_input(
             "Patient Name",
-            key="name"
+            value=st.session_state.name
         )
 
-
-        age = st.number_input(
+        st.session_state.age = st.number_input(
             "Age",
             1,
             120,
-            45,
-            key="age"
+            value=st.session_state.age
         )
 
+        st.session_state.gender = st.selectbox(
+            "Gender",
+            [
+                "Male",
+                "Female"
+            ],
+            index=0 if st.session_state.gender=="Male" else 1
+        )
 
+    with col2:
 
-    with right:
+        st.session_state.height = st.number_input(
+            "Height (cm)",
+            min_value=100,
+            max_value=230,
+            value=st.session_state.height
+        )
 
+        st.session_state.weight = st.number_input(
+            "Weight (kg)",
+            min_value=20,
+            max_value=250,
+            value=st.session_state.weight
+        )
 
-        d_dimer = st.number_input(
-
-            "D-Dimer Level (ng/mL)",
-
+        st.session_state.d_dimer = st.number_input(
+            "D-Dimer (ng/mL)",
             min_value=0.0,
-
-            value=250.0,
-
-            key="d_dimer"
+            value=float(st.session_state.d_dimer)
         )
 
-
-
-        blood_type = st.selectbox(
-
+        st.session_state.blood_type = st.selectbox(
             "Blood Type",
-
             [
                 "A",
                 "B",
                 "AB",
                 "O"
             ],
-
-            key="blood_type"
-
+            index=["A","B","AB","O"].index(st.session_state.blood_type)
         )
 
-
-
     st.divider()
 
+    st.progress(33)
 
-    st.progress(
-        33
-    )
-
-
-    st.caption(
-        "Step 1 of 3"
-    )
-
-
-    st.divider()
-
-
+    st.caption("Step 1 / 3")
 
     if st.button(
         "Next ➜",
@@ -352,215 +301,89 @@ if st.session_state.page == 1:
         st.session_state.page = 2
 
         st.rerun()
-        # ==========================================================
-# PAGE 2 - CLINICAL INFORMATION
 # ==========================================================
-
+# PAGE 2
+# ==========================================================
 
 if st.session_state.page == 2:
 
+    st.header("🩺 Clinical Information")
 
-    st.header(
-        "🩺 Clinical Symptoms & History"
-    )
-
-
-    col1, col2 = st.columns(2)
-
-
-
-    with col1:
-
-
-        swelling = st.selectbox(
-
-            "Leg Swelling / Edema",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="swelling"
-
-        )
-
-
-        pain = st.selectbox(
-
-            "Leg Pain / Tenderness",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="pain"
-
-        )
-
-
-        history = st.selectbox(
-
-            "Previous History of Blood Clots",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="history"
-
-        )
-
-
-
-    with col2:
-
-
-        mobility = st.selectbox(
-
-            "Recent Prolonged Immobility",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="mobility"
-
-        )
-
-
-        surgery = st.selectbox(
-
-            "Recent Surgery",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="surgery"
-
-        )
-
-
-        family_history = st.selectbox(
-
-            "Family History of Thrombosis",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="family_history"
-
-        )
-
-
-
-    st.divider()
-
-
-
-    st.subheader(
-        "❤️ Additional Health Factors"
-    )
-
-
-    c1, c2 = st.columns(2)
-
-
+    c1,c2 = st.columns(2)
 
     with c1:
 
-
-        smoking = st.selectbox(
-
-            "Smoking Status",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="smoking"
-
+        st.session_state.swelling = st.selectbox(
+            "Leg Swelling",
+            ["No","Yes"],
+            index=0 if st.session_state.swelling=="No" else 1
         )
 
-
-        hypertension = st.selectbox(
-
-            "Hypertension",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="hypertension"
-
+        st.session_state.pain = st.selectbox(
+            "Leg Pain",
+            ["No","Yes"],
+            index=0 if st.session_state.pain=="No" else 1
         )
 
+        st.session_state.history = st.selectbox(
+            "Previous Blood Clot",
+            ["No","Yes"],
+            index=0 if st.session_state.history=="No" else 1
+        )
 
+        st.session_state.mobility = st.selectbox(
+            "Recent Immobility",
+            ["No","Yes"],
+            index=0 if st.session_state.mobility=="No" else 1
+        )
+
+        st.session_state.surgery = st.selectbox(
+            "Recent Surgery",
+            ["No","Yes"],
+            index=0 if st.session_state.surgery=="No" else 1
+        )
 
     with c2:
 
+        st.session_state.family_history = st.selectbox(
+            "Family History",
+            ["No","Yes"],
+            index=0 if st.session_state.family_history=="No" else 1
+        )
 
-        diabetes = st.selectbox(
+        st.session_state.smoking = st.selectbox(
+            "Smoking",
+            ["No","Yes"],
+            index=0 if st.session_state.smoking=="No" else 1
+        )
 
+        st.session_state.hypertension = st.selectbox(
+            "Hypertension",
+            ["No","Yes"],
+            index=0 if st.session_state.hypertension=="No" else 1
+        )
+
+        st.session_state.diabetes = st.selectbox(
             "Diabetes",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="diabetes"
-
+            ["No","Yes"],
+            index=0 if st.session_state.diabetes=="No" else 1
         )
 
-
-        cholesterol = st.selectbox(
-
+        st.session_state.cholesterol = st.selectbox(
             "High Cholesterol",
-
-            [
-                "No",
-                "Yes"
-            ],
-
-            key="cholesterol"
-
+            ["No","Yes"],
+            index=0 if st.session_state.cholesterol=="No" else 1
         )
 
-
-
     st.divider()
 
+    st.progress(66)
 
-    st.progress(
-        66
-    )
+    st.caption("Step 2 / 3")
 
+    left,right = st.columns(2)
 
-    st.caption(
-        "Step 2 of 3"
-    )
-
-
-
-    st.divider()
-
-
-
-    back, next_btn = st.columns(2)
-
-
-
-    with back:
+    with left:
 
         if st.button(
             "⬅ Back",
@@ -568,205 +391,132 @@ if st.session_state.page == 2:
         ):
 
             st.session_state.page = 1
-
             st.rerun()
 
-
-
-    with next_btn:
+    with right:
 
         if st.button(
-            "Next ➜",
+            "Analyze ➜",
             use_container_width=True
         ):
 
             st.session_state.page = 3
-
             st.rerun()
-            # ==========================================================
-# PAGE 3 - AI ANALYSIS & REPORT
-# ==========================================================
 
+# ==========================================================
+# PAGE 3
+# ==========================================================
 
 if st.session_state.page == 3:
 
-
-    st.header(
-        "🤖 AI Thrombosis Analysis"
-    )
-
+    st.header("🤖 AI Prediction")
 
     st.write(
-        "The AI system analyzes clinical factors to estimate thrombosis risk."
+        "HealthVibe AI is analyzing your clinical data..."
     )
-
 
     st.divider()
 
+    # ==========================================
+    # PREPARE DATA
+    # ==========================================
 
+    gender = 1 if st.session_state.gender == "Male" else 0
 
-    # ======================================================
-    # CALCULATE RISK
-    # ======================================================
+    X = np.array([[
+        st.session_state.age,
+        gender,
+        st.session_state.height,
+        st.session_state.weight,
+        st.session_state.d_dimer
+    ]])
 
+    X = scaler.transform(X)
 
-    risk_score = 0
+    prediction = model.predict(X)[0]
 
-    factors = []
+    probability = model.predict_proba(X)[0][1] * 100
 
-    contributions = []
-
-
-
-    if st.session_state.d_dimer > 500:
-
-        risk_score += 2
-
-        factors.append(
-            "Elevated D-Dimer"
-        )
-
-        contributions.append(2)
-
-
-
-    if st.session_state.swelling == "Yes":
-
-        risk_score += 1
-
-        factors.append(
-            "Leg Swelling"
-        )
-
-        contributions.append(1)
-
-
-
-    if st.session_state.pain == "Yes":
-
-        risk_score += 1
-
-        factors.append(
-            "Leg Pain"
-        )
-
-        contributions.append(1)
-
-
-
-    if st.session_state.history == "Yes":
-
-        risk_score += 2
-
-        factors.append(
-            "Previous Blood Clot"
-        )
-
-        contributions.append(2)
-
-
-
-    if st.session_state.mobility == "Yes":
-
-        risk_score += 1
-
-        factors.append(
-            "Prolonged Immobility"
-        )
-
-        contributions.append(1)
-
-
-
-    if st.session_state.age > 60:
-
-        risk_score += 1
-
-        factors.append(
-            "Age Factor"
-        )
-
-        contributions.append(1)
-
-
-
-    if len(factors) == 0:
-
-        factors.append(
-            "No Risk Factors"
-        )
-
-        contributions.append(0)
-
-
-
-    probability = min(
-        (risk_score / 8) * 100,
-        100
-    )
-
-
-
-    if probability >= 70:
+    if prediction == 1:
 
         result = "🔴 High Risk"
-
-    elif probability >= 35:
-
-        result = "🟡 Moderate Risk"
 
     else:
 
         result = "🟢 Low Risk"
 
-
-
     st.session_state.risk_score = probability
-
     st.session_state.risk_result = result
 
+    # ==========================================
+    # SAVE RESULT
+    # ==========================================
 
+    if not st.session_state.saved_result:
 
-    # ======================================================
-    # RESULT CARDS
-    # ======================================================
+        assessment_id = save_assessment(
 
+            st.session_state.user["id"],
 
-    c1, c2 = st.columns(2)
+            "Thrombosis",
 
+            result,
 
+            probability
 
-    with c1:
+        )
+
+        save_thrombosis(
+
+            assessment_id,
+
+            {
+
+                "d_dimer": st.session_state.d_dimer,
+
+                "platelets":0,
+
+                "inr":0,
+
+                "prediction":result
+
+            }
+
+        )
+
+        st.session_state.saved_result = True
+
+    # ==========================================
+    # RESULT
+    # ==========================================
+
+    m1,m2 = st.columns(2)
+
+    with m1:
 
         st.metric(
+
             "Risk Probability",
+
             f"{probability:.1f}%"
+
         )
 
-
-
-    with c2:
+    with m2:
 
         st.metric(
-            "Assessment",
+
+            "Prediction",
+
             result
+
         )
-
-
 
     st.divider()
 
-
-
-    # ======================================================
-    # GAUGE CHART
-    # ======================================================
-
-
-    st.subheader(
-        "📊 Risk Probability Gauge"
-    )
-
+    # ==========================================
+    # GAUGE
+    # ==========================================
 
     fig = go.Figure(
 
@@ -776,16 +526,23 @@ if st.session_state.page == 3:
 
             value=probability,
 
-            title={
-                "text":
-                "Thrombosis Risk (%)"
-            },
+            title={"text":"Risk %"},
 
             gauge={
 
-                "axis":{
-                    "range":[0,100]
-                }
+                "axis":{"range":[0,100]},
+
+                "bar":{"color":"red"},
+
+                "steps":[
+
+                    {"range":[0,35],"color":"lightgreen"},
+
+                    {"range":[35,70],"color":"khaki"},
+
+                    {"range":[70,100],"color":"salmon"}
+
+                ]
 
             }
 
@@ -793,211 +550,136 @@ if st.session_state.page == 3:
 
     )
 
-
-    fig.update_layout(
-        height=300
-    )
-
+    fig.update_layout(height=320)
 
     st.plotly_chart(
+
         fig,
+
         use_container_width=True
+
     )
-
-
 
     st.divider()
 
+    # ==========================================
+    # RISK FACTORS
+    # ==========================================
 
+    factors=[]
 
-    # ======================================================
-    # EXPLAINABLE AI
-    # ======================================================
+    if st.session_state.d_dimer>500:
+        factors.append("High D-Dimer")
 
+    if st.session_state.swelling=="Yes":
+        factors.append("Leg Swelling")
 
-    st.subheader(
-        "🧠 Explainable AI"
-    )
+    if st.session_state.pain=="Yes":
+        factors.append("Leg Pain")
 
+    if st.session_state.history=="Yes":
+        factors.append("Previous Thrombosis")
 
-    chart = go.Figure(
+    if st.session_state.mobility=="Yes":
+        factors.append("Immobility")
 
-        go.Bar(
+    if st.session_state.surgery=="Yes":
+        factors.append("Recent Surgery")
 
-            x=contributions,
+    if st.session_state.smoking=="Yes":
+        factors.append("Smoking")
 
-            y=factors,
+    if st.session_state.hypertension=="Yes":
+        factors.append("Hypertension")
 
-            orientation="h"
+    if st.session_state.diabetes=="Yes":
+        factors.append("Diabetes")
 
-        )
+    if st.session_state.cholesterol=="Yes":
+        factors.append("High Cholesterol")
 
-    )
+    st.subheader("⚠ Risk Factors")
 
+    if len(factors)==0:
 
-    chart.update_layout(
-        height=300,
-        xaxis_title="Risk Contribution",
-        yaxis_title="Factors"
-    )
-
-
-    st.plotly_chart(
-        chart,
-        use_container_width=True
-    )
-
-
-
-    st.divider()
-
-
-
-    # ======================================================
-    # RECOMMENDATIONS
-    # ======================================================
-
-
-    st.subheader(
-        "💡 Recommendations"
-    )
-
-
-    recommendations = []
-
-
-    if probability >= 70:
-
-        recommendations.extend([
-
-            "Consult cardiovascular specialist immediately.",
-
-            "Doppler ultrasound may be required.",
-
-            "Avoid prolonged immobility."
-
-        ])
-
-
-    elif probability >= 35:
-
-        recommendations.extend([
-
-            "Monitor symptoms carefully.",
-
-            "Maintain regular movement.",
-
-            "Discuss risk factors with your doctor."
-
-        ])
-
+        st.success("No major risk factors detected.")
 
     else:
 
-        recommendations.extend([
+        for item in factors:
 
-            "Maintain healthy lifestyle.",
+            st.warning(item)
+            st.divider()
 
-            "Stay hydrated.",
+    # ==========================================
+    # RECOMMENDATIONS
+    # ==========================================
 
-            "Exercise regularly."
+    st.subheader("💡 AI Recommendations")
 
-        ])
+    if prediction == 1:
 
+        st.error("""
+### High Risk
 
+- Consult a vascular specialist immediately.
+- Doppler Ultrasound is recommended.
+- Avoid prolonged sitting.
+- Maintain hydration.
+- Follow physician instructions.
+""")
 
-    for item in recommendations:
+    else:
 
-        st.write(
-            "✔️",
-            item
-        )
+        st.success("""
+### Low Risk
 
-
-
-    st.divider()
-
-
-
-    # ======================================================
-    # MEDICAL APPROACH
-    # ======================================================
-
-
-    st.subheader(
-        "💊 Medical Options (Doctor Consultation)"
-    )
-
-
-    medications = [
-
-        "Anticoagulants may be prescribed depending on diagnosis.",
-
-        "Compression stockings may be recommended.",
-
-        "Treatment plan must be decided by a physician."
-
-    ]
-
-
-    for med in medications:
-
-        st.write(
-            "•",
-            med
-        )
-
-
+- Continue regular physical activity.
+- Maintain healthy body weight.
+- Drink enough water.
+- Avoid smoking.
+- Keep regular follow-up if symptoms appear.
+""")
 
     st.divider()
 
-
-
-    # ======================================================
+    # ==========================================
     # PDF REPORT
-    # ======================================================
+    # ==========================================
 
+    report = {
 
-    report_data = {
+        "Patient Name":st.session_state.name,
 
-        "Patient Name":
-        st.session_state.name,
+        "Age":st.session_state.age,
 
-        "Age":
-        st.session_state.age,
+        "Gender":st.session_state.gender,
 
-        "D-Dimer":
-        st.session_state.d_dimer,
+        "Height":st.session_state.height,
 
-        "Risk":
-        result,
+        "Weight":st.session_state.weight,
 
-        "Probability":
-        f"{probability:.1f}%"
+        "Blood Type":st.session_state.blood_type,
+
+        "D-Dimer":st.session_state.d_dimer,
+
+        "Prediction":result,
+
+        "Probability":f"{probability:.1f}%"
 
     }
 
+    pdf_path = generate_pdf(report)
 
-
-    pdf_path = generate_pdf(
-        report_data
-    )
-
-
-
-    with open(
-        pdf_path,
-        "rb"
-    ) as file:
-
+    with open(pdf_path,"rb") as file:
 
         st.download_button(
 
-            "📄 Download PDF Report",
+            "📄 Download Report",
 
             file,
 
-            file_name="Thrombosis_Report.pdf",
+            file_name="HealthVibe_Thrombosis_Report.pdf",
 
             mime="application/pdf",
 
@@ -1005,58 +687,63 @@ if st.session_state.page == 3:
 
         )
 
-
-
     st.divider()
 
+    # ==========================================
+    # QUICK ACTIONS
+    # ==========================================
 
+    c1,c2 = st.columns(2)
 
-    # ======================================================
-    # NAVIGATION
-    # ======================================================
+    with c1:
 
+        if st.button(
 
-    if st.button(
-        "⬅ Back",
-        use_container_width=True
-    ):
+            "⬅ Back",
 
-        st.session_state.page = 2
+            use_container_width=True
 
-        st.rerun()
+        ):
 
+            st.session_state.page = 2
 
+            st.rerun()
+
+    with c2:
+
+        if st.button(
+
+            "🏠 Dashboard",
+
+            use_container_width=True
+
+        ):
+
+            st.switch_page("pages/Dashboard.py")
 
 # ==========================================================
 # FOOTER
 # ==========================================================
 
+st.divider()
 
-st.markdown(
+st.markdown("""
 
-"""
-
-<div style="text-align:center">
+<div style="text-align:center;padding:20px;">
 
 <h3 style="color:#00C2FF;">
-🩸 HealthVibe AI
+HealthVibe AI
 </h3>
 
-
-<p style="color:#94A3B8;">
-Thrombosis Intelligent Risk Screening System
+<p style="color:gray;">
+Artificial Intelligence Disease Prediction Platform
 </p>
-
 
 <p style="color:gray;">
 Developed by <b>Badr Ahmed</b>
 </p>
 
-
 </div>
 
-""",
-
-unsafe_allow_html=True
-
-)
+""",unsafe_allow_html=True)
+    

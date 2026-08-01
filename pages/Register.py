@@ -129,7 +129,7 @@ st.write("")
 
 if st.button(
     "🚀 Create Account",
-    use_container_width=True
+    width="stretch"
 ):
 
     if not full_name.strip():
@@ -187,7 +187,7 @@ unsafe_allow_html=True
 
 if st.button(
     "🔐 Login",
-    use_container_width=True
+    width="stretch"
 ):
     st.switch_page("pages/Login.py")
 

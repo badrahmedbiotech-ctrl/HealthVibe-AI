@@ -15,5 +15,5 @@ def patient_summary(data):
 
     st.dataframe(
         df,
-        use_container_width=True
+        width="stretch"
     )

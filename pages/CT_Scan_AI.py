@@ -162,7 +162,7 @@ if uploaded is not None:
 
             image,
 
-            use_container_width=True,
+            width="stretch",
 
             caption="Uploaded CT"
 
@@ -184,7 +184,7 @@ if uploaded is not None:
 
             "🤖 Analyze CT Scan",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -484,7 +484,7 @@ PDF Report will include:
     st.button(
         "📥 Download PDF Report",
         disabled=True,
-        use_container_width=True
+        width="stretch"
     )
 
 # =====================================

@@ -160,7 +160,7 @@ st.write("")
 
 if st.button(
     "🚀 Login",
-    use_container_width=True
+    width="stretch"
 ):
 
     user = login_user(email, password)
@@ -206,7 +206,7 @@ unsafe_allow_html=True
 
 if st.button(
     "📝 Create New Account",
-    use_container_width=True
+    width="stretch"
 ):
 
     st.session_state.role = role

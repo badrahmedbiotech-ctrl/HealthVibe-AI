@@ -212,7 +212,7 @@ with col1:
 
     if st.button(
         "🗑 Delete All History",
-        use_container_width=True,
+        width="stretch",
         type="secondary"
     ):
 
@@ -236,7 +236,7 @@ with col2:
 
         mime="text/csv",
 
-        use_container_width=True
+        width="stretch"
 
     )
 

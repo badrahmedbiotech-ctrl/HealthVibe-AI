@@ -329,7 +329,7 @@ st.subheader("💾 Save Changes")
 
 if st.button(
     "💾 Save Medical Profile",
-    use_container_width=True
+    width="stretch"
 ):
 
     update_profile({
@@ -432,7 +432,7 @@ with b1:
 
     if st.button(
         "🏠 Back To Dashboard",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Dashboard.py")
 
@@ -440,7 +440,7 @@ with b2:
 
     if st.button(
         "📋 View Medical History",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Patient_History.py")
 

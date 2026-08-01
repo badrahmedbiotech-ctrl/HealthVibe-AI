@@ -82,7 +82,7 @@ with a1:
 
     if st.button(
         "🚀 Start Diagnosis",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Diabetes.py")
 
@@ -90,7 +90,7 @@ with a2:
 
     if st.button(
         "🤖 AI Assistant",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/chatbot.py")
 
@@ -98,7 +98,7 @@ with a3:
 
     if st.button(
         "📋 Medical History",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Patient_History.py")
 
@@ -106,7 +106,7 @@ with a4:
 
     if st.button(
         "👤 My Profile",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Profile.py")
 
@@ -221,7 +221,7 @@ with m1:
     if st.button(
         "Open Diabetes",
         key="home_diabetes",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Diabetes.py")
 
@@ -244,7 +244,7 @@ with m2:
     if st.button(
         "Open Hypertension",
         key="home_hyper",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Hypertension.py")
 
@@ -267,7 +267,7 @@ with m3:
     if st.button(
         "Open Lipid",
         key="home_lipid",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/lipid.py")
 
@@ -294,7 +294,7 @@ with m4:
     if st.button(
         "Open Obesity",
         key="home_obesity",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/obesity.py")
 
@@ -317,7 +317,7 @@ with m5:
     if st.button(
         "Open Pulmonary",
         key="home_pulmonary",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Pulmonary_Fibrosis.py")
 
@@ -340,7 +340,7 @@ with m6:
     if st.button(
         "Open CT Scan",
         key="home_ct",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/CT_Scan_AI.py")
 
@@ -460,7 +460,7 @@ with g1:
 
     if st.button(
         "🩺 Start Your First Diagnosis",
-        use_container_width=True,
+        width="stretch",
         key="home_start"
     ):
         st.switch_page("pages/Diabetes.py")
@@ -469,7 +469,7 @@ with g2:
 
     if st.button(
         "🤖 Talk with AI Assistant",
-        use_container_width=True,
+        width="stretch",
         key="home_ai"
     ):
         st.switch_page("pages/chatbot.py")

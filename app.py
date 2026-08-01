@@ -46,7 +46,7 @@ with col1:
 
     if st.button(
         "Continue as Patient",
-        use_container_width=True
+        width="stretch"
     ):
 
         st.session_state.role = "Patient"
@@ -61,7 +61,7 @@ with col2:
 
     if st.button(
         "Continue as Doctor",
-        use_container_width=True
+        width="stretch"
     ):
 
         st.session_state.role = "Doctor"

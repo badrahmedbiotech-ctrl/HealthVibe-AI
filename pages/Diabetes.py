@@ -145,7 +145,7 @@ if st.session_state.step == 1:
     st.text_input("Full Name", value=name, disabled=True)
     st.text_input("Gender", value=gender, disabled=True)
 
-    if st.button("Next ➜", use_container_width=True):
+    if st.button("Next ➜", width="stretch"):
 
         patient["name"] = name
         patient["age"] = age
@@ -215,7 +215,7 @@ elif st.session_state.step == 2:
         if st.button(
             "⬅ Back",
             key="back_step2",
-            use_container_width=True
+            width="stretch"
         ):
 
             st.session_state.step = 1
@@ -226,7 +226,7 @@ elif st.session_state.step == 2:
         if st.button(
             "Next ➜",
             key="next_step2",
-            use_container_width=True
+            width="stretch"
         ):
 
             st.session_state.step = 3
@@ -280,7 +280,7 @@ elif st.session_state.step == 3:
         if st.button(
             "⬅ Back",
             key="back_step3",
-            use_container_width=True
+            width="stretch"
         ):
             st.session_state.step = 2
             st.rerun()
@@ -290,7 +290,7 @@ elif st.session_state.step == 3:
      if st.button(
         "🧠 Predict",
         key="predict_btn",
-        use_container_width=True
+        width="stretch"
     ):
 
         ai_loading()
@@ -378,7 +378,7 @@ elif st.session_state.step == 4:
 
         if st.button(
             "⬅ Back",
-            use_container_width=True
+            width="stretch"
         ):
 
             st.session_state.step = 3
@@ -392,7 +392,7 @@ elif st.session_state.step == 4:
 
         if st.button(
             "💾 Save Result",
-            use_container_width=True
+            width="stretch"
         ):
 
             try:
@@ -436,7 +436,7 @@ elif st.session_state.step == 4:
                 pdf,
                 "Diabetes_Report.pdf",
                 mime="application/pdf",
-                use_container_width=True
+                width="stretch"
             )
 
         except Exception as e:
@@ -447,7 +447,7 @@ elif st.session_state.step == 4:
 
     if st.button(
         "🏠 Back To Dashboard",
-        use_container_width=True
+        width="stretch"
     ):
 
         st.session_state.step = 1

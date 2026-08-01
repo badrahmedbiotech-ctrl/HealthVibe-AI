@@ -471,7 +471,7 @@ if st.session_state.step == 1:
 
         key="hypertension_step1",
 
-        use_container_width=True
+        width="stretch"
 
     ):
 
@@ -575,7 +575,7 @@ elif st.session_state.step == 2:
 
             key="bp_back",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -594,7 +594,7 @@ elif st.session_state.step == 2:
 
             key="bp_next",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -683,7 +683,7 @@ elif st.session_state.step == 3:
 
             key="sym_back",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -701,7 +701,7 @@ elif st.session_state.step == 3:
 
             key="sym_next",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -797,7 +797,7 @@ elif st.session_state.step == 4:
 
             key="med_back",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -817,7 +817,7 @@ elif st.session_state.step == 4:
 
             key="med_next",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -885,7 +885,7 @@ elif st.session_state.step == 5:
 
             key="medication_back",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -903,7 +903,7 @@ elif st.session_state.step == 5:
 
             key="medication_next",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -973,7 +973,7 @@ elif st.session_state.step == 6:
         if st.button(
             "⬅ Back",
             key="life_back",
-            use_container_width=True
+            width="stretch"
         ):
             st.session_state.step = 5
             st.rerun()
@@ -983,7 +983,7 @@ elif st.session_state.step == 6:
         if st.button(
             "Next ➜",
             key="life_next",
-            use_container_width=True
+            width="stretch"
         ):
 
             patient["smoking"] = smoking
@@ -1049,7 +1049,7 @@ elif st.session_state.step == 7:
 
             key="lab_back",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -1069,7 +1069,7 @@ elif st.session_state.step == 7:
 
             key="analyze_hypertension",
 
-            use_container_width=True
+            width="stretch"
 
         ):
 
@@ -1268,7 +1268,7 @@ elif st.session_state.step == 8:
 
             mime="application/pdf",
 
-            use_container_width=True
+            width="stretch"
 
         )
 
@@ -1278,7 +1278,7 @@ elif st.session_state.step == 8:
 
         if st.button(
             "⬅ Back",
-            use_container_width=True,
+            width="stretch",
             key="bp_back_result"
         ):
             st.session_state.step = 7
@@ -1288,7 +1288,7 @@ elif st.session_state.step == 8:
 
         if st.button(
             "🔄 New Assessment",
-            use_container_width=True,
+            width="stretch",
             key="bp_new"
         ):
             st.session_state.step = 1

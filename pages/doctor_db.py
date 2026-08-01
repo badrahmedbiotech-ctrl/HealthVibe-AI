@@ -141,7 +141,7 @@ with st.form("doctor_form"):
 
     submit = st.form_submit_button(
         "💾 Save Doctor",
-        use_container_width=True
+        width="stretch"
     )
 
     if submit:
@@ -199,7 +199,7 @@ else:
 
     st.dataframe(
         table,
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
 
@@ -253,7 +253,7 @@ if len(df) > 0:
 
         update_btn = st.form_submit_button(
             "💾 Update Doctor",
-            use_container_width=True
+            width="stretch"
         )
 
         if update_btn:
@@ -294,7 +294,7 @@ if len(df) > 0:
 
     if st.button(
         "Delete Doctor",
-        use_container_width=True,
+        width="stretch",
         type="primary"
     ):
 
@@ -401,7 +401,7 @@ if len(df) > 0:
 
         st.plotly_chart(
             fig,
-            use_container_width=True
+            width="stretch"
         )
 
     with right:
@@ -430,7 +430,7 @@ if len(df) > 0:
 
         st.plotly_chart(
             fig2,
-            use_container_width=True
+            width="stretch"
         )
 
 st.write("")
@@ -457,7 +457,7 @@ if len(df) > 0:
 
         mime="text/csv",
 
-        use_container_width=True
+        width="stretch"
 
     )
 
