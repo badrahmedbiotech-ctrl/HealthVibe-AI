@@ -1,9 +1,19 @@
 import streamlit as st
 from pathlib import Path
+<<<<<<< HEAD
+from components.branding import *
+from components.colors import *
+from components.branding import LOGO
+st.sidebar.image(
+    "assets/logo.jpg",
+    width=170
+)
+=======
 
 import translation
 
 
+>>>>>>> 34211f1d364920e717bfcfca7d099bc8c1615862
 def sidebar():
 
     with st.sidebar:
@@ -12,9 +22,21 @@ def sidebar():
         # LOGO
         # ==========================
 
+<<<<<<< HEAD
+        st.sidebar.image(
+    str(LOGO),
+    width=140
+)
+
+        st.markdown(
+    "<h2 style='text-align:center;'>HealthVibe AI</h2>",
+    unsafe_allow_html=True
+)
+=======
         st.markdown("# 🩺")
         st.markdown("## HealthVibe AI")
         st.caption(translation.t("Clinical Decision Support Platform"))
+>>>>>>> 34211f1d364920e717bfcfca7d099bc8c1615862
 
         st.divider()
 

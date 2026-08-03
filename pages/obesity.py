@@ -2,6 +2,8 @@ import streamlit as st
 import joblib
 import pandas as pd
 
+from components.branding import *
+from components.colors import *
 
 from components.auth_guard import require_patient
 require_patient()

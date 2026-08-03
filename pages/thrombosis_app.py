@@ -13,7 +13,8 @@ from components.database import (
     save_assessment,
     save_thrombosis
 )
-
+from components.branding import *
+from components.colors import *
 # ==========================================================
 # LOAD AI MODEL
 # ==========================================================
@@ -249,6 +250,11 @@ def generate_pdf(data):
 
     for k,v in data.items():
 
+   HEAD
+  origin/main
+with st.form("thrombosis_form"):
+    col1, col2 = st.columns(2)
+
         value = str(v)
 
         value = (
@@ -341,6 +347,7 @@ if st.session_state.page == 1:
 
     col1,col2 = st.columns(2)
 
+    origin/main
     with col1:
 
         st.session_state.name = st.text_input(
@@ -366,13 +373,23 @@ if st.session_state.page == 1:
 
     with col2:
 
+      HEAD
+if submit:
+     HEAD
+
+    # 1. 
+    origin/main
+    risk_score = 0
+    features = []
+    contributions = []
+
         st.session_state.height = st.number_input(
             t("Height (cm)"),
             min_value=100,
             max_value=230,
             value=st.session_state.height
         )
-
+        origin/main
         st.session_state.weight = st.number_input(
             t("Weight (kg)"),
             min_value=20,
@@ -820,7 +837,18 @@ if st.session_state.page == 3:
 
             t("📄 Download Report"),
 
+     HEAD
+
+     origin/main
+    if "High Risk" in result_status:
+        st.error(f"🔴 Result: {result_status}")
+    elif "Moderate Risk" in result_status:
+        st.warning(f"⚠️ Result: {result_status}")
+    else:
+        st.success(f"🟢 Result: {result_status}")
+
             file,
+       origin/main
 
             file_name="HealthVibe_Thrombosis_Report.pdf",
 

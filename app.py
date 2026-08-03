@@ -1,10 +1,14 @@
 import streamlit as st
+from PIL import Image
+from components.branding import *
+from components.colors import *
 import translation
 
+icon = Image.open("assets/logo.jpg")
 
 st.set_page_config(
     page_title="HealthVibe AI",
-    page_icon="🏥",
+    page_icon=icon,
     layout="wide"
 )
 

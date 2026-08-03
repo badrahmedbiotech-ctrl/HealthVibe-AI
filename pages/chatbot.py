@@ -8,15 +8,22 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
+ HEAD
+load_dotenv(dotenv_path=".env")
+import os
+api_key = os.getenv("GROQ_API_KEY")
+print("API Key:", api_key)
+
 from utils.navigation import sidebar
 
 load_dotenv() 
+     origin/main
 # ==========================
 # Page Config
 # ==========================
 st.set_page_config(
     page_title="HealthVibe AI",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="centered",
 )
 
@@ -106,10 +113,63 @@ if "datasets" not in st.session_state:
     st.session_state.datasets = load_datasets()
 
 # ==========================
+ HEAD
+# Sidebar (Chat History)
+# ==========================
+
+if "all_chats" not in st.session_state:
+    st.session_state.all_chats = {}
+
+if "current_chat" not in st.session_state:
+    chat_id = str(uuid.uuid4())
+    st.session_state.current_chat = chat_id
+    st.session_state.all_chats[chat_id] = {
+        "title": "New Chat",
+        "messages": [
+            {
+                "role": "assistant",
+                "content": "مرحباً 👋 أنا مساعدك الصحي الذكي HealthVibe AI. كيف يمكنني مساعدتك اليوم؟"
+            }
+        ]
+    }
+
+with st.sidebar:
+    st.subheader("Chat History")
+    
+    if st.button("➕ New Chat", use_container_width=True):
+        new_id = str(uuid.uuid4())
+        st.session_state.all_chats[new_id] = {
+            "title": "New Chat",
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": "مرحباً 👋 أنا مساعدك الصحي الذكي HealthVibe AI. كيف يمكنني مساعدتك اليوم؟"
+                }
+            ]
+        }
+        st.session_state.current_chat = new_id
+        st.rerun()
+    
+    st.divider()
+    
+    for cid, data in list(st.session_state.all_chats.items()):
+        if st.button(data["title"], key=cid, use_container_width=True):
+            st.session_state.current_chat = cid
+            st.rerun()
+
+print("API Key:", api_key)
+print("Exists:", api_key is not None)
+
+current_chat_id = st.session_state.current_chat
+st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
+
+# ==========================
+     origin/main
 # Groq Client
 # ==========================
 
 api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
 client = Groq(api_key=api_key)
 
 # ==========================
