@@ -29,6 +29,9 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -49,7 +52,7 @@ user = st.session_state.user
 profile = get_profile(user["id"])
 
 if profile is None:
-    st.warning("Please complete your profile first.")
+    st.warning(translation.t("Please complete your profile first."))
     st.switch_page("pages/Profile.py")
     st.stop()
 
@@ -71,7 +74,7 @@ patient = st.session_state.patient
 # STEP INDICATOR
 # ==========================================
 
-st.title("⚖️ Obesity Prediction")
+st.title(translation.t("⚖️ Obesity Prediction"))
 
 stepper(st.session_state.step)
 
@@ -81,7 +84,7 @@ stepper(st.session_state.step)
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Personal Information")
+    st.subheader(translation.t("👤 Personal Information"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -90,13 +93,14 @@ if st.session_state.step == 1:
     with col1:
 
         gender = st.selectbox(
-            "Gender",
+            translation.t("Gender"),
             ["Male", "Female"],
-            index=0 if patient.get("gender", "Male") == "Male" else 1
+            index=0 if patient.get("gender", "Male") == "Male" else 1,
+            format_func=translation.t
         )
 
         age = st.number_input(
-            "Age",
+            translation.t("Age"),
             min_value=1,
             max_value=100,
             value=int(patient.get("age", 25))
@@ -105,7 +109,7 @@ if st.session_state.step == 1:
     with col2:
 
         height = st.number_input(
-            "Height (m)",
+            translation.t("Height (m)"),
             min_value=1.00,
             max_value=2.50,
             value=float(patient.get("height", 1.70)),
@@ -113,7 +117,7 @@ if st.session_state.step == 1:
         )
 
         weight = st.number_input(
-            "Weight (kg)",
+            translation.t("Weight (kg)"),
             min_value=20,
             max_value=250,
             value=int(patient.get("weight", 70))
@@ -122,7 +126,7 @@ if st.session_state.step == 1:
     bmi = weight / (height ** 2)
 
     st.metric(
-        "BMI",
+        translation.t("BMI"),
         round(bmi, 2)
     )
 
@@ -139,7 +143,7 @@ if st.session_state.step == 1:
     with col1:
 
         st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             disabled=True,
             width="stretch"
         )
@@ -147,7 +151,7 @@ if st.session_state.step == 1:
     with col2:
 
         if st.button(
-            "Next ➡",
+            translation.t("Next ➡"),
             width="stretch"
         ):
 
@@ -162,7 +166,7 @@ if st.session_state.step == 1:
 
 elif st.session_state.step == 2:
 
-    st.subheader("🥗 Lifestyle Information")
+    st.subheader(translation.t("🥗 Lifestyle Information"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -171,31 +175,34 @@ elif st.session_state.step == 2:
     with col1:
 
         family_history = st.selectbox(
-            "Family History of Overweight",
+            translation.t("Family History of Overweight"),
             ["no", "yes"],
-            index=1 if patient.get("family_history", "no") == "yes" else 0
+            index=1 if patient.get("family_history", "no") == "yes" else 0,
+            format_func=translation.t
         )
 
         smoke = st.selectbox(
-            "Smoking",
+            translation.t("Smoking"),
             ["no", "yes"],
-            index=1 if patient.get("smoke", "no") == "yes" else 0
+            index=1 if patient.get("smoke", "no") == "yes" else 0,
+            format_func=translation.t
         )
 
         high_calorie = st.selectbox(
-            "Frequent High Calorie Food",
+            translation.t("Frequent High Calorie Food"),
             ["no", "yes"],
-            index=1 if patient.get("high_calorie", "no") == "yes" else 0
+            index=1 if patient.get("high_calorie", "no") == "yes" else 0,
+            format_func=translation.t
         )
 
         vegetables = st.slider(
-            "Vegetable Consumption",
+            translation.t("Vegetable Consumption"),
             1, 3,
             int(patient.get("vegetables", 2))
         )
 
         meals = st.slider(
-            "Main Meals Per Day",
+            translation.t("Main Meals Per Day"),
             1, 4,
             int(patient.get("meals", 3))
         )
@@ -203,33 +210,34 @@ elif st.session_state.step == 2:
     with col2:
 
         water = st.slider(
-            "Daily Water Intake",
+            translation.t("Daily Water Intake"),
             1.0, 3.0,
             float(patient.get("water", 2.0))
         )
 
         activity = st.slider(
-            "Physical Activity",
+            translation.t("Physical Activity"),
             0.0, 3.0,
             float(patient.get("activity", 1.0))
         )
 
         technology = st.slider(
-            "Technology Usage",
+            translation.t("Technology Usage"),
             0.0, 2.0,
             float(patient.get("technology", 1.0))
         )
 
         alcohol = st.selectbox(
-            "Alcohol Consumption",
+            translation.t("Alcohol Consumption"),
             ["no", "Sometimes", "Frequently"],
             index=["no", "Sometimes", "Frequently"].index(
                 patient.get("alcohol", "no")
-            )
+            ),
+            format_func=translation.t
         )
 
         transport = st.selectbox(
-            "Transportation",
+            translation.t("Transportation"),
             [
                 "Walking",
                 "Bike",
@@ -245,7 +253,8 @@ elif st.session_state.step == 2:
                 "Public_Transportation"
             ].index(
                 patient.get("transport", "Walking")
-            )
+            ),
+            format_func=translation.t
         )
 
     patient["family_history"] = family_history
@@ -266,7 +275,7 @@ elif st.session_state.step == 2:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             width="stretch"
         ):
             st.session_state.step = 1
@@ -275,7 +284,7 @@ elif st.session_state.step == 2:
     with col2:
 
         if st.button(
-            "Next ➡",
+            translation.t("Next ➡"),
             width="stretch"
         ):
             st.session_state.step = 3
@@ -289,7 +298,7 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader("🧠 AI Prediction")
+    st.subheader(translation.t("🧠 AI Prediction"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -302,7 +311,7 @@ elif st.session_state.step == 3:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             key="back_step3",
             width="stretch"
         ):
@@ -313,7 +322,7 @@ elif st.session_state.step == 3:
     with col2:
 
         if st.button(
-            "🧠 Predict",
+            translation.t("🧠 Predict"),
             key="predict_btn",
             width="stretch"
         ):
@@ -388,7 +397,7 @@ elif st.session_state.step == 3:
 
             except Exception as e:
 
-                st.error(f"Prediction Error: {e}")
+                st.error(f"{translation.t('Prediction Error : ')}{e}")
                 st.stop()
 
             labels = {
@@ -415,7 +424,7 @@ elif st.session_state.step == 3:
 
 elif st.session_state.step == 4:
 
-    st.subheader("📊 AI Prediction Result")
+    st.subheader(translation.t("📊 AI Prediction Result"))
 
     prediction = int(patient.get("prediction", 0))
     result = patient.get("prediction_text", "Unknown")
@@ -437,11 +446,11 @@ elif st.session_state.step == 4:
     <div class="card">
 
     <h2 style="color:{color};">
-    {result}
+    {translation.t(result)}
     </h2>
 
     <p>
-    AI Prediction Completed Successfully
+    {translation.t("AI Prediction Completed Successfully")}
     </p>
 
     </div>
@@ -460,7 +469,7 @@ elif st.session_state.step == 4:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             width="stretch"
         ):
 
@@ -474,7 +483,7 @@ elif st.session_state.step == 4:
     with col2:
 
         
-        if st.button("💾 Save Result", width="stretch"):
+        if st.button(translation.t("💾 Save Result"), width="stretch"):
 
             try:
 
@@ -505,11 +514,11 @@ elif st.session_state.step == 4:
 
                 )
 
-                st.success("Saved Successfully ✅")
+                st.success(translation.t("Saved Successfully ✅"))
 
             except Exception as e:
 
-                st.error(f"Database Error : {e}")
+                st.error(f"{translation.t('Database Error : ')}{e}")
 
     # ==========================
     # PDF
@@ -517,7 +526,7 @@ elif st.session_state.step == 4:
 
     with col3:
 
-     if st.button("📄 Download Report", width="stretch"):
+     if st.button(translation.t("📄 Download Report"), width="stretch"):
  
         pdf_patient = patient.copy()
 
@@ -529,7 +538,7 @@ elif st.session_state.step == 4:
         with open(pdf, "rb") as file:
 
             st.download_button(
-                "⬇ Download PDF",
+                translation.t("⬇ Download PDF"),
                 data=file.read(),
                 file_name="Obesity_Report.pdf",
                 mime="application/pdf",

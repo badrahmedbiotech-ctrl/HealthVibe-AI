@@ -12,6 +12,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+import translation
+translation.init()
+
 # ==========================================
 # CSS
 # ==========================================
@@ -45,7 +48,7 @@ st.markdown(f"""
 <div class="hero">
 
 <span class="hero-badge">
-⚙️ System Settings
+⚙️ {translation.t("⚙️ System Settings")}
 </span>
 
 <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -53,12 +56,12 @@ st.markdown(f"""
 <div>
 
 <h1>
-Settings
+{translation.t("Settings")}
 </h1>
 
 <p>
 
-Welcome {username}
+{translation.t("Welcome")} {username}
 
 </p>
 
@@ -79,20 +82,20 @@ st.write("")
 # ACCOUNT SETTINGS
 # ==========================================
 
-st.subheader("👤 Account Settings")
+st.subheader(translation.t("👤 Account Settings"))
 
 c1, c2 = st.columns(2)
 
 with c1:
 
     st.text_input(
-        "Username",
+        translation.t("Username"),
         value=username,
         disabled=True
     )
 
     st.text_input(
-        "Role",
+        translation.t("Role"),
         value=role,
         disabled=True
     )
@@ -100,14 +103,14 @@ with c1:
 with c2:
 
     email = st.text_input(
-        "Email",
+        translation.t("Email"),
         value=st.session_state.user.get("email", ""),
         disabled=True
     )
 
     st.text_input(
-        "Status",
-        value="Active",
+        translation.t("Status"),
+        value=translation.t("Active"),
         disabled=True
     )
 
@@ -117,29 +120,30 @@ st.divider()
 # SYSTEM SETTINGS
 # ==========================================
 
-st.subheader("⚙️ Preferences")
+st.subheader(translation.t("⚙️ Preferences"))
 
 dark_mode = st.toggle(
-    "Dark Mode",
+    translation.t("Dark Mode"),
     value=True
 )
 
 notifications = st.toggle(
-    "Enable Notifications",
+    translation.t("Enable Notifications"),
     value=True
 )
 
 ai_recommendation = st.toggle(
-    "AI Recommendations",
+    translation.t("AI Recommendations"),
     value=True
 )
 
 language = st.selectbox(
-    "Language",
+    translation.t("Language"),
     [
         "English",
         "Arabic"
-    ]
+    ],
+    format_func=translation.t
 )
 
 st.divider()
@@ -150,20 +154,20 @@ st.write("")
 # ACCOUNT SETTINGS
 # ==========================================
 
-st.subheader("👤 Account Settings")
+st.subheader(translation.t("👤 Account Settings"))
 
 c1, c2 = st.columns(2)
 
 with c1:
 
     st.text_input(
-        "Username",
+        translation.t("Username"),
         value=username,
         disabled=True
     )
 
     st.text_input(
-        "Role",
+        translation.t("Role"),
         value=role,
         disabled=True
     )
@@ -171,14 +175,14 @@ with c1:
 with c2:
 
     email = st.text_input(
-        "Email",
+        translation.t("Email"),
         value=st.session_state.user.get("email", ""),
         disabled=True
     )
 
     st.text_input(
-        "Status",
-        value="Active",
+        translation.t("Status"),
+        value=translation.t("Active"),
         disabled=True
     )
 
@@ -188,29 +192,30 @@ st.divider()
 # SYSTEM SETTINGS
 # ==========================================
 
-st.subheader("⚙️ Preferences")
+st.subheader(translation.t("⚙️ Preferences"))
 
 dark_mode = st.toggle(
-    "Dark Mode",
+    translation.t("Dark Mode"),
     value=True
 )
 
 notifications = st.toggle(
-    "Enable Notifications",
+    translation.t("Enable Notifications"),
     value=True
 )
 
 ai_recommendation = st.toggle(
-    "AI Recommendations",
+    translation.t("AI Recommendations"),
     value=True
 )
 
 language = st.selectbox(
-    "Language",
+    translation.t("Language"),
     [
         "English",
         "Arabic"
-    ]
+    ],
+    format_func=translation.t
 )
 
 st.divider()

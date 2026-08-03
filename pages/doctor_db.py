@@ -29,6 +29,9 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -43,13 +46,13 @@ create_doctors_table()
 # HERO
 # ==========================================
 
-st.markdown("""
+st.markdown(f"""
 <div class="hero">
 
-<h1>👨‍⚕️ Doctors Management</h1>
+<h1>{translation.t("👨‍⚕️ Doctors Management")}</h1>
 
 <p>
-Manage Doctors, Departments and Availability
+{translation.t("Manage Doctors, Departments and Availability")}
 </p>
 
 </div>
@@ -62,8 +65,8 @@ st.write("")
 # ==========================================
 
 search = st.text_input(
-    "🔍 Search Doctor",
-    placeholder="Search by doctor's name..."
+    translation.t("🔍 Search Doctor"),
+    placeholder=translation.t("Search by doctor's name...")
 )
 
 if search:
@@ -81,13 +84,13 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.metric(
-        "👨‍⚕️ Total Doctors",
+        translation.t("👨‍⚕️ Total Doctors"),
         doctors_count()
     )
 
 with col2:
     st.metric(
-        "🟢 Available",
+        translation.t("🟢 Available"),
         available_doctors()
     )
 
@@ -95,7 +98,7 @@ with col3:
     unavailable = doctors_count() - available_doctors()
 
     st.metric(
-        "🔴 Unavailable",
+        translation.t("🔴 Unavailable"),
         unavailable
     )
 
@@ -103,51 +106,54 @@ with col3:
 # ADD DOCTOR
 # ==========================================
 
-st.subheader("➕ Add New Doctor")
+st.subheader(translation.t("➕ Add New Doctor"))
+
+DEPARTMENTS = [
+    "Internal Medicine",
+    "Cardiology",
+    "Neurology",
+    "Radiology",
+    "Pulmonology",
+    "Oncology",
+    "Endocrinology",
+    "Pediatrics",
+    "Orthopedics",
+    "General Surgery"
+]
 
 with st.form("doctor_form"):
 
-    doctor_name = st.text_input("Doctor Name")
+    doctor_name = st.text_input(translation.t("Doctor Name"))
 
     department = st.selectbox(
-        "Department",
-        [
-            "Internal Medicine",
-            "Cardiology",
-            "Neurology",
-            "Radiology",
-            "Pulmonology",
-            "Oncology",
-            "Endocrinology",
-            "Pediatrics",
-            "Orthopedics",
-            "General Surgery"
-        ]
+        translation.t("Department"),
+        DEPARTMENTS,
+        format_func=translation.t
     )
 
-    specialization = st.text_input("Specialization")
+    specialization = st.text_input(translation.t("Specialization"))
 
     years = st.number_input(
-        "Years of Experience",
+        translation.t("Years of Experience"),
         min_value=0,
         max_value=60,
         value=5
     )
 
     available = st.checkbox(
-        "Available",
+        translation.t("Available"),
         value=True
     )
 
     submit = st.form_submit_button(
-        "💾 Save Doctor",
+        translation.t("💾 Save Doctor"),
         width="stretch"
     )
 
     if submit:
 
         if doctor_name.strip() == "":
-            st.warning("Doctor name is required.")
+            st.warning(translation.t("Doctor name is required."))
 
         else:
 
@@ -159,7 +165,7 @@ with st.form("doctor_form"):
                 available
             )
 
-            st.success("Doctor added successfully ✅")
+            st.success(translation.t("Doctor added successfully ✅"))
             st.rerun()
 
 st.write("")
@@ -168,11 +174,11 @@ st.write("")
 # DOCTORS TABLE
 # ==========================================
 
-st.subheader("👨‍⚕️ Doctors List")
+st.subheader(translation.t("👨‍⚕️ Doctors List"))
 
 if len(df) == 0:
 
-    st.info("No doctors found.")
+    st.info(translation.t("No doctors found."))
 
 else:
 
@@ -181,20 +187,20 @@ else:
     if "available" in table.columns:
 
         table["available"] = table["available"].replace({
-            1: "🟢 Available",
-            0: "🔴 Unavailable",
-            True: "🟢 Available",
-            False: "🔴 Unavailable"
+            1: translation.t("🟢 Available"),
+            0: translation.t("🔴 Unavailable"),
+            True: translation.t("🟢 Available"),
+            False: translation.t("🔴 Unavailable")
         })
 
     table = table.rename(columns={
-        "id": "ID",
-        "name": "Doctor Name",
-        "department": "Department",
-        "specialization": "Specialization",
-        "experience": "Experience",
-        "available": "Status",
-        "created_at": "Created"
+        "id": translation.t("ID"),
+        "name": translation.t("Doctor Name"),
+        "department": translation.t("Department"),
+        "specialization": translation.t("Specialization"),
+        "experience": translation.t("Experience"),
+        "available": translation.t("Status"),
+        "created_at": translation.t("Created")
     })
 
     st.dataframe(
@@ -211,12 +217,12 @@ st.write("")
 
 if len(df) > 0:
 
-    st.subheader("✏️ View / Edit Doctor")
+    st.subheader(translation.t("✏️ View / Edit Doctor"))
 
     doctor_ids = df["id"].tolist()
 
     selected_id = st.selectbox(
-        "Select Doctor",
+        translation.t("Select Doctor"),
         doctor_ids
     )
 
@@ -225,34 +231,34 @@ if len(df) > 0:
     with st.form("edit_doctor"):
 
         edit_name = st.text_input(
-            "Doctor Name",
+            translation.t("Doctor Name"),
             value=doctor["name"]
         )
 
         edit_department = st.text_input(
-            "Department",
+            translation.t("Department"),
             value=doctor["department"]
         )
 
         edit_specialization = st.text_input(
-            "Specialization",
+            translation.t("Specialization"),
             value=doctor["specialization"]
         )
 
         edit_experience = st.number_input(
-            "Years of Experience",
+            translation.t("Years of Experience"),
             min_value=0,
             max_value=60,
             value=int(doctor["experience"])
         )
 
         edit_available = st.checkbox(
-            "Available",
+            translation.t("Available"),
             value=bool(doctor["available"])
         )
 
         update_btn = st.form_submit_button(
-            "💾 Update Doctor",
+            translation.t("💾 Update Doctor"),
             width="stretch"
         )
 
@@ -267,7 +273,7 @@ if len(df) > 0:
                 edit_available
             )
 
-            st.success("Doctor updated successfully ✅")
+            st.success(translation.t("Doctor updated successfully ✅"))
             st.rerun()
 
 st.write("")
@@ -278,41 +284,41 @@ st.write("")
 
 st.divider()
 
-st.subheader("🗑 Delete Doctor")
+st.subheader(translation.t("🗑 Delete Doctor"))
 
 if len(df) > 0:
 
     delete_id = st.selectbox(
-        "Choose Doctor",
+        translation.t("Choose Doctor"),
         doctor_ids,
         key="delete_doctor"
     )
 
     confirm_delete = st.checkbox(
-        "I confirm deleting this doctor"
+        translation.t("I confirm deleting this doctor")
     )
 
     if st.button(
-        "Delete Doctor",
+        translation.t("Delete Doctor"),
         width="stretch",
         type="primary"
     ):
 
         if not confirm_delete:
 
-            st.warning("Please confirm deletion first.")
+            st.warning(translation.t("Please confirm deletion first."))
 
         else:
 
             delete_doctor(delete_id)
 
-            st.success("Doctor deleted successfully ✅")
+            st.success(translation.t("Doctor deleted successfully ✅"))
 
             st.rerun()
 
 else:
 
-    st.info("No doctors available.")
+    st.info(translation.t("No doctors available."))
 
 st.write("")
 
@@ -322,7 +328,7 @@ st.write("")
 
 st.divider()
 
-st.subheader("📊 Doctors Statistics")
+st.subheader(translation.t("📊 Doctors Statistics"))
 
 if len(df) > 0:
 
@@ -338,31 +344,31 @@ if len(df) > 0:
 
     with c1:
         st.metric(
-            "👨‍⚕️ Total Doctors",
+            translation.t("👨‍⚕️ Total Doctors"),
             total
         )
 
     with c2:
         st.metric(
-            "🟢 Available",
+            translation.t("🟢 Available"),
             available
         )
 
     with c3:
         st.metric(
-            "🔴 Unavailable",
+            translation.t("🔴 Unavailable"),
             unavailable
         )
 
     with c4:
         st.metric(
-            "⭐ Avg Experience",
-            f"{avg_exp} Years"
+            translation.t("⭐ Avg Experience"),
+            f"{avg_exp} {translation.t('Years')}"
         )
 
 else:
 
-    st.info("No statistics available.")
+    st.info(translation.t("No statistics available."))
 
 st.write("")
 
@@ -372,7 +378,7 @@ st.write("")
 
 st.divider()
 
-st.subheader("📈 Doctors Analytics")
+st.subheader(translation.t("📈 Doctors Analytics"))
 
 if len(df) > 0:
 
@@ -390,13 +396,13 @@ if len(df) > 0:
             dep,
             x="department",
             y="Doctors",
-            title="Doctors by Department",
+            title=translation.t("Doctors by Department"),
             color="department"
         )
 
         fig.update_layout(
-            xaxis_title="Department",
-            yaxis_title="Doctors"
+            xaxis_title=translation.t("Department"),
+            yaxis_title=translation.t("Doctors")
         )
 
         st.plotly_chart(
@@ -409,8 +415,8 @@ if len(df) > 0:
         status = pd.DataFrame({
 
             "Status": [
-                "Available",
-                "Unavailable"
+                translation.t("Available"),
+                translation.t("🔴 Unavailable")
             ],
 
             "Count": [
@@ -425,7 +431,7 @@ if len(df) > 0:
             values="Count",
             names="Status",
             hole=0.55,
-            title="Availability Status"
+            title=translation.t("Availability Status")
         )
 
         st.plotly_chart(
@@ -441,7 +447,7 @@ st.write("")
 
 st.divider()
 
-st.subheader("📄 Export Doctors Data")
+st.subheader(translation.t("📄 Export Doctors Data"))
 
 if len(df) > 0:
 
@@ -449,7 +455,7 @@ if len(df) > 0:
 
     st.download_button(
 
-        label="⬇ Download Doctors List",
+        label=translation.t("⬇ Download Doctors List"),
 
         data=csv,
 
@@ -463,7 +469,7 @@ if len(df) > 0:
 
 else:
 
-    st.info("No data available to export.")
+    st.info(translation.t("No data available to export."))
 
 st.write("")
 
@@ -473,23 +479,20 @@ st.write("")
 
 st.divider()
 
-st.subheader("📌 Quick Summary")
+st.subheader(translation.t("📌 Quick Summary"))
 
 if len(df) > 0:
 
-    st.success(f"""
-Total Doctors : {total}
-
-Available Doctors : {available}
-
-Unavailable Doctors : {unavailable}
-
-Average Experience : {avg_exp} Years
-""")
+    st.success(
+        f"{translation.t('Total Doctors : ')}{total}\n\n"
+        f"{translation.t('Available Doctors : ')}{available}\n\n"
+        f"{translation.t('Unavailable Doctors : ')}{unavailable}\n\n"
+        f"{translation.t('Average Experience : ')}{avg_exp} {translation.t('Years')}"
+    )
 
 else:
 
-    st.warning("No doctors registered yet.")
+    st.warning(translation.t("No doctors registered yet."))
 
 # ==========================================
 # FOOTER
@@ -498,22 +501,22 @@ else:
 st.write("")
 st.divider()
 
-st.markdown("""
+st.markdown(f"""
 
 <div class="footer">
 
 <h2 style="color:#00C2FF;">
-HealthVibe AI
+{translation.t("HealthVibe AI")}
 </h2>
 
 <p>
-Doctors Management System
+{translation.t("Doctors Management System")}
 </p>
 
 <hr>
 
 <p style="color:#94A3B8;">
-Developed by <b>Badr Ahmed</b>
+{translation.t("Developed by ")}<b>Badr Ahmed</b>
 </p>
 
 </div>

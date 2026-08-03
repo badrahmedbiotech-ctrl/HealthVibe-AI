@@ -29,6 +29,10 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+t = translation.t
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -50,7 +54,7 @@ user = st.session_state.user
 profile = get_profile(user["id"])
 
 if profile is None:
-    st.warning("Please complete your profile first.")
+    st.warning(t("Please complete your profile first."))
     st.switch_page("pages/Profile.py")
     st.stop()
 
@@ -65,7 +69,7 @@ def load_model():
 try:
     model = load_model()
 except Exception as e:
-    st.error(f"Model Loading Error : {e}")
+    st.error(f"{t('Model Loading Error: ')}{e}")
     st.stop()
 
 dataset = pd.read_csv("dataset/Fibrosis_data.csv")
@@ -101,10 +105,10 @@ progress = (st.session_state.step / 4) * 100
 st.markdown(f"""
 <div class="hero">
 
-<h1>🫁 Respiratory Disease Prediction</h1>
+<h1>🫁 {t("Respiratory Disease Prediction")}</h1>
 
 <p>
-AI Clinical Decision Support System
+{t("AI Clinical Decision Support System")}
 </p>
 
 <div style="
@@ -125,7 +129,7 @@ background:linear-gradient(90deg,#00C2FF,#2563EB);
 </div>
 
 <p style="margin-top:10px;">
-Step {st.session_state.step} / 4
+{t("Step")} {st.session_state.step} / 4
 </p>
 
 </div>
@@ -141,7 +145,7 @@ st.write("")
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Patient Information")
+    st.subheader(t("👤 Patient Information"))
 
     name = profile["full_name"] or ""
     age = profile["age"] or 30
@@ -151,29 +155,29 @@ if st.session_state.step == 1:
 
     bmi = round(weight / ((height / 100) ** 2), 1)
 
-    st.success("Patient information loaded successfully.")
+    st.success(t("Patient information loaded successfully."))
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Age", age)
-    c2.metric("Weight", f"{weight} kg")
-    c3.metric("Height", f"{height} cm")
-    c4.metric("BMI", bmi)
+    c1.metric(t("Age"), age)
+    c2.metric(t("Weight"), f"{weight} kg")
+    c3.metric(t("Height"), f"{height} cm")
+    c4.metric(t("BMI"), bmi)
 
     st.text_input(
-        "Full Name",
+        t("Full Name"),
         value=name,
         disabled=True
     )
 
     st.text_input(
-        "Gender",
+        t("Gender"),
         value=gender,
         disabled=True
     )
 
     if st.button(
-        "Next ➜",
+        t("Next ➜"),
         key="next_step1",
         width="stretch"
     ):
@@ -193,7 +197,7 @@ if st.session_state.step == 1:
 
 elif st.session_state.step == 2:
 
-    st.subheader("🩺 Medical Information")
+    st.subheader(t("🩺 Medical Information"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -205,48 +209,48 @@ elif st.session_state.step == 2:
     )
 
     symptom = st.selectbox(
-        "Main Symptom",
+        t("Main Symptom"),
         symptoms,
         index=0
     )
 
     smoking = st.selectbox(
-        "Smoking Status",
+        t("Smoking Status"),
         [
-            "Never",
-            "Former",
-            "Current"
+            t("Never"),
+            t("Former"),
+            t("Current")
         ]
     )
 
     exercise = st.selectbox(
-        "Physical Activity",
+        t("Physical Activity"),
         [
-            "Regular",
-            "Sometimes",
-            "Rarely"
+            t("Regular"),
+            t("Sometimes"),
+            t("Rarely")
         ]
     )
 
     pollution = st.selectbox(
-        "Air Pollution Exposure",
+        t("Air Pollution Exposure"),
         [
-            "Low",
-            "Medium",
-            "High"
+            t("Low"),
+            t("Medium"),
+            t("High")
         ]
     )
 
     chemicals = st.selectbox(
-        "Chemical Exposure",
+        t("Chemical Exposure"),
         [
-            "No",
-            "Yes"
+            t("No"),
+            t("Yes")
         ]
     )
 
     sleep = st.slider(
-        "Sleep Hours",
+        t("Sleep Hours"),
         3,
         12,
         7
@@ -266,7 +270,7 @@ elif st.session_state.step == 2:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step2",
             width="stretch"
         ):
@@ -277,7 +281,7 @@ elif st.session_state.step == 2:
     with col2:
 
         if st.button(
-            "Next ➜",
+            t("Next ➜"),
             key="next_step2",
             width="stretch"
         ):
@@ -292,7 +296,7 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader("🧠 AI Prediction")
+    st.subheader(t("🧠 AI Prediction"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -300,21 +304,21 @@ elif st.session_state.step == 3:
 
     st.divider()
 
-    st.subheader("❤️ Vital Signs")
+    st.subheader(t("❤️ Vital Signs"))
 
     col1, col2 = st.columns(2)
 
     with col1:
 
         spo2 = st.slider(
-            "SpO₂ (%)",
+            t("SpO₂ (%)"),
             50,
             100,
             patient.get("spo2", 98)
         )
 
         temperature = st.number_input(
-            "Temperature (°C)",
+            t("Temperature (°C)"),
             min_value=34.0,
             max_value=42.0,
             value=float(patient.get("temperature", 37.0)),
@@ -324,14 +328,14 @@ elif st.session_state.step == 3:
     with col2:
 
         heart_rate = st.number_input(
-            "Heart Rate (bpm)",
+            t("Heart Rate (bpm)"),
             min_value=30,
             max_value=200,
             value=int(patient.get("heart_rate", 80))
         )
 
         respiratory_rate = st.number_input(
-            "Respiratory Rate",
+            t("Respiratory Rate"),
             min_value=5,
             max_value=40,
             value=int(patient.get("respiratory_rate", 18))
@@ -349,7 +353,7 @@ elif st.session_state.step == 3:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step3",
             width="stretch"
         ):
@@ -360,7 +364,7 @@ elif st.session_state.step == 3:
     with col2:
 
         if st.button(
-            "🧠 Predict",
+            t("🧠 Predict"),
             key="predict_btn",
             width="stretch"
         ):
@@ -391,7 +395,7 @@ elif st.session_state.step == 3:
 
             except Exception as e:
 
-                st.error(f"Prediction Error : {e}")
+                st.error(f"{t('Prediction Error : ')}{e}")
                 st.stop()
 
             patient["prediction"] = prediction
@@ -408,7 +412,7 @@ elif st.session_state.step == 3:
 
 elif st.session_state.step == 4:
 
-    st.subheader("📊 AI Prediction Result")
+    st.subheader(t("📊 AI Prediction Result"))
 
     prediction = patient.get("prediction_text", "Unknown")
     probability = patient.get("probability", 0)
@@ -421,7 +425,7 @@ elif st.session_state.step == 4:
         dataset["Disease"] == prediction
     ]
 
-    treatment = "Consult your physician."
+    treatment = t("Consult your physician.")
 
     nature = "Unknown"
 
@@ -460,7 +464,7 @@ elif st.session_state.step == 4:
 
     <p>
 
-    AI Prediction Completed Successfully
+    {t("AI Prediction Completed Successfully")}
 
     </p>
 
@@ -472,29 +476,29 @@ elif st.session_state.step == 4:
 
     st.divider()
 
-    st.subheader("💊 Suggested Treatment")
+    st.subheader(t("💊 Suggested Treatment"))
 
     st.info(treatment)
 
-    st.subheader("🚨 Disease Severity")
+    st.subheader(t("🚨 Disease Severity"))
 
     if nature.lower() == "high":
 
-        st.error("🔴 High")
+        st.error(t("🔴 High"))
 
     elif nature.lower() == "medium":
 
-        st.warning("🟡 Medium")
+        st.warning(t("🟡 Medium"))
 
     else:
 
-        st.success("🟢 Low")
+        st.success(t("🟢 Low"))
 
     st.divider()
 
-    st.subheader("⚠ Medical Disclaimer")
+    st.subheader(t("⚠ Medical Disclaimer"))
 
-    st.warning("""
+    st.warning(t("""
 
 This AI prediction is intended for screening purposes only.
 
@@ -503,7 +507,7 @@ It is NOT a confirmed medical diagnosis.
 Please consult a qualified healthcare professional
 for examination, confirmation and treatment.
 
-""") 
+""")) 
     st.write("")
 
     col1, col2, col3 = st.columns(3)
@@ -515,7 +519,7 @@ for examination, confirmation and treatment.
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step4",
             width="stretch"
         ):
@@ -530,7 +534,7 @@ for examination, confirmation and treatment.
     with col2:
 
         if st.button(
-            "💾 Save Result",
+            t("💾 Save Result"),
             key="save_fibrosis",
             width="stretch"
         ):
@@ -555,11 +559,11 @@ for examination, confirmation and treatment.
 
                 )
 
-                st.success("Saved Successfully ✅")
+                st.success(t("Saved Successfully ✅"))
 
             except Exception as e:
 
-                st.error(f"Database Error : {e}")
+                st.error(f"{t('Database Error : ')}{e}")
 
     # ==========================
     # PDF
@@ -568,7 +572,7 @@ for examination, confirmation and treatment.
     with col3:
 
         if st.button(
-            "📄 Download Report",
+            t("📄 Download Report"),
             key="pdf_respiratory",
             width="stretch"
         ):
@@ -584,7 +588,7 @@ for examination, confirmation and treatment.
 
                 st.download_button(
 
-                    "⬇ Download PDF",
+                    t("⬇ Download PDF"),
 
                     data=file.read(),
 
@@ -600,7 +604,7 @@ for examination, confirmation and treatment.
 
     if st.button(
 
-        "🏠 Back To Dashboard",
+        t("🏠 Back To Dashboard"),
 
         key="dashboard_btn",
 
@@ -620,7 +624,7 @@ if st.session_state.analyzed:
 
     st.divider()
 
-    st.header("📊 AI Analysis Result")
+    st.header(t("📊 AI Analysis Result"))
 
     prediction = st.session_state.prediction
     confidence = st.session_state.confidence
@@ -644,7 +648,7 @@ if st.session_state.analyzed:
     {prediction}
     </h2>
 
-    <p>{level}</p>
+    <p>{t(level)}</p>
 
     </div>
     """, unsafe_allow_html=True)
@@ -652,27 +656,27 @@ if st.session_state.analyzed:
     st.progress(int(confidence))
 
     st.metric(
-        "AI Confidence",
+        t("AI Confidence"),
         f"{confidence:.1f}%"
     )
 
-    st.warning("""
+    st.warning(t("""
 ⚠️ This AI prediction is **not a medical diagnosis**.
 
 Please consult a pulmonologist to confirm the diagnosis and determine the appropriate treatment plan.
-""")
+"""))
 
     st.divider()
 
-    st.subheader("💡 General Recommendations")
+    st.subheader(t("💡 General Recommendations"))
 
     recommendations = []
 
-    recommendations.append("🩺 Visit a chest specialist.")
-    recommendations.append("🚭 Avoid smoking completely.")
-    recommendations.append("😷 Avoid dust and polluted air.")
-    recommendations.append("💧 Stay hydrated.")
-    recommendations.append("🏃 Maintain light physical activity if possible.")
+    recommendations.append(t("🩺 Visit a chest specialist."))
+    recommendations.append(t("🚭 Avoid smoking completely."))
+    recommendations.append(t("😷 Avoid dust and polluted air."))
+    recommendations.append(t("💧 Stay hydrated."))
+    recommendations.append(t("🏃 Maintain light physical activity if possible."))
 
     for rec in recommendations:
         st.write(rec)
@@ -688,7 +692,7 @@ Please consult a pulmonologist to confirm the diagnosis and determine the approp
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_result",
             use_container_width=True
         ):
@@ -704,7 +708,7 @@ Please consult a pulmonologist to confirm the diagnosis and determine the approp
     with col2:
 
         if st.button(
-            "💾 Save Result",
+            t("💾 Save Result"),
             key="save_result",
             use_container_width=True
         ):
@@ -738,7 +742,7 @@ Please consult a pulmonologist to confirm the diagnosis and determine the approp
                 patient
             )
 
-            st.success("Saved Successfully ✅")
+            st.success(t("Saved Successfully ✅"))
 
         # ====================================
     # PDF
@@ -747,7 +751,7 @@ Please consult a pulmonologist to confirm the diagnosis and determine the approp
     with col3:
 
         if st.button(
-            "📄 Download Report",
+            t("📄 Download Report"),
             use_container_width=True
         ):
 
@@ -770,7 +774,7 @@ Please consult a pulmonologist to confirm the diagnosis and determine the approp
             with open(pdf, "rb") as file:
 
                 st.download_button(
-                    "⬇ Download PDF",
+                    t("⬇ Download PDF"),
                     data=file.read(),
                     file_name="Respiratory_Report.pdf",
                     mime="application/pdf",
@@ -779,7 +783,7 @@ Please consult a pulmonologist to confirm the diagnosis and determine the approp
 
 st.divider()
 
-st.warning("""
+st.warning(t("""
 ⚠️ **Medical Disclaimer**
 
 This AI prediction is intended only for preliminary screening and educational purposes.
@@ -797,17 +801,17 @@ If you have persistent symptoms such as:
 Please consult a pulmonologist or healthcare provider immediately.
 
 Further investigations such as Chest X-ray, CT Scan, Pulmonary Function Test (PFT), blood tests, and clinical examination may be required to confirm the diagnosis.
-""")
+"""))
 st.markdown(
-"""
+f"""
 ---
 <center>
 
 ### 🫁 HealthVibe AI
 
-Respiratory Disease Screening System
+{t("Respiratory Disease Screening System")}
 
-Developed by **Badr Ahmed**
+{t("Developed by ")}**Badr Ahmed**
 
 </center>
 """,

@@ -15,41 +15,6 @@ from components.database import (
 )
 
 # ==========================================================
-# OPTIONAL: get_patient_profile
-# ----------------------------------------------------------
-# لازم تضيف الدالة دي في components/database.py عشان الـ
-# Auto-fill يشتغل فعليًا. لو مش موجودة لسه، الكود مش هيكسر
-# وهيشتغل بالوضع القديم (المستخدم يدخل كل حاجة يدوي).
-#
-# شكل مقترح للدالة في components/database.py:
-#
-# def get_patient_profile(user_id):
-#     """
-#     يرجع dict لبيانات المريض الأساسية لو موجود، أو None.
-#     مثال:
-#     return {
-#         "name": "...",
-#         "age": 30,
-#         "gender": "Male",
-#         "height": 175,
-#         "weight": 80,
-#         "blood_type": "O+",
-#         "diabetes": "No",
-#         "hypertension": "No",
-#         "smoking": "No",
-#     }
-#     """
-#     ...
-# ==========================================================
-
-try:
-    from components.database import get_patient_profile
-except ImportError:
-
-    def get_patient_profile(user_id):
-        return None
-
-# ==========================================================
 # LOAD AI MODEL
 # ==========================================================
 
@@ -67,6 +32,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+import translation
+translation.init()
+t = translation.t
+
+# ==========================================================
+# LANGUAGE / DIRECTION HELPER
+# ==========================================================
+
+def get_lang():
+    # Try common translation module accessors first, fall back to session_state.
+    for fn_name in ("get_lang", "get_language", "current_lang"):
+        fn = getattr(translation, fn_name, None)
+        if callable(fn):
+            try:
+                return fn()
+            except Exception:
+                pass
+    return st.session_state.get("lang", "en")
+
+IS_RTL = str(get_lang()).lower().startswith("ar")
+DIR = "rtl" if IS_RTL else "ltr"
+
 # ==========================================================
 # LOAD CSS
 # ==========================================================
@@ -77,13 +64,95 @@ with open("style.css", encoding="utf-8") as f:
         unsafe_allow_html=True
     )
 
+# ==========================================================
+# PAGE-LOCAL CSS (hero, cards, RTL)
+# ==========================================================
+
+st.markdown(
+f"""
+<style>
+html, body, [data-testid="stAppViewContainer"] {{
+    direction: {DIR};
+}}
+
+.hv-hero {{
+    background: linear-gradient(135deg, #0F2027 0%, #2C5364 60%, #00C2FF 100%);
+    border-radius: 18px;
+    padding: 36px 32px;
+    color: #fff;
+    text-align: {"right" if IS_RTL else "left"};
+    margin-bottom: 18px;
+}}
+.hv-hero h1 {{
+    margin: 8px 0 4px 0;
+    font-size: 2rem;
+}}
+.hv-hero p {{
+    opacity: .9;
+    font-size: 1rem;
+    margin: 0;
+}}
+.hv-badge {{
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: .85rem;
+}}
+
+.hv-card {{
+    background: var(--secondary-background-color, #1c1f26);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    transition: transform .15s ease, box-shadow .15s ease;
+    text-align: {"right" if IS_RTL else "left"};
+}}
+.hv-card:hover {{
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+}}
+
+.hv-result-card {{
+    border-radius: 20px;
+    padding: 26px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,.2);
+    margin-bottom: 12px;
+}}
+.hv-result-high {{ background: linear-gradient(135deg,#3a0000,#8B0000); color:#fff; }}
+.hv-result-moderate {{ background: linear-gradient(135deg,#4a3b00,#B8860B); color:#fff; }}
+.hv-result-low {{ background: linear-gradient(135deg,#003b1f,#0f9d58); color:#fff; }}
+
+.hv-badge-risk {{
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.2);
+    font-weight: 700;
+    margin-top: 6px;
+}}
+
+.hv-footer {{
+    text-align: center;
+    padding: 24px;
+}}
+
+/* RTL fixes for native Streamlit widgets */
+[dir="rtl"] label, .hv-rtl label {{
+    text-align: right !important;
+}}
+{"div[data-testid='stMetric'] { text-align: right; }" if IS_RTL else ""}
+{"div[data-testid='stMarkdownContainer'] { text-align: right; }" if IS_RTL else ""}
+{"div[data-testid='stExpander'] { text-align: right; }" if IS_RTL else ""}
+{"[data-testid='stHorizontalBlock'] { flex-direction: row-reverse; }" if IS_RTL else ""}
+</style>
+""",
+unsafe_allow_html=True
+)
+
 sidebar()
-
-# ==========================================================
-# BLOOD TYPES (with Rh factor)
-# ==========================================================
-
-BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
 # ==========================================================
 # SESSION DEFAULTS
@@ -103,7 +172,7 @@ defaults = {
 
     "weight":70,
 
-    "blood_type":"O+",
+    "blood_type":"O",
 
     "d_dimer":250.0,
 
@@ -131,11 +200,7 @@ defaults = {
 
     "risk_score":0,
 
-    "saved_result":False,
-
-    "profile_loaded":False,
-
-    "patient_found":False
+    "saved_result":False
 
 }
 
@@ -146,41 +211,13 @@ for key,value in defaults.items():
         st.session_state[key]=value
 
 # ==========================================================
-# AUTO-FILL PATIENT PROFILE FROM DATABASE
-# ==========================================================
-
-if not st.session_state.profile_loaded:
-
-    patient = get_patient_profile(st.session_state.user["id"])
-
-    if patient:
-
-        st.session_state.name = patient.get("name", st.session_state.name)
-        st.session_state.age = patient.get("age", st.session_state.age)
-        st.session_state.gender = patient.get("gender", st.session_state.gender)
-        st.session_state.height = patient.get("height", st.session_state.height)
-        st.session_state.weight = patient.get("weight", st.session_state.weight)
-
-        bt = patient.get("blood_type", st.session_state.blood_type)
-        st.session_state.blood_type = bt if bt in BLOOD_TYPES else st.session_state.blood_type
-
-        st.session_state.diabetes = patient.get("diabetes", st.session_state.diabetes)
-        st.session_state.hypertension = patient.get("hypertension", st.session_state.hypertension)
-        st.session_state.smoking = patient.get("smoking", st.session_state.smoking)
-
-        st.session_state.patient_found = True
-
-    else:
-
-        st.session_state.patient_found = False
-
-    st.session_state.profile_loaded = True
-
-# ==========================================================
 # PDF REPORT
+# (NOTE: FPDF default font is Latin-1 only, cannot render Arabic
+# glyphs. This report always stays English regardless of language
+# toggle unless a Unicode Arabic font is embedded.)
 # ==========================================================
 
-def generate_pdf(data, alerts=None, medical_override=None):
+def generate_pdf(data):
 
     pdf = FPDF()
 
@@ -228,48 +265,6 @@ def generate_pdf(data, alerts=None, medical_override=None):
             ln=True
         )
 
-    # ------------------------------
-    # CLINICAL ALERTS SECTION
-    # ------------------------------
-
-    if alerts:
-
-        pdf.ln(6)
-
-        pdf.set_font("Arial","B",14)
-
-        pdf.cell(0, 10, "Clinical Alerts", ln=True)
-
-        pdf.set_font("Arial","",12)
-
-        severity_label = {
-            "critical": "[CRITICAL]",
-            "moderate": "[MODERATE]",
-            "mild": "[MILD]"
-        }
-
-        for _, label, severity in alerts:
-
-            tag = severity_label.get(severity, "")
-
-            pdf.cell(0, 8, f"{tag} {label}", ln=True)
-
-    # ------------------------------
-    # MEDICAL OVERRIDE WARNING
-    # ------------------------------
-
-    if medical_override:
-
-        pdf.ln(6)
-
-        pdf.set_font("Arial","B",13)
-
-        pdf.cell(0, 10, "Medical Attention Notice", ln=True)
-
-        pdf.set_font("Arial","",12)
-
-        pdf.multi_cell(0, 7, medical_override)
-
     temp = tempfile.NamedTemporaryFile(
         delete=False,
         suffix=".pdf"
@@ -278,24 +273,42 @@ def generate_pdf(data, alerts=None, medical_override=None):
     pdf.output(temp.name)
 
     return temp.name
+
+# ==========================================================
+# UI HELPER: DASHBOARD CARD
+# ==========================================================
+
+def render_card(col, icon, label, value):
+    with col:
+        st.markdown(
+            f"""
+            <div class="hv-card">
+                <div style="font-size:1.6rem;">{icon}</div>
+                <div style="opacity:.7;font-size:.85rem;margin-top:4px;">{label}</div>
+                <div style="font-size:1.2rem;font-weight:700;margin-top:2px;">{value}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 # ==========================================================
 # HERO
 # ==========================================================
 
 st.markdown(
 f"""
-<div class="hero">
+<div class="hv-hero">
 
-<span class="hero-badge">
-🩸 AI Disease Screening
+<span class="hv-badge">
+🩸 {t("AI Disease Screening")}
 </span>
 
 <h1>
-Thrombosis Risk Prediction
+{t("Thrombosis Risk Prediction")}
 </h1>
 
 <p>
-Artificial Intelligence Based Blood Clot Screening System
+{t("Artificial Intelligence Based Blood Clot Screening System")}
 </p>
 
 </div>
@@ -303,39 +316,18 @@ Artificial Intelligence Based Blood Clot Screening System
 unsafe_allow_html=True
 )
 
-st.write("")
-
 # ==========================================================
 # DASHBOARD
 # ==========================================================
 
-st.subheader("📊 AI Dashboard")
+st.subheader(t("📊 AI Dashboard"))
 
 m1,m2,m3,m4 = st.columns(4)
 
-with m1:
-    st.metric(
-        "Disease",
-        "Thrombosis"
-    )
-
-with m2:
-    st.metric(
-        "AI Model",
-        "Random Forest"
-    )
-
-with m3:
-    st.metric(
-        "Risk Factors",
-        "10"
-    )
-
-with m4:
-    st.metric(
-        "Status",
-        "🟢 Ready"
-    )
+render_card(m1, "🩸", t("Disease"), t("Thrombosis"))
+render_card(m2, "🤖", t("AI Model"), "Random Forest")
+render_card(m3, "⚠", t("Risk Factors"), "10")
+render_card(m4, "🟢", t("Status"), t("Ready"))
 
 st.divider()
 
@@ -345,145 +337,74 @@ st.divider()
 
 if st.session_state.page == 1:
 
-    st.header("👤 Patient Information")
+    st.header(t("👤 Patient Information"))
 
-    if st.session_state.patient_found:
+    col1,col2 = st.columns(2)
 
-        st.success("✅ تم العثور على بيانات المريض تلقائيًا من قاعدة البيانات")
+    with col1:
 
-        col1,col2 = st.columns(2)
+        st.session_state.name = st.text_input(
+            t("Patient Name"),
+            value=st.session_state.name
+        )
 
-        with col1:
-            st.markdown(f"**👤 الاسم:** {st.session_state.name}")
-            st.markdown(f"**🎂 العمر:** {st.session_state.age}")
-            st.markdown(f"**⚧ النوع:** {st.session_state.gender}")
-            st.markdown(f"**🩸 فصيلة الدم:** {st.session_state.blood_type}")
+        st.session_state.age = st.number_input(
+            t("Age"),
+            1,
+            120,
+            value=st.session_state.age
+        )
 
-        with col2:
-            st.markdown(f"**📏 الطول:** {st.session_state.height} cm")
-            st.markdown(f"**⚖ الوزن:** {st.session_state.weight} kg")
-            st.markdown(f"**🍬 السكري:** {st.session_state.diabetes}")
-            st.markdown(f"**💢 ضغط الدم:** {st.session_state.hypertension}")
+        st.session_state.gender = st.selectbox(
+            t("Gender"),
+            [
+                t("Male"),
+                t("Female")
+            ],
+            index=0 if st.session_state.gender=="Male" else 1
+        )
 
-        with st.expander("✏️ تعديل البيانات يدويًا (لو فيه خطأ)"):
+    with col2:
 
-            ecol1,ecol2 = st.columns(2)
+        st.session_state.height = st.number_input(
+            t("Height (cm)"),
+            min_value=100,
+            max_value=230,
+            value=st.session_state.height
+        )
 
-            with ecol1:
-
-                st.session_state.name = st.text_input(
-                    "Patient Name",
-                    value=st.session_state.name
-                )
-
-                st.session_state.age = st.number_input(
-                    "Age",
-                    1,
-                    120,
-                    value=st.session_state.age
-                )
-
-                st.session_state.gender = st.selectbox(
-                    "Gender",
-                    ["Male","Female"],
-                    index=0 if st.session_state.gender=="Male" else 1
-                )
-
-            with ecol2:
-
-                st.session_state.height = st.number_input(
-                    "Height (cm)",
-                    min_value=100,
-                    max_value=230,
-                    value=st.session_state.height
-                )
-
-                st.session_state.weight = st.number_input(
-                    "Weight (kg)",
-                    min_value=20,
-                    max_value=250,
-                    value=st.session_state.weight
-                )
-
-                st.session_state.blood_type = st.selectbox(
-                    "Blood Type",
-                    BLOOD_TYPES,
-                    index=BLOOD_TYPES.index(st.session_state.blood_type)
-                )
-
-        st.markdown("### 🆕 بيانات الفحص الحالي (Thrombosis)")
+        st.session_state.weight = st.number_input(
+            t("Weight (kg)"),
+            min_value=20,
+            max_value=250,
+            value=st.session_state.weight
+        )
 
         st.session_state.d_dimer = st.number_input(
-            "D-Dimer (ng/mL)",
+            t("D-Dimer (ng/mL)"),
             min_value=0.0,
             value=float(st.session_state.d_dimer)
         )
 
-    else:
-
-        st.info("ℹ️ لم يتم العثور على بيانات محفوظة لهذا المريض — من فضلك أدخل البيانات يدويًا")
-
-        col1,col2 = st.columns(2)
-
-        with col1:
-
-            st.session_state.name = st.text_input(
-                "Patient Name",
-                value=st.session_state.name
-            )
-
-            st.session_state.age = st.number_input(
-                "Age",
-                1,
-                120,
-                value=st.session_state.age
-            )
-
-            st.session_state.gender = st.selectbox(
-                "Gender",
-                [
-                    "Male",
-                    "Female"
-                ],
-                index=0 if st.session_state.gender=="Male" else 1
-            )
-
-        with col2:
-
-            st.session_state.height = st.number_input(
-                "Height (cm)",
-                min_value=100,
-                max_value=230,
-                value=st.session_state.height
-            )
-
-            st.session_state.weight = st.number_input(
-                "Weight (kg)",
-                min_value=20,
-                max_value=250,
-                value=st.session_state.weight
-            )
-
-            st.session_state.d_dimer = st.number_input(
-                "D-Dimer (ng/mL)",
-                min_value=0.0,
-                value=float(st.session_state.d_dimer)
-            )
-
-            st.session_state.blood_type = st.selectbox(
-                "Blood Type",
-                BLOOD_TYPES,
-                index=BLOOD_TYPES.index(st.session_state.blood_type)
-            )
+        st.session_state.blood_type = st.selectbox(
+            t("Blood Type"),
+            [
+                "A",
+                "B",
+                "AB",
+                "O"
+            ],
+            index=["A","B","AB","O"].index(st.session_state.blood_type)
+        )
 
     st.divider()
 
     st.progress(33)
 
-    st.caption("Step 1 / 3")
+    st.caption(t("Step 1 / 3"))
 
     if st.button(
-        "Next ➜",
+        t("Next ➜"),
         use_container_width=True
     ):
 
@@ -496,71 +417,71 @@ if st.session_state.page == 1:
 
 if st.session_state.page == 2:
 
-    st.header("🩺 Clinical Information")
+    st.header(t("🩺 Clinical Information"))
 
     c1,c2 = st.columns(2)
 
     with c1:
 
         st.session_state.swelling = st.selectbox(
-            "Leg Swelling",
-            ["No","Yes"],
+            t("Leg Swelling"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.swelling=="No" else 1
         )
 
         st.session_state.pain = st.selectbox(
-            "Leg Pain",
-            ["No","Yes"],
+            t("Leg Pain"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.pain=="No" else 1
         )
 
         st.session_state.history = st.selectbox(
-            "Previous Blood Clot",
-            ["No","Yes"],
+            t("Previous Blood Clot"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.history=="No" else 1
         )
 
         st.session_state.mobility = st.selectbox(
-            "Recent Immobility",
-            ["No","Yes"],
+            t("Recent Immobility"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.mobility=="No" else 1
         )
 
         st.session_state.surgery = st.selectbox(
-            "Recent Surgery",
-            ["No","Yes"],
+            t("Recent Surgery"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.surgery=="No" else 1
         )
 
     with c2:
 
         st.session_state.family_history = st.selectbox(
-            "Family History",
-            ["No","Yes"],
+            t("Family History"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.family_history=="No" else 1
         )
 
         st.session_state.smoking = st.selectbox(
-            "Smoking",
-            ["No","Yes"],
+            t("Smoking"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.smoking=="No" else 1
         )
 
         st.session_state.hypertension = st.selectbox(
-            "Hypertension",
-            ["No","Yes"],
+            t("Hypertension"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.hypertension=="No" else 1
         )
 
         st.session_state.diabetes = st.selectbox(
-            "Diabetes",
-            ["No","Yes"],
+            t("Diabetes"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.diabetes=="No" else 1
         )
 
         st.session_state.cholesterol = st.selectbox(
-            "High Cholesterol",
-            ["No","Yes"],
+            t("High Cholesterol"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.cholesterol=="No" else 1
         )
 
@@ -568,14 +489,14 @@ if st.session_state.page == 2:
 
     st.progress(66)
 
-    st.caption("Step 2 / 3")
+    st.caption(t("Step 2 / 3"))
 
     left,right = st.columns(2)
 
     with left:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             use_container_width=True
         ):
 
@@ -585,7 +506,7 @@ if st.session_state.page == 2:
     with right:
 
         if st.button(
-            "Analyze ➜",
+            t("Analyze ➜"),
             use_container_width=True
         ):
 
@@ -598,10 +519,10 @@ if st.session_state.page == 2:
 
 if st.session_state.page == 3:
 
-    st.header("🤖 AI Prediction")
+    st.header(t("🤖 AI Prediction"))
 
     st.write(
-        "HealthVibe AI is analyzing your clinical data..."
+        t("HealthVibe AI is analyzing your clinical data...")
     )
 
     st.divider()
@@ -628,11 +549,11 @@ if st.session_state.page == 3:
 
     if prediction == 1:
 
-        result = "🔴 High Risk"
+        result = t("🔴 High Risk")
 
     else:
 
-        result = "🟢 Low Risk"
+        result = t("🟢 Low Risk")
 
     st.session_state.risk_score = probability
     st.session_state.risk_result = result
@@ -676,8 +597,29 @@ if st.session_state.page == 3:
         st.session_state.saved_result = True
 
     # ==========================================
-    # RESULT
+    # RESULT CARD (display-only risk band, does NOT touch model output)
     # ==========================================
+
+    if probability >= 70:
+        band_class = "hv-result-high"
+        band_label = t("High Risk")
+    elif probability >= 35:
+        band_class = "hv-result-moderate"
+        band_label = t("Moderate Risk")
+    else:
+        band_class = "hv-result-low"
+        band_label = t("Low Risk")
+
+    st.markdown(
+        f"""
+        <div class="hv-result-card {band_class}">
+            <div style="font-size:1rem;opacity:.85;">{t("AI Prediction Result")}</div>
+            <div style="font-size:2.2rem;font-weight:800;margin:6px 0;">{probability:.1f}%</div>
+            <div class="hv-badge-risk">{band_label}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     m1,m2 = st.columns(2)
 
@@ -685,7 +627,7 @@ if st.session_state.page == 3:
 
         st.metric(
 
-            "Risk Probability",
+            t("Risk Probability"),
 
             f"{probability:.1f}%"
 
@@ -695,7 +637,7 @@ if st.session_state.page == 3:
 
         st.metric(
 
-            "Prediction",
+            t("Prediction"),
 
             result
 
@@ -715,7 +657,7 @@ if st.session_state.page == 3:
 
             value=probability,
 
-            title={"text":"Risk %"},
+            title={"text": t("Risk %")},
 
             gauge={
 
@@ -752,120 +694,63 @@ if st.session_state.page == 3:
     st.divider()
 
     # ==========================================
-    # CLINICAL ALERTS (severity-tagged)
-    # ==========================================
-    # each item: (key, label, severity) -> severity in
-    # {"critical", "moderate", "mild"}
+    # RISK FACTORS
     # ==========================================
 
-    alerts = []
+    factors=[]
 
-    swelling_yes = st.session_state.swelling == "Yes"
-    pain_yes = st.session_state.pain == "Yes"
-    history_yes = st.session_state.history == "Yes"
-    mobility_yes = st.session_state.mobility == "Yes"
-    surgery_yes = st.session_state.surgery == "Yes"
+    if st.session_state.d_dimer>500:
+        factors.append(t("High D-Dimer"))
 
-    # --- Critical combinations (possible active clot signs) ---
+    if st.session_state.swelling=="Yes":
+        factors.append(t("Leg Swelling"))
 
-    if swelling_yes and pain_yes:
-        alerts.append((
-            "swelling_pain_combo",
-            "تورم وألم بالساق معًا — علامة محتملة لجلطة نشطة",
-            "critical"
-        ))
+    if st.session_state.pain=="Yes":
+        factors.append(t("Leg Pain"))
 
-    if st.session_state.d_dimer > 500 and (swelling_yes or pain_yes):
-        alerts.append((
-            "d_dimer_symptomatic",
-            "ارتفاع D-Dimer مصحوب بأعراض سريرية",
-            "critical"
-        ))
-    elif st.session_state.d_dimer > 500:
-        alerts.append((
-            "d_dimer_high",
-            "ارتفاع D-Dimer",
-            "moderate"
-        ))
+    if st.session_state.history=="Yes":
+        factors.append(t("Previous Thrombosis"))
 
-    if history_yes and (swelling_yes or pain_yes):
-        alerts.append((
-            "history_recurrence",
-            "تاريخ سابق لجلطة مع أعراض حالية — احتمال تكرار",
-            "critical"
-        ))
-    elif history_yes:
-        alerts.append((
-            "history_only",
-            "تاريخ سابق للإصابة بجلطة",
-            "moderate"
-        ))
+    if st.session_state.mobility=="Yes":
+        factors.append(t("Immobility"))
 
-    if (mobility_yes or surgery_yes) and (swelling_yes or pain_yes):
-        alerts.append((
-            "postop_immobility_symptomatic",
-            "قلة حركة/جراحة حديثة مع أعراض — علامات تستدعي تقييم عاجل",
-            "critical"
-        ))
-    else:
-        if mobility_yes:
-            alerts.append(("mobility", "قلة الحركة مؤخرًا", "moderate"))
-        if surgery_yes:
-            alerts.append(("surgery", "جراحة حديثة", "moderate"))
+    if st.session_state.surgery=="Yes":
+        factors.append(t("Recent Surgery"))
 
-    # --- Moderate / background risk factors ---
+    if st.session_state.smoking=="Yes":
+        factors.append(t("Smoking"))
 
-    if st.session_state.family_history == "Yes":
-        alerts.append(("family_history", "تاريخ عائلي للإصابة بجلطات", "moderate"))
+    if st.session_state.hypertension=="Yes":
+        factors.append(t("Hypertension"))
 
-    # --- Mild / general risk factors ---
+    if st.session_state.diabetes=="Yes":
+        factors.append(t("Diabetes"))
 
-    if st.session_state.smoking == "Yes":
-        alerts.append(("smoking", "التدخين", "mild"))
+    if st.session_state.cholesterol=="Yes":
+        factors.append(t("High Cholesterol"))
 
-    if st.session_state.hypertension == "Yes":
-        alerts.append(("hypertension", "ضغط الدم المرتفع", "mild"))
+    st.subheader(t("⚠ Risk Factors"))
 
-    if st.session_state.diabetes == "Yes":
-        alerts.append(("diabetes", "السكري", "mild"))
+    if len(factors)==0:
 
-    if st.session_state.cholesterol == "Yes":
-        alerts.append(("cholesterol", "ارتفاع الكوليسترول", "mild"))
-
-    critical_alerts = [a for a in alerts if a[2] == "critical"]
-    moderate_alerts = [a for a in alerts if a[2] == "moderate"]
-    mild_alerts = [a for a in alerts if a[2] == "mild"]
-
-    st.subheader("⚠ Clinical Alerts")
-
-    if not alerts:
-
-        st.success("لا توجد تنبيهات سريرية حالية ✅")
+        st.success(t("No major risk factors detected."))
 
     else:
 
-        for _, label, _ in critical_alerts:
-            st.error(f"🔴 {label}")
+        for item in factors:
 
-        for _, label, _ in moderate_alerts:
-            st.warning(f"🟠 {label}")
-
-        for _, label, _ in mild_alerts:
-            st.info(f"🟡 {label}")
-
-    st.divider()
+            st.warning(item)
+            st.divider()
 
     # ==========================================
-    # RECOMMENDATIONS (with medical override)
+    # RECOMMENDATIONS (by risk band: Low / Moderate / High)
     # ==========================================
 
-    st.subheader("💡 AI Recommendations")
+    st.subheader(t("💡 AI Recommendations"))
 
-    medical_override_text = None
+    if band_class == "hv-result-high":
 
-    if prediction == 1:
-
-        st.error("""
+        st.error(t("""
 ### High Risk
 
 - Consult a vascular specialist immediately.
@@ -873,11 +758,23 @@ if st.session_state.page == 3:
 - Avoid prolonged sitting.
 - Maintain hydration.
 - Follow physician instructions.
-""")
+"""))
+
+    elif band_class == "hv-result-moderate":
+
+        st.warning(t("""
+### Moderate Risk
+
+- Schedule a follow-up with your physician.
+- Increase light physical activity and mobility.
+- Monitor for swelling or pain.
+- Maintain hydration and a balanced diet.
+- Repeat D-Dimer testing if symptoms persist.
+"""))
 
     else:
 
-        st.success("""
+        st.success(t("""
 ### Low Risk
 
 - Continue regular physical activity.
@@ -885,31 +782,12 @@ if st.session_state.page == 3:
 - Drink enough water.
 - Avoid smoking.
 - Keep regular follow-up if symptoms appear.
-""")
-
-        if critical_alerts:
-
-            medical_override_text = (
-                "Despite the AI model indicating Low Risk, the patient shows "
-                "clinical alerts consistent with a possible active thrombosis. "
-                "Urgent clinical evaluation and a Doppler Ultrasound are "
-                "recommended regardless of the AI probability score."
-            )
-
-            st.warning(f"""
-### ⚠️ تنبيه طبي هام
-
-نتيجة الذكاء الاصطناعي **منخفضة الخطورة**، لكن فيه أعراض/علامات سريرية حرجة
-ظاهرة عند المريض ({", ".join([label for _, label, _ in critical_alerts])}).
-
-**يُنصح بشدة بمراجعة طبيب الأوعية الدموية وعمل Doppler Ultrasound فورًا،
-بغض النظر عن نتيجة النموذج.**
-""")
+"""))
 
     st.divider()
 
     # ==========================================
-    # PDF REPORT
+    # PDF REPORT (kept English - FPDF has no Arabic glyphs)
     # ==========================================
 
     report = {
@@ -934,13 +812,13 @@ if st.session_state.page == 3:
 
     }
 
-    pdf_path = generate_pdf(report, alerts=alerts, medical_override=medical_override_text)
+    pdf_path = generate_pdf(report)
 
     with open(pdf_path,"rb") as file:
 
         st.download_button(
 
-            "📄 Download Report",
+            t("📄 Download Report"),
 
             file,
 
@@ -964,7 +842,7 @@ if st.session_state.page == 3:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             use_container_width=True
 
@@ -978,7 +856,7 @@ if st.session_state.page == 3:
 
         if st.button(
 
-            "🏠 Dashboard",
+            t("🏠 Dashboard"),
 
             use_container_width=True
 
@@ -992,20 +870,24 @@ if st.session_state.page == 3:
 
 st.divider()
 
-st.markdown("""
+st.markdown(f"""
 
-<div style="text-align:center;padding:20px;">
+<div class="hv-footer">
 
 <h3 style="color:#00C2FF;">
 HealthVibe AI
 </h3>
 
-<p style="color:gray;">
-Artificial Intelligence Disease Prediction Platform
+<p style="color:gray;margin:2px 0;">
+{t("Version")} 1.0 &nbsp;|&nbsp; {t("AI Model")}: Random Forest
 </p>
 
-<p style="color:gray;">
-Developed by <b>Badr Ahmed</b>
+<p style="color:gray;margin:2px 0;">
+{t("Artificial Intelligence Disease Prediction Platform")}
+</p>
+
+<p style="color:gray;margin:2px 0;">
+{t("Developed by ")}<b>Badr Ahmed</b> &copy; 2026
 </p>
 
 </div>
