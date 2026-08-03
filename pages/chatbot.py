@@ -20,6 +20,9 @@ st.set_page_config(
     layout="centered",
 )
 
+import translation
+translation.init()
+
 # ==========================
 # CHAT INITIALIZATION
 # ==========================

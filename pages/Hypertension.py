@@ -31,6 +31,10 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+t = translation.t
+
 
 # ==========================================================
 # LOGIN CHECK
@@ -56,7 +60,7 @@ profile = get_profile(user["id"])
 if profile is None:
 
     st.warning(
-        "Please complete your profile first."
+        t("Please complete your profile first.")
     )
 
     st.switch_page(
@@ -179,21 +183,21 @@ patient = st.session_state.patient
 
 STEPS = [
 
-    "Personal Information",
+    t("Personal Information"),
 
-    "Blood Pressure",
+    t("Blood Pressure"),
 
-    "Symptoms",
+    t("Symptoms"),
 
-    "Medical History",
+    t("Medical History"),
 
-    "Medications",
+    t("Medications"),
 
-    "Lifestyle",
+    t("Lifestyle"),
 
-    "Lab Upload",
+    t("Lab Upload"),
 
-    "AI Result"
+    t("AI Result")
 
 ]
 
@@ -205,13 +209,13 @@ STEPS = [
 
 
 st.markdown(
-"""
+f"""
 <div class="hero">
 
-<h1>🩸 Hypertension Assessment</h1>
+<h1>🩸 {t("Hypertension Assessment")}</h1>
 
 <p>
-Complete the following assessment to estimate blood pressure risk using AI.
+{t("Complete the following assessment to estimate blood pressure risk using AI.")}
 </p>
 
 </div>
@@ -238,29 +242,29 @@ st.write("")
 
 OCCUPATIONS = [
 
-"Office / Desk Job",
+t("Office / Desk Job"),
 
-"IT / Software",
+t("IT / Software"),
 
-"Teacher",
+t("Teacher"),
 
-"Healthcare Worker",
+t("Healthcare Worker"),
 
-"Driver / Transport",
+t("Driver / Transport"),
 
-"Military / Police / Security",
+t("Military / Police / Security"),
 
-"Construction / Manual Labor",
+t("Construction / Manual Labor"),
 
-"Business Owner",
+t("Business Owner"),
 
-"Student",
+t("Student"),
 
-"Homemaker",
+t("Homemaker"),
 
-"Retired",
+t("Retired"),
 
-"Other"
+t("Other")
 
 ]
 
@@ -268,21 +272,21 @@ OCCUPATIONS = [
 
 SYMPTOMS = [
 
-"Headache",
+t("Headache"),
 
-"Dizziness",
+t("Dizziness"),
 
-"Blurred Vision",
+t("Blurred Vision"),
 
-"Chest Pain",
+t("Chest Pain"),
 
-"Shortness of Breath",
+t("Shortness of Breath"),
 
-"Fatigue",
+t("Fatigue"),
 
-"Palpitations",
+t("Palpitations"),
 
-"Nosebleeds"
+t("Nosebleeds")
 
 ]
 
@@ -290,39 +294,39 @@ SYMPTOMS = [
 
 STRESS_LEVELS = [
 
-"Low",
+t("Low"),
 
-"Moderate",
+t("Moderate"),
 
-"High",
+t("High"),
 
-"Very High"
+t("Very High")
 
 ]
 
 
 SLEEP_OPTIONS = [
 
-"Less than 5 hours",
+t("Less than 5 hours"),
 
-"5-6 hours",
+t("5-6 hours"),
 
-"7-8 hours",
+t("7-8 hours"),
 
-"More than 8 hours"
+t("More than 8 hours")
 
 ]
 
 
 ACTIVITY_LEVELS = [
 
-"Sedentary",
+t("Sedentary"),
 
-"Light",
+t("Light"),
 
-"Moderate",
+t("Moderate"),
 
-"Active"
+t("Active")
 
 ]
 
@@ -338,7 +342,7 @@ MEDICATIONS = [
 
 "Metoprolol",
 
-"Other"
+t("Other")
 
 ]
 
@@ -346,15 +350,15 @@ MEDICATIONS = [
 
 FAMILY_HISTORY = [
 
-"Hypertension",
+t("Hypertension"),
 
-"Diabetes",
+t("Diabetes"),
 
-"Heart Disease",
+t("Heart Disease"),
 
-"Stroke",
+t("Stroke"),
 
-"Kidney Disease"
+t("Kidney Disease")
 
 ]
 
@@ -384,7 +388,7 @@ if st.session_state.step == 1:
 
 
     st.subheader(
-        "👤 Patient Information"
+        t("👤 Patient Information")
     )
 
 
@@ -401,7 +405,7 @@ if st.session_state.step == 1:
 
 
     st.success(
-        "✅ Patient information loaded from your profile."
+        t("✅ Patient information loaded from your profile.")
     )
 
 
@@ -411,21 +415,21 @@ if st.session_state.step == 1:
     with col1:
 
         st.text_input(
-            "Full Name",
+            t("Full Name"),
             value=name,
             disabled=True
         )
 
 
         st.number_input(
-            "Age",
+            t("Age"),
             value=int(age),
             disabled=True
         )
 
 
         st.text_input(
-            "Gender",
+            t("Gender"),
             value=gender,
             disabled=True
         )
@@ -436,14 +440,14 @@ if st.session_state.step == 1:
 
 
         st.number_input(
-            "Weight (kg)",
+            t("Weight (kg)"),
             value=float(weight),
             disabled=True
         )
 
 
         st.number_input(
-            "Height (cm)",
+            t("Height (cm)"),
             value=float(height),
             disabled=True
         )
@@ -452,7 +456,7 @@ if st.session_state.step == 1:
 
         occupation = st.selectbox(
 
-            "Occupation",
+            t("Occupation"),
 
             OCCUPATIONS,
 
@@ -468,7 +472,7 @@ if st.session_state.step == 1:
 
     if st.button(
 
-        "Next ➜",
+        t("Next ➜"),
 
         key="hypertension_step1",
 
@@ -508,14 +512,14 @@ elif st.session_state.step == 2:
 
 
     st.subheader(
-        "🩺 Blood Pressure Information"
+        t("🩺 Blood Pressure Information")
     )
 
 
 
     systolic = st.number_input(
 
-        "Systolic Blood Pressure",
+        t("Systolic Blood Pressure"),
 
         min_value=70,
 
@@ -532,7 +536,7 @@ elif st.session_state.step == 2:
 
     diastolic = st.number_input(
 
-        "Diastolic Blood Pressure",
+        t("Diastolic Blood Pressure"),
 
         min_value=40,
 
@@ -549,7 +553,7 @@ elif st.session_state.step == 2:
 
     cholesterol = st.number_input(
 
-        "Total Cholesterol",
+        t("Total Cholesterol"),
 
         min_value=100,
 
@@ -572,7 +576,7 @@ elif st.session_state.step == 2:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             key="bp_back",
 
@@ -591,7 +595,7 @@ elif st.session_state.step == 2:
 
         if st.button(
 
-            "Next ➜",
+            t("Next ➜"),
 
             key="bp_next",
 
@@ -632,14 +636,14 @@ elif st.session_state.step == 3:
 
 
     st.subheader(
-        "🤕 Symptoms"
+        t("🤕 Symptoms")
     )
 
 
 
     symptoms = st.multiselect(
 
-        "Select symptoms you experience",
+        t("Select symptoms you experience"),
 
         SYMPTOMS,
 
@@ -654,7 +658,7 @@ elif st.session_state.step == 3:
 
     stress = st.selectbox(
 
-        "Stress Level",
+        t("Stress Level"),
 
         STRESS_LEVELS
 
@@ -664,7 +668,7 @@ elif st.session_state.step == 3:
 
     sleep = st.selectbox(
 
-        "Average Sleep",
+        t("Average Sleep"),
 
         SLEEP_OPTIONS
 
@@ -680,7 +684,7 @@ elif st.session_state.step == 3:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             key="sym_back",
 
@@ -698,7 +702,7 @@ elif st.session_state.step == 3:
 
         if st.button(
 
-            "Next ➜",
+            t("Next ➜"),
 
             key="sym_next",
 
@@ -735,18 +739,18 @@ elif st.session_state.step == 4:
 
 
     st.subheader(
-        "📋 Medical History"
+        t("📋 Medical History")
     )
 
 
 
     diabetes = st.selectbox(
 
-        "Do you have diabetes?",
+        t("Do you have diabetes?"),
 
         [
-            "No",
-            "Yes"
+            t("No"),
+            t("Yes")
         ]
 
     )
@@ -755,7 +759,7 @@ elif st.session_state.step == 4:
 
     heart_rate = st.number_input(
 
-        "Resting Heart Rate",
+        t("Resting Heart Rate"),
 
         min_value=40,
 
@@ -772,7 +776,7 @@ elif st.session_state.step == 4:
 
     family = st.multiselect(
 
-        "Family Medical History",
+        t("Family Medical History"),
 
         FAMILY_HISTORY,
 
@@ -794,7 +798,7 @@ elif st.session_state.step == 4:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             key="med_back",
 
@@ -814,7 +818,7 @@ elif st.session_state.step == 4:
 
         if st.button(
 
-            "Next ➜",
+            t("Next ➜"),
 
             key="med_next",
 
@@ -843,17 +847,17 @@ elif st.session_state.step == 5:
 
 
     st.subheader(
-        "💊 Medications"
+        t("💊 Medications")
     )
 
 
     taking_medicine = st.selectbox(
 
-        "Are you taking blood pressure medication?",
+        t("Are you taking blood pressure medication?"),
 
         [
-            "No",
-            "Yes"
+            t("No"),
+            t("Yes")
         ]
 
     )
@@ -862,11 +866,11 @@ elif st.session_state.step == 5:
     medicine = ""
 
 
-    if taking_medicine == "Yes":
+    if taking_medicine == t("Yes"):
 
         medicine = st.selectbox(
 
-            "Medication name",
+            t("Medication name"),
 
             MEDICATIONS
 
@@ -882,7 +886,7 @@ elif st.session_state.step == 5:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             key="medication_back",
 
@@ -900,7 +904,7 @@ elif st.session_state.step == 5:
 
         if st.button(
 
-            "Next ➜",
+            t("Next ➜"),
 
             key="medication_next",
 
@@ -931,39 +935,39 @@ elif st.session_state.step == 5:
 
 elif st.session_state.step == 6:
 
-    st.subheader("🏃 Lifestyle Information")
+    st.subheader(t("🏃 Lifestyle Information"))
 
     smoking = st.selectbox(
-        "Do you smoke?",
-        ["No", "Yes"],
+        t("Do you smoke?"),
+        [t("No"), t("Yes")],
         index=0 if patient.get("smoking", "No") == "No" else 1
     )
 
     cigs_per_day = patient.get("cigs_per_day", 0)
 
-    if smoking == "Yes":
+    if smoking == t("Yes"):
         cigs_per_day = st.number_input(
-            "Cigarettes Per Day",
+            t("Cigarettes Per Day"),
             min_value=1,
             max_value=60,
             value=max(1, cigs_per_day)
         )
 
     activity = st.selectbox(
-        "Physical Activity Level",
+        t("Physical Activity Level"),
         ACTIVITY_LEVELS,
         index=0
     )
 
     salt = st.selectbox(
-        "Salt Intake",
-        ["Low", "Moderate", "High"],
+        t("Salt Intake"),
+        [t("Low"), t("Moderate"), t("High")],
         index=1
     )
 
     alcohol = st.selectbox(
-        "Alcohol Consumption",
-        ["Never", "Sometimes", "Regularly"],
+        t("Alcohol Consumption"),
+        [t("Never"), t("Sometimes"), t("Regularly")],
         index=0
     )
 
@@ -972,7 +976,7 @@ elif st.session_state.step == 6:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="life_back",
             width="stretch"
         ):
@@ -982,7 +986,7 @@ elif st.session_state.step == 6:
     with col2:
 
         if st.button(
-            "Next ➜",
+            t("Next ➜"),
             key="life_next",
             width="stretch"
         ):
@@ -1009,14 +1013,14 @@ elif st.session_state.step == 7:
 
 
     st.subheader(
-        "🧪 Additional Lab Information"
+        t("🧪 Additional Lab Information")
     )
 
 
 
     notes = st.text_area(
 
-        "Additional medical notes (optional)"
+        t("Additional medical notes (optional)")
 
     )
 
@@ -1024,7 +1028,7 @@ elif st.session_state.step == 7:
 
     upload = st.file_uploader(
 
-        "Upload lab report (optional)",
+        t("Upload lab report (optional)"),
 
         type=[
             "png",
@@ -1046,7 +1050,7 @@ elif st.session_state.step == 7:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             key="lab_back",
 
@@ -1066,7 +1070,7 @@ elif st.session_state.step == 7:
 
         if st.button(
 
-            "🤖 Analyze With AI",
+            t("🤖 Analyze With AI"),
 
             key="analyze_hypertension",
 
@@ -1096,7 +1100,7 @@ elif st.session_state.step == 7:
 
 elif st.session_state.step == 8:
 
-    st.subheader("🤖 AI Analysis Result")
+    st.subheader(t("🤖 AI Analysis Result"))
 
     ai_loading()
 
@@ -1106,13 +1110,13 @@ elif st.session_state.step == 8:
 
     male = 1 if patient.get("gender") == "Male" else 0
 
-    currentSmoker = 1 if patient.get("smoking") == "Yes" else 0
+    currentSmoker = 1 if patient.get("smoking") == t("Yes") else 0
 
     cigsPerDay = patient.get("cigs_per_day", 0)
 
-    BPMeds = 1 if patient.get("taking_medicine") == "Yes" else 0
+    BPMeds = 1 if patient.get("taking_medicine") == t("Yes") else 0
 
-    diabetes = 1 if patient.get("diabetes") == "Yes" else 0
+    diabetes = 1 if patient.get("diabetes") == t("Yes") else 0
 
     age = patient.get("age", 30)
 
@@ -1226,7 +1230,7 @@ elif st.session_state.step == 8:
     # RESULT UI
     # -----------------------------
 
-    st.success("Analysis Completed Successfully ✅")
+    st.success(t("Analysis Completed Successfully ✅"))
 
     st.balloons()
 
@@ -1241,15 +1245,15 @@ elif st.session_state.step == 8:
 
     patient_summary({
 
-        "Full Name": patient["name"],
-        "Age": patient["age"],
-        "Gender": patient["gender"],
-        "Weight": patient["weight"],
-        "Height": patient["height"],
-        "Systolic BP": sysBP,
-        "Diastolic BP": diaBP,
-        "Heart Rate": heartRate,
-        "BMI": BMI
+        t("Full Name"): patient["name"],
+        t("Age"): patient["age"],
+        t("Gender"): patient["gender"],
+        t("Weight"): patient["weight"],
+        t("Height"): patient["height"],
+        t("Systolic BP"): sysBP,
+        t("Diastolic BP"): diaBP,
+        t("Heart Rate"): heartRate,
+        t("BMI"): BMI
 
     })
 
@@ -1261,7 +1265,7 @@ elif st.session_state.step == 8:
 
         st.download_button(
 
-            "⬇ Download PDF Report",
+            t("⬇ Download PDF Report"),
 
             pdf,
 
@@ -1278,7 +1282,7 @@ elif st.session_state.step == 8:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             width="stretch",
             key="bp_back_result"
         ):
@@ -1288,7 +1292,7 @@ elif st.session_state.step == 8:
     with col2:
 
         if st.button(
-            "🔄 New Assessment",
+            t("🔄 New Assessment"),
             width="stretch",
             key="bp_new"
         ):

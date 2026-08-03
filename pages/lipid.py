@@ -32,6 +32,9 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -53,7 +56,7 @@ user = st.session_state.user
 profile = get_profile(user["id"])
 
 if profile is None:
-    st.warning("Please complete your profile first.")
+    st.warning(translation.t("Please complete your profile first."))
     st.switch_page("pages/Profile.py")
     st.stop()
 
@@ -68,7 +71,7 @@ def load_model():
 try:
     model = load_model()
 except Exception as e:
-    st.error(f"Model Loading Error: {e}")
+    st.error(f"{translation.t('Model Loading Error: ')}{e}")
     st.stop()
 
 create_tables()
@@ -97,9 +100,9 @@ progress = (st.session_state.step / 4) * 100
 st.markdown(f"""
 <div class="hero">
 
-<h1>🫀 Lipid Risk Prediction</h1>
+<h1>🫀 {translation.t("Lipid Risk Prediction")}</h1>
 
-<p>AI Clinical Decision Support System</p>
+<p>{translation.t("AI Clinical Decision Support System")}</p>
 
 <div style="
 margin-top:20px;
@@ -118,7 +121,7 @@ background:linear-gradient(90deg,#00C2FF,#2563EB);
 </div>
 
 <p style="margin-top:10px;">
-Step {st.session_state.step} / 4
+{translation.t("Step")} {st.session_state.step} / 4
 </p>
 
 </div>
@@ -134,7 +137,7 @@ st.write("")
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Patient Information")
+    st.subheader(translation.t("👤 Patient Information"))
 
     name = profile["full_name"] or ""
     age = profile["age"] or 20
@@ -142,28 +145,28 @@ if st.session_state.step == 1:
     weight = profile["weight"] or 70
     height = profile["height"] or 170
 
-    st.success("Patient information loaded successfully.")
+    st.success(translation.t("Patient information loaded successfully."))
 
     c1, c2, c3 = st.columns(3)
 
-    c1.metric("Age", age)
-    c2.metric("Weight", f"{weight} kg")
-    c3.metric("Height", f"{height} cm")
+    c1.metric(translation.t("Age"), age)
+    c2.metric(translation.t("Weight"), f"{weight} kg")
+    c3.metric(translation.t("Height"), f"{height} cm")
 
     st.text_input(
-        "Full Name",
+        translation.t("Full Name"),
         value=name,
         disabled=True
     )
 
     st.text_input(
-        "Gender",
+        translation.t("Gender"),
         value=gender,
         disabled=True
     )
 
     if st.button(
-        "Next ➜",
+        translation.t("Next ➜"),
         key="lipid_next1",
         width="stretch"
     ):
@@ -182,7 +185,7 @@ if st.session_state.step == 1:
 
 elif st.session_state.step == 2:
 
-    st.subheader("🩺 Clinical Information")
+    st.subheader(translation.t("🩺 Clinical Information"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -191,28 +194,28 @@ elif st.session_state.step == 2:
     with col1:
 
         total_cholesterol = st.number_input(
-            "Total Cholesterol (mg/dL)",
+            translation.t("Total Cholesterol (mg/dL)"),
             min_value=50,
             max_value=500,
             value=int(patient.get("cholesterol_total", 180))
         )
 
         ldl = st.number_input(
-            "LDL Cholesterol (mg/dL)",
+            translation.t("LDL Cholesterol (mg/dL)"),
             min_value=20,
             max_value=300,
             value=int(patient.get("ldl", 100))
         )
 
         hdl = st.number_input(
-            "HDL Cholesterol (mg/dL)",
+            translation.t("HDL Cholesterol (mg/dL)"),
             min_value=10,
             max_value=120,
             value=int(patient.get("hdl", 50))
         )
 
         triglycerides = st.number_input(
-            "Triglycerides (mg/dL)",
+            translation.t("Triglycerides (mg/dL)"),
             min_value=20,
             max_value=600,
             value=int(patient.get("triglycerides", 150))
@@ -221,14 +224,14 @@ elif st.session_state.step == 2:
     with col2:
 
         fasting_bs = st.number_input(
-            "Fasting Blood Sugar",
+            translation.t("Fasting Blood Sugar"),
             min_value=50,
             max_value=300,
             value=int(patient.get("fasting_blood_sugar", 90))
         )
 
         hba1c = st.number_input(
-            "HbA1c (%)",
+            translation.t("HbA1c (%)"),
             min_value=3.0,
             max_value=15.0,
             value=float(patient.get("hba1c", 5.5)),
@@ -236,14 +239,14 @@ elif st.session_state.step == 2:
         )
 
         systolic = st.number_input(
-            "Systolic Blood Pressure",
+            translation.t("Systolic Blood Pressure"),
             min_value=70,
             max_value=250,
             value=int(patient.get("resting_bp_systolic", 120))
         )
 
         smoker = st.selectbox(
-            "Smoking Status",
+            translation.t("Smoking Status"),
             ["No", "Yes"],
             index=0 if patient.get("smoker_status", "No") == "No" else 1
         )
@@ -253,7 +256,7 @@ elif st.session_state.step == 2:
         2
     )
 
-    st.metric("BMI", bmi)
+    st.metric(translation.t("BMI"), bmi)
 
     patient["cholesterol_total"] = total_cholesterol
     patient["ldl"] = ldl
@@ -272,7 +275,7 @@ elif st.session_state.step == 2:
     with c1:
 
         if st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             key="lipid_back2",
             width="stretch"
         ):
@@ -283,7 +286,7 @@ elif st.session_state.step == 2:
     with c2:
 
         if st.button(
-            "Next ➜",
+            translation.t("Next ➜"),
             key="lipid_next2",
             width="stretch"
         ):
@@ -298,7 +301,7 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader("🧠 AI Prediction")
+    st.subheader(translation.t("🧠 AI Prediction"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -311,7 +314,7 @@ elif st.session_state.step == 3:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             key="lipid_back3",
             width="stretch"
         ):
@@ -322,7 +325,7 @@ elif st.session_state.step == 3:
     with col2:
 
         if st.button(
-            "🧠 Predict",
+            translation.t("🧠 Predict"),
             key="lipid_predict",
             width="stretch"
         ):
@@ -361,7 +364,7 @@ elif st.session_state.step == 3:
 
             except Exception as e:
 
-                st.error(f"Prediction Error : {e}")
+                st.error(f"{translation.t('Prediction Error : ')}{e}")
                 st.stop()
 
             patient["prediction"] = int(prediction)
@@ -390,7 +393,7 @@ elif st.session_state.step == 3:
 
 elif st.session_state.step == 4:
 
-    st.subheader("📊 AI Prediction Result")
+    st.subheader(translation.t("📊 AI Prediction Result"))
 
     prediction = int(patient.get("prediction", 0))
     probability = float(patient.get("probability", 0))
@@ -414,11 +417,11 @@ elif st.session_state.step == 4:
     <div class="card">
 
     <h2 style="color:{color};">
-    {result}
+    {translation.t(result)}
     </h2>
 
     <p>
-    AI Prediction Completed Successfully
+    {translation.t("AI Prediction Completed Successfully")}
     </p>
 
     </div>
@@ -437,7 +440,7 @@ elif st.session_state.step == 4:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            translation.t("⬅ Back"),
             key="lipid_back4",
             width="stretch"
         ):
@@ -452,7 +455,7 @@ elif st.session_state.step == 4:
     with col2:
 
         if st.button(
-            "💾 Save Result",
+            translation.t("💾 Save Result"),
             key="lipid_save",
             width="stretch"
         ):
@@ -475,11 +478,11 @@ elif st.session_state.step == 4:
 
                 )
 
-                st.success("Saved Successfully ✅")
+                st.success(translation.t("Saved Successfully ✅"))
 
             except Exception as e:
 
-                st.error(f"Database Error : {e}")
+                st.error(f"{translation.t('Database Error : ')}{e}")
 
     # =====================================
     # PDF
@@ -488,7 +491,7 @@ elif st.session_state.step == 4:
     with col3:
 
         if st.button(
-            "📄 Download Report",
+            translation.t("📄 Download Report"),
             key="lipid_pdf",
             width="stretch"
         ):
@@ -504,7 +507,7 @@ elif st.session_state.step == 4:
 
                 st.download_button(
 
-                    "⬇ Download PDF",
+                    translation.t("⬇ Download PDF"),
 
                     data=file.read(),
 
@@ -520,7 +523,7 @@ elif st.session_state.step == 4:
 
     if st.button(
 
-        "🏠 Back To Dashboard",
+        translation.t("🏠 Back To Dashboard"),
 
         key="lipid_dashboard",
 

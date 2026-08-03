@@ -1,7 +1,11 @@
 import streamlit as st
+<<<<<<< HEAD
 from PIL import Image
 from components.branding import *
 from components.colors import *
+=======
+import translation
+>>>>>>> 34211f1d364920e717bfcfca7d099bc8c1615862
 
 icon = Image.open("assets/logo.jpg")
 
@@ -11,26 +15,28 @@ st.set_page_config(
     layout="wide"
 )
 
+translation.init()
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
         unsafe_allow_html=True
     )
 
-st.markdown("""
+st.markdown(f"""
 
 <div style="text-align:center;padding-top:50px;">
 
 <h1 style="font-size:55px;color:#00C2FF;">
-🏥 HealthVibe AI
+🏥 {translation.t("HealthVibe AI")}
 </h1>
 
 <h3 style="color:white;">
-AI Clinical Decision Support Platform
+{translation.t("AI Clinical Decision Support Platform")}
 </h3>
 
 <p style="color:#94A3B8;font-size:20px;">
-Choose how you want to continue
+{translation.t("Choose how you want to continue")}
 </p>
 
 </div>
@@ -44,12 +50,12 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.markdown("## 👤 Patient")
+    st.markdown(f"## 👤 {translation.t('Patient')}")
 
-    st.write("Access your medical dashboard")
+    st.write(translation.t("Access your medical dashboard"))
 
     if st.button(
-        "Continue as Patient",
+        translation.t("Continue as Patient"),
         width="stretch"
     ):
 
@@ -59,12 +65,12 @@ with col1:
 
 with col2:
 
-    st.markdown("## 👨‍⚕️ Doctor")
+    st.markdown(f"## 👨‍⚕️ {translation.t('Doctor')}")
 
-    st.write("Access your doctor dashboard")
+    st.write(translation.t("Access your doctor dashboard"))
 
     if st.button(
-        "Continue as Doctor",
+        translation.t("Continue as Doctor"),
         width="stretch"
     ):
 

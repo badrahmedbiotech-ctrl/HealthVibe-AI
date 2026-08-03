@@ -1,15 +1,16 @@
 import streamlit as st
+import translation
 
 def risk_meter(probability):
 
     if probability is None:
         return
 
-    st.subheader("📊 Risk Score")
+    st.subheader(translation.t("📊 Risk Score"))
 
     st.progress(float(probability))
 
     st.metric(
-        "Risk",
+        translation.t("Risk"),
         f"{probability*100:.1f}%"
     )

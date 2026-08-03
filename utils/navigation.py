@@ -1,5 +1,6 @@
 import streamlit as st
 from pathlib import Path
+<<<<<<< HEAD
 from components.branding import *
 from components.colors import *
 from components.branding import LOGO
@@ -7,6 +8,12 @@ st.sidebar.image(
     "assets/logo.jpg",
     width=170
 )
+=======
+
+import translation
+
+
+>>>>>>> 34211f1d364920e717bfcfca7d099bc8c1615862
 def sidebar():
 
     with st.sidebar:
@@ -15,6 +22,7 @@ def sidebar():
         # LOGO
         # ==========================
 
+<<<<<<< HEAD
         st.sidebar.image(
     str(LOGO),
     width=140
@@ -24,6 +32,11 @@ def sidebar():
     "<h2 style='text-align:center;'>HealthVibe AI</h2>",
     unsafe_allow_html=True
 )
+=======
+        st.markdown("# 🩺")
+        st.markdown("## HealthVibe AI")
+        st.caption(translation.t("Clinical Decision Support Platform"))
+>>>>>>> 34211f1d364920e717bfcfca7d099bc8c1615862
 
         st.divider()
 
@@ -37,9 +50,9 @@ def sidebar():
         st.info(f"""
 👤 **{username}**
 
-🩺 **Role:** {role}
+🩺 **{translation.t("Role:")}** {translation.t(role)}
 
-🟢 **Status:** Online
+🟢 **{translation.t("Status:")}** {translation.t("Online")}
 """)
 
         st.divider()
@@ -48,7 +61,7 @@ def sidebar():
         # NAVIGATION
         # ==========================
 
-        st.subheader("📂 Navigation")
+        st.subheader(translation.t("📂 Navigation"))
 
         pages = [
             ("pages/Dashboard.py", "🏠 Dashboard"),
@@ -78,7 +91,7 @@ def sidebar():
 
                 st.page_link(
                     page,
-                    label=title,
+                    label=translation.t(title),
                     width="stretch"
                 )
 
@@ -88,11 +101,11 @@ def sidebar():
         # SYSTEM STATUS
         # ==========================
 
-        st.subheader("⚡ System Status")
+        st.subheader(translation.t("⚡ System Status"))
 
-        st.success("🟢 AI Server")
-        st.success("🟢 Database")
-        st.success("🟢 Models Loaded")
+        st.success(translation.t("🟢 AI Server"))
+        st.success(translation.t("🟢 Database"))
+        st.success(translation.t("🟢 Models Loaded"))
 
         st.divider()
 
@@ -100,14 +113,18 @@ def sidebar():
         # DAILY HEALTH TIP
         # ==========================
 
-        st.subheader("💙 Daily Health Tip")
+        st.subheader(translation.t("💙 Daily Health Tip"))
 
-        st.markdown("""
-- 💧 Drink enough water
-- 🥗 Eat healthy meals
-- 🏃 Exercise at least 30 minutes
-- 😴 Sleep 7–8 hours
-""")
+        tips = [
+            "💧 Drink enough water",
+            "🥗 Eat healthy meals",
+            "🏃 Exercise at least 30 minutes",
+            "😴 Sleep 7–8 hours",
+        ]
+
+        tips_md = "\n".join(f"- {translation.t(tip)}" for tip in tips)
+
+        st.markdown(tips_md)
 
         st.divider()
                 # ==========================
@@ -115,7 +132,7 @@ def sidebar():
         # ==========================
 
         if st.button(
-            "🚪 Logout",
+            translation.t("🚪 Logout"),
             type="primary",
             width="stretch"
         ):

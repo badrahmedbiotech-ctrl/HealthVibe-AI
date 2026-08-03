@@ -14,6 +14,9 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+
 sidebar()
 
 # ==========================================
@@ -39,19 +42,19 @@ history = get_patient_history(user_id)
 # HERO
 # ==========================================
 
-st.markdown("""
+st.markdown(f"""
 <div class="hero">
 
 <span class="hero-badge">
-📋 Medical History
+📋 {translation.t("📋 Medical History")}
 </span>
 
 <h1>
-My Assessments
+{translation.t("My Assessments")}
 </h1>
 
 <p>
-Review all previous AI predictions and reports.
+{translation.t("Review all previous AI predictions and reports.")}
 </p>
 
 </div>
@@ -88,16 +91,16 @@ else:
 c1, c2, c3, c4 = st.columns(4)
 
 with c1:
-    st.metric("Total Tests", total_tests)
+    st.metric(translation.t("Total Tests"), total_tests)
 
 with c2:
-    st.metric("Last Test", last_disease)
+    st.metric(translation.t("Last Test"), translation.t(last_disease))
 
 with c3:
-    st.metric("Highest Risk", highest_risk)
+    st.metric(translation.t("Highest Risk"), highest_risk)
 
 with c4:
-    st.metric("Most Tested", most_tested)
+    st.metric(translation.t("Most Tested"), translation.t(most_tested))
 
 st.divider()
 
@@ -105,14 +108,14 @@ st.divider()
 # SEARCH & FILTERS
 # ==========================================
 
-st.subheader("🔍 Search & Filter")
+st.subheader(translation.t("🔍 Search & Filter"))
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
 
     search = st.text_input(
-        "Search Disease"
+        translation.t("Search Disease")
     )
 
 with col2:
@@ -126,20 +129,22 @@ with col2:
         )
 
     disease_filter = st.selectbox(
-        "Disease",
-        diseases
+        translation.t("Disease"),
+        diseases,
+        format_func=translation.t
     )
 
 with col3:
 
     sort_order = st.selectbox(
-        "Sort By",
+        translation.t("Sort By"),
         [
             "Newest",
             "Oldest",
             "Highest Risk",
             "Lowest Risk"
-        ]
+        ],
+        format_func=translation.t
     )
 
 # ==========================================
@@ -198,7 +203,7 @@ elif sort_order == "Lowest Risk":
 
 if filtered.empty:
 
-    st.info("📭 No assessments found.")
+    st.info(translation.t("📭 No assessments found."))
 
     st.stop()
 
@@ -211,14 +216,14 @@ col1, col2 = st.columns(2)
 with col1:
 
     if st.button(
-        "🗑 Delete All History",
+        translation.t("🗑 Delete All History"),
         width="stretch",
         type="secondary"
     ):
 
         delete_all_history(user_id)
 
-        st.success("All Assessments Deleted Successfully")
+        st.success(translation.t("All Assessments Deleted Successfully"))
 
         st.rerun()
 
@@ -228,7 +233,7 @@ with col2:
 
     st.download_button(
 
-        "📄 Download CSV",
+        translation.t("📄 Download CSV"),
 
         data=csv,
 
@@ -246,7 +251,7 @@ st.divider()
 # MEDICAL CARDS
 # ==========================================
 
-st.subheader("📋 Assessment History")
+st.subheader(translation.t("📋 Assessment History"))
 
 for _, row in filtered.iterrows():
 
@@ -257,9 +262,9 @@ for _, row in filtered.iterrows():
         with left:
 
             st.markdown(f"""
-### 🩺 {row['disease']}
+### 🩺 {translation.t(row['disease'])}
 
-**Prediction:** {row['prediction']}
+{translation.t('**Prediction:** ')}{row['prediction']}
 
 📅 {row['created_at']}
 """)
@@ -267,27 +272,27 @@ for _, row in filtered.iterrows():
         with center:
 
             st.metric(
-                "Risk",
+                translation.t("Risk"),
                 f"{float(row['probability']):.1f}%"
             )
 
         with right:
 
             if st.button(
-                "👁 View Details",
+                translation.t("👁 View Details"),
                 key=f"view_{row['id']}"
             ):
 
                 st.session_state.selected_assessment = row.to_dict()
 
             if st.button(
-                "🗑 Delete",
+                translation.t("🗑 Delete"),
                 key=f"delete_{row['id']}"
             ):
 
                 delete_history(row["id"])
 
-                st.success("Assessment Deleted Successfully")
+                st.success(translation.t("Assessment Deleted Successfully"))
 
                 st.rerun()
 
@@ -301,7 +306,7 @@ if "selected_assessment" in st.session_state:
 
     st.divider()
 
-    st.subheader("📄 Assessment Details")
+    st.subheader(translation.t("📄 Assessment Details"))
 
     item = st.session_state.selected_assessment
 
@@ -310,31 +315,31 @@ if "selected_assessment" in st.session_state:
     with col1:
 
         st.metric(
-            "Disease",
-            item["disease"]
+            translation.t("Disease"),
+            translation.t(item["disease"])
         )
 
         st.metric(
-            "Prediction",
+            translation.t("Prediction"),
             item["prediction"]
         )
 
     with col2:
 
         st.metric(
-            "Risk",
+            translation.t("Risk"),
             f"{float(item['probability']):.1f}%"
         )
  
         st.metric(
-            "Date",
+            translation.t("Date"),
             item["created_at"]
         )
 
     st.json(item)
 
     if st.button(
-        "❌ Close Details"
+        translation.t("❌ Close Details")
     ):
 
         del st.session_state.selected_assessment
@@ -347,7 +352,7 @@ if "selected_assessment" in st.session_state:
 
 st.divider()
 
-st.subheader("📊 Assessment Analytics")
+st.subheader(translation.t("📊 Assessment Analytics"))
 
 c1, c2 = st.columns(2)
 
@@ -358,7 +363,15 @@ with c1:
         .value_counts()
     )
 
-    st.bar_chart(disease_chart)
+    disease_chart.index = disease_chart.index.map(translation.t)
+
+    disease_chart = disease_chart.rename(translation.t("Predictions"))
+
+    st.bar_chart(
+        disease_chart,
+        x_label=translation.t("Disease"),
+        y_label=translation.t("Predictions")
+    )
 
 with c2:
 
@@ -368,4 +381,12 @@ with c2:
         .mean()
     )
 
-    st.bar_chart(risk_chart)    
+    risk_chart.index = risk_chart.index.map(translation.t)
+
+    risk_chart = risk_chart.rename(translation.t("Risk"))
+
+    st.bar_chart(
+        risk_chart,
+        x_label=translation.t("Disease"),
+        y_label=translation.t("Risk")
+    )
