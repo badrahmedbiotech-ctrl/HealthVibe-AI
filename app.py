@@ -1,11 +1,8 @@
 import streamlit as st
-<<<<<<< HEAD
 from PIL import Image
 from components.branding import *
 from components.colors import *
-=======
 import translation
->>>>>>> 34211f1d364920e717bfcfca7d099bc8c1615862
 
 icon = Image.open("assets/logo.jpg")
 
