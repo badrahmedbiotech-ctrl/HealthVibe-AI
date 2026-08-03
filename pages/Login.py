@@ -1,4 +1,10 @@
 import streamlit as st
+from components.branding import LOGO
+st.image(
+    "assets/logo.jpg",
+    width=180
+)
+
 from components.auth import (
     create_users_table,
     login_user
@@ -10,7 +16,7 @@ from components.auth import (
 
 st.set_page_config(
     page_title="HealthVibe AI | Login",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="centered",
     initial_sidebar_state="collapsed"
 )

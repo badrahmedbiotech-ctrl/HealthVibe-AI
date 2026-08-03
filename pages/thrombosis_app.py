@@ -13,7 +13,8 @@ from components.database import (
     save_assessment,
     save_thrombosis
 )
-
+from components.branding import *
+from components.colors import *
 # ==========================================================
 # LOAD AI MODEL
 # ==========================================================

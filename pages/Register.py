@@ -1,5 +1,5 @@
 import streamlit as st
-
+from components.branding import *
 from components.auth import (
     create_users_table,
     register_user
@@ -7,7 +7,7 @@ from components.auth import (
 
 st.set_page_config(
     page_title="HealthVibe AI | Register",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="centered",
     initial_sidebar_state="collapsed"
 )

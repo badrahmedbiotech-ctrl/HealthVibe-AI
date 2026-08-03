@@ -9,7 +9,7 @@ from utils.navigation import sidebar
 
 st.set_page_config(
     page_title="HealthVibe AI",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="wide",
     initial_sidebar_state="expanded"
 )

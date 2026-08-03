@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
+from components.branding import *
 from utils.navigation import sidebar
 
 from components.database import (
@@ -23,7 +23,7 @@ from components.doctor_db import (
 
 st.set_page_config(
     page_title="My Medical Profile",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="wide",
     initial_sidebar_state="expanded"
 )

@@ -10,7 +10,8 @@ import joblib
 import os
 from datetime import datetime
 
-
+from components.branding import *
+from components.colors import *
 # ==========================================================
 # AUTHENTICATION
 # ==========================================================

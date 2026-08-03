@@ -12,6 +12,9 @@ from components.database import (
     save_lipid
 )
 
+from components.branding import *
+from components.colors import *
+
 from utils.navigation import sidebar
 from components.stepper import stepper
 from components.patient_summary import patient_summary
