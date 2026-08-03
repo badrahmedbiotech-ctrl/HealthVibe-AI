@@ -23,7 +23,7 @@ load_dotenv()
 # ==========================
 st.set_page_config(
     page_title="HealthVibe AI",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="centered",
 )
 
