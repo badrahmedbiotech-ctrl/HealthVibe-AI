@@ -15,6 +15,41 @@ from components.database import (
 )
 
 # ==========================================================
+# OPTIONAL: get_patient_profile
+# ----------------------------------------------------------
+# لازم تضيف الدالة دي في components/database.py عشان الـ
+# Auto-fill يشتغل فعليًا. لو مش موجودة لسه، الكود مش هيكسر
+# وهيشتغل بالوضع القديم (المستخدم يدخل كل حاجة يدوي).
+#
+# شكل مقترح للدالة في components/database.py:
+#
+# def get_patient_profile(user_id):
+#     """
+#     يرجع dict لبيانات المريض الأساسية لو موجود، أو None.
+#     مثال:
+#     return {
+#         "name": "...",
+#         "age": 30,
+#         "gender": "Male",
+#         "height": 175,
+#         "weight": 80,
+#         "blood_type": "O+",
+#         "diabetes": "No",
+#         "hypertension": "No",
+#         "smoking": "No",
+#     }
+#     """
+#     ...
+# ==========================================================
+
+try:
+    from components.database import get_patient_profile
+except ImportError:
+
+    def get_patient_profile(user_id):
+        return None
+
+# ==========================================================
 # LOAD AI MODEL
 # ==========================================================
 
@@ -45,6 +80,12 @@ with open("style.css", encoding="utf-8") as f:
 sidebar()
 
 # ==========================================================
+# BLOOD TYPES (with Rh factor)
+# ==========================================================
+
+BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+
+# ==========================================================
 # SESSION DEFAULTS
 # ==========================================================
 
@@ -62,7 +103,7 @@ defaults = {
 
     "weight":70,
 
-    "blood_type":"O",
+    "blood_type":"O+",
 
     "d_dimer":250.0,
 
@@ -90,7 +131,11 @@ defaults = {
 
     "risk_score":0,
 
-    "saved_result":False
+    "saved_result":False,
+
+    "profile_loaded":False,
+
+    "patient_found":False
 
 }
 
@@ -101,10 +146,41 @@ for key,value in defaults.items():
         st.session_state[key]=value
 
 # ==========================================================
+# AUTO-FILL PATIENT PROFILE FROM DATABASE
+# ==========================================================
+
+if not st.session_state.profile_loaded:
+
+    patient = get_patient_profile(st.session_state.user["id"])
+
+    if patient:
+
+        st.session_state.name = patient.get("name", st.session_state.name)
+        st.session_state.age = patient.get("age", st.session_state.age)
+        st.session_state.gender = patient.get("gender", st.session_state.gender)
+        st.session_state.height = patient.get("height", st.session_state.height)
+        st.session_state.weight = patient.get("weight", st.session_state.weight)
+
+        bt = patient.get("blood_type", st.session_state.blood_type)
+        st.session_state.blood_type = bt if bt in BLOOD_TYPES else st.session_state.blood_type
+
+        st.session_state.diabetes = patient.get("diabetes", st.session_state.diabetes)
+        st.session_state.hypertension = patient.get("hypertension", st.session_state.hypertension)
+        st.session_state.smoking = patient.get("smoking", st.session_state.smoking)
+
+        st.session_state.patient_found = True
+
+    else:
+
+        st.session_state.patient_found = False
+
+    st.session_state.profile_loaded = True
+
+# ==========================================================
 # PDF REPORT
 # ==========================================================
 
-def generate_pdf(data):
+def generate_pdf(data, alerts=None, medical_override=None):
 
     pdf = FPDF()
 
@@ -151,6 +227,48 @@ def generate_pdf(data):
             f"{k}: {value}",
             ln=True
         )
+
+    # ------------------------------
+    # CLINICAL ALERTS SECTION
+    # ------------------------------
+
+    if alerts:
+
+        pdf.ln(6)
+
+        pdf.set_font("Arial","B",14)
+
+        pdf.cell(0, 10, "Clinical Alerts", ln=True)
+
+        pdf.set_font("Arial","",12)
+
+        severity_label = {
+            "critical": "[CRITICAL]",
+            "moderate": "[MODERATE]",
+            "mild": "[MILD]"
+        }
+
+        for _, label, severity in alerts:
+
+            tag = severity_label.get(severity, "")
+
+            pdf.cell(0, 8, f"{tag} {label}", ln=True)
+
+    # ------------------------------
+    # MEDICAL OVERRIDE WARNING
+    # ------------------------------
+
+    if medical_override:
+
+        pdf.ln(6)
+
+        pdf.set_font("Arial","B",13)
+
+        pdf.cell(0, 10, "Medical Attention Notice", ln=True)
+
+        pdf.set_font("Arial","",12)
+
+        pdf.multi_cell(0, 7, medical_override)
 
     temp = tempfile.NamedTemporaryFile(
         delete=False,
@@ -229,46 +347,71 @@ if st.session_state.page == 1:
 
     st.header("👤 Patient Information")
 
-    col1,col2 = st.columns(2)
+    if st.session_state.patient_found:
 
-    with col1:
+        st.success("✅ تم العثور على بيانات المريض تلقائيًا من قاعدة البيانات")
 
-        st.session_state.name = st.text_input(
-            "Patient Name",
-            value=st.session_state.name
-        )
+        col1,col2 = st.columns(2)
 
-        st.session_state.age = st.number_input(
-            "Age",
-            1,
-            120,
-            value=st.session_state.age
-        )
+        with col1:
+            st.markdown(f"**👤 الاسم:** {st.session_state.name}")
+            st.markdown(f"**🎂 العمر:** {st.session_state.age}")
+            st.markdown(f"**⚧ النوع:** {st.session_state.gender}")
+            st.markdown(f"**🩸 فصيلة الدم:** {st.session_state.blood_type}")
 
-        st.session_state.gender = st.selectbox(
-            "Gender",
-            [
-                "Male",
-                "Female"
-            ],
-            index=0 if st.session_state.gender=="Male" else 1
-        )
+        with col2:
+            st.markdown(f"**📏 الطول:** {st.session_state.height} cm")
+            st.markdown(f"**⚖ الوزن:** {st.session_state.weight} kg")
+            st.markdown(f"**🍬 السكري:** {st.session_state.diabetes}")
+            st.markdown(f"**💢 ضغط الدم:** {st.session_state.hypertension}")
 
-    with col2:
+        with st.expander("✏️ تعديل البيانات يدويًا (لو فيه خطأ)"):
 
-        st.session_state.height = st.number_input(
-            "Height (cm)",
-            min_value=100,
-            max_value=230,
-            value=st.session_state.height
-        )
+            ecol1,ecol2 = st.columns(2)
 
-        st.session_state.weight = st.number_input(
-            "Weight (kg)",
-            min_value=20,
-            max_value=250,
-            value=st.session_state.weight
-        )
+            with ecol1:
+
+                st.session_state.name = st.text_input(
+                    "Patient Name",
+                    value=st.session_state.name
+                )
+
+                st.session_state.age = st.number_input(
+                    "Age",
+                    1,
+                    120,
+                    value=st.session_state.age
+                )
+
+                st.session_state.gender = st.selectbox(
+                    "Gender",
+                    ["Male","Female"],
+                    index=0 if st.session_state.gender=="Male" else 1
+                )
+
+            with ecol2:
+
+                st.session_state.height = st.number_input(
+                    "Height (cm)",
+                    min_value=100,
+                    max_value=230,
+                    value=st.session_state.height
+                )
+
+                st.session_state.weight = st.number_input(
+                    "Weight (kg)",
+                    min_value=20,
+                    max_value=250,
+                    value=st.session_state.weight
+                )
+
+                st.session_state.blood_type = st.selectbox(
+                    "Blood Type",
+                    BLOOD_TYPES,
+                    index=BLOOD_TYPES.index(st.session_state.blood_type)
+                )
+
+        st.markdown("### 🆕 بيانات الفحص الحالي (Thrombosis)")
 
         st.session_state.d_dimer = st.number_input(
             "D-Dimer (ng/mL)",
@@ -276,16 +419,62 @@ if st.session_state.page == 1:
             value=float(st.session_state.d_dimer)
         )
 
-        st.session_state.blood_type = st.selectbox(
-            "Blood Type",
-            [
-                "A",
-                "B",
-                "AB",
-                "O"
-            ],
-            index=["A","B","AB","O"].index(st.session_state.blood_type)
-        )
+    else:
+
+        st.info("ℹ️ لم يتم العثور على بيانات محفوظة لهذا المريض — من فضلك أدخل البيانات يدويًا")
+
+        col1,col2 = st.columns(2)
+
+        with col1:
+
+            st.session_state.name = st.text_input(
+                "Patient Name",
+                value=st.session_state.name
+            )
+
+            st.session_state.age = st.number_input(
+                "Age",
+                1,
+                120,
+                value=st.session_state.age
+            )
+
+            st.session_state.gender = st.selectbox(
+                "Gender",
+                [
+                    "Male",
+                    "Female"
+                ],
+                index=0 if st.session_state.gender=="Male" else 1
+            )
+
+        with col2:
+
+            st.session_state.height = st.number_input(
+                "Height (cm)",
+                min_value=100,
+                max_value=230,
+                value=st.session_state.height
+            )
+
+            st.session_state.weight = st.number_input(
+                "Weight (kg)",
+                min_value=20,
+                max_value=250,
+                value=st.session_state.weight
+            )
+
+            st.session_state.d_dimer = st.number_input(
+                "D-Dimer (ng/mL)",
+                min_value=0.0,
+                value=float(st.session_state.d_dimer)
+            )
+
+            st.session_state.blood_type = st.selectbox(
+                "Blood Type",
+                BLOOD_TYPES,
+                index=BLOOD_TYPES.index(st.session_state.blood_type)
+            )
 
     st.divider()
 
@@ -563,59 +752,116 @@ if st.session_state.page == 3:
     st.divider()
 
     # ==========================================
-    # RISK FACTORS
+    # CLINICAL ALERTS (severity-tagged)
+    # ==========================================
+    # each item: (key, label, severity) -> severity in
+    # {"critical", "moderate", "mild"}
     # ==========================================
 
-    factors=[]
+    alerts = []
 
-    if st.session_state.d_dimer>500:
-        factors.append("High D-Dimer")
+    swelling_yes = st.session_state.swelling == "Yes"
+    pain_yes = st.session_state.pain == "Yes"
+    history_yes = st.session_state.history == "Yes"
+    mobility_yes = st.session_state.mobility == "Yes"
+    surgery_yes = st.session_state.surgery == "Yes"
 
-    if st.session_state.swelling=="Yes":
-        factors.append("Leg Swelling")
+    # --- Critical combinations (possible active clot signs) ---
 
-    if st.session_state.pain=="Yes":
-        factors.append("Leg Pain")
+    if swelling_yes and pain_yes:
+        alerts.append((
+            "swelling_pain_combo",
+            "تورم وألم بالساق معًا — علامة محتملة لجلطة نشطة",
+            "critical"
+        ))
 
-    if st.session_state.history=="Yes":
-        factors.append("Previous Thrombosis")
+    if st.session_state.d_dimer > 500 and (swelling_yes or pain_yes):
+        alerts.append((
+            "d_dimer_symptomatic",
+            "ارتفاع D-Dimer مصحوب بأعراض سريرية",
+            "critical"
+        ))
+    elif st.session_state.d_dimer > 500:
+        alerts.append((
+            "d_dimer_high",
+            "ارتفاع D-Dimer",
+            "moderate"
+        ))
 
-    if st.session_state.mobility=="Yes":
-        factors.append("Immobility")
+    if history_yes and (swelling_yes or pain_yes):
+        alerts.append((
+            "history_recurrence",
+            "تاريخ سابق لجلطة مع أعراض حالية — احتمال تكرار",
+            "critical"
+        ))
+    elif history_yes:
+        alerts.append((
+            "history_only",
+            "تاريخ سابق للإصابة بجلطة",
+            "moderate"
+        ))
 
-    if st.session_state.surgery=="Yes":
-        factors.append("Recent Surgery")
+    if (mobility_yes or surgery_yes) and (swelling_yes or pain_yes):
+        alerts.append((
+            "postop_immobility_symptomatic",
+            "قلة حركة/جراحة حديثة مع أعراض — علامات تستدعي تقييم عاجل",
+            "critical"
+        ))
+    else:
+        if mobility_yes:
+            alerts.append(("mobility", "قلة الحركة مؤخرًا", "moderate"))
+        if surgery_yes:
+            alerts.append(("surgery", "جراحة حديثة", "moderate"))
 
-    if st.session_state.smoking=="Yes":
-        factors.append("Smoking")
+    # --- Moderate / background risk factors ---
 
-    if st.session_state.hypertension=="Yes":
-        factors.append("Hypertension")
+    if st.session_state.family_history == "Yes":
+        alerts.append(("family_history", "تاريخ عائلي للإصابة بجلطات", "moderate"))
 
-    if st.session_state.diabetes=="Yes":
-        factors.append("Diabetes")
+    # --- Mild / general risk factors ---
 
-    if st.session_state.cholesterol=="Yes":
-        factors.append("High Cholesterol")
+    if st.session_state.smoking == "Yes":
+        alerts.append(("smoking", "التدخين", "mild"))
 
-    st.subheader("⚠ Risk Factors")
+    if st.session_state.hypertension == "Yes":
+        alerts.append(("hypertension", "ضغط الدم المرتفع", "mild"))
 
-    if len(factors)==0:
+    if st.session_state.diabetes == "Yes":
+        alerts.append(("diabetes", "السكري", "mild"))
 
-        st.success("No major risk factors detected.")
+    if st.session_state.cholesterol == "Yes":
+        alerts.append(("cholesterol", "ارتفاع الكوليسترول", "mild"))
+
+    critical_alerts = [a for a in alerts if a[2] == "critical"]
+    moderate_alerts = [a for a in alerts if a[2] == "moderate"]
+    mild_alerts = [a for a in alerts if a[2] == "mild"]
+
+    st.subheader("⚠ Clinical Alerts")
+
+    if not alerts:
+
+        st.success("لا توجد تنبيهات سريرية حالية ✅")
 
     else:
 
-        for item in factors:
+        for _, label, _ in critical_alerts:
+            st.error(f"🔴 {label}")
 
-            st.warning(item)
-            st.divider()
+        for _, label, _ in moderate_alerts:
+            st.warning(f"🟠 {label}")
+
+        for _, label, _ in mild_alerts:
+            st.info(f"🟡 {label}")
+
+    st.divider()
 
     # ==========================================
-    # RECOMMENDATIONS
+    # RECOMMENDATIONS (with medical override)
     # ==========================================
 
     st.subheader("💡 AI Recommendations")
+
+    medical_override_text = None
 
     if prediction == 1:
 
@@ -639,6 +885,25 @@ if st.session_state.page == 3:
 - Drink enough water.
 - Avoid smoking.
 - Keep regular follow-up if symptoms appear.
+""")
+
+        if critical_alerts:
+
+            medical_override_text = (
+                "Despite the AI model indicating Low Risk, the patient shows "
+                "clinical alerts consistent with a possible active thrombosis. "
+                "Urgent clinical evaluation and a Doppler Ultrasound are "
+                "recommended regardless of the AI probability score."
+            )
+
+            st.warning(f"""
+### ⚠️ تنبيه طبي هام
+
+نتيجة الذكاء الاصطناعي **منخفضة الخطورة**، لكن فيه أعراض/علامات سريرية حرجة
+ظاهرة عند المريض ({", ".join([label for _, label, _ in critical_alerts])}).
+
+**يُنصح بشدة بمراجعة طبيب الأوعية الدموية وعمل Doppler Ultrasound فورًا،
+بغض النظر عن نتيجة النموذج.**
 """)
 
     st.divider()
@@ -669,7 +934,7 @@ if st.session_state.page == 3:
 
     }
 
-    pdf_path = generate_pdf(report)
+    pdf_path = generate_pdf(report, alerts=alerts, medical_override=medical_override_text)
 
     with open(pdf_path,"rb") as file:
 
@@ -746,4 +1011,3 @@ Developed by <b>Badr Ahmed</b>
 </div>
 
 """,unsafe_allow_html=True)
-    
