@@ -1,5 +1,18 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
+from components.branding import *
+from components.colors import *
+
+from components.branding import LOGO
+col1, col2 = st.columns([1,5])
+
+with col1:
+    st.image(str(LOGO), width=90)
+
+with col2:
+    st.title("HealthVibe AI")
+    st.caption("Vibe Better, Live Better")
 
 from utils.navigation import sidebar
 
@@ -8,8 +21,10 @@ from utils.navigation import sidebar
 # ==========================================
 
 st.set_page_config(
-    page_title="HealthVibe AI",
-    page_icon="🩺",
+
+page_title="HealthVibe AI Dashboard",
+    page_icon=str(LOGO),
+
     layout="wide",
     initial_sidebar_state="expanded"
 )
