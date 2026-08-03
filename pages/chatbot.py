@@ -8,7 +8,10 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
-load_dotenv() 
+load_dotenv(dotenv_path=".env")
+import os
+api_key = os.getenv("GROQ_API_KEY")
+print("API Key:", api_key)
 # ==========================
 # Page Config
 # ==========================
@@ -103,6 +106,9 @@ with st.sidebar:
             st.session_state.current_chat = cid
             st.rerun()
 
+print("API Key:", api_key)
+print("Exists:", api_key is not None)
+
 current_chat_id = st.session_state.current_chat
 st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
 
@@ -111,6 +117,7 @@ st.session_state.messages = st.session_state.all_chats[current_chat_id]["message
 # ==========================
 
 api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
 client = Groq(api_key=api_key)
 
 # ==========================
