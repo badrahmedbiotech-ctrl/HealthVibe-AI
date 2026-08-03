@@ -1,4 +1,5 @@
 import streamlit as st
+import translation
 
 def stepper(step):
 
@@ -53,7 +54,7 @@ margin-top:10px;
 color:{color};
 ">
 
-{title}
+{translation.t(title)}
 
 </h5>
 

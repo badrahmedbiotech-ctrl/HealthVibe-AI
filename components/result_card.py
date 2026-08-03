@@ -1,4 +1,5 @@
 import streamlit as st
+import translation
 
 def result_card(prediction, probability=None):
 
@@ -13,11 +14,14 @@ def result_card(prediction, probability=None):
         title = "Low Risk of Diabetes"
         icon = "🩺"
 
+    status = translation.t(status)
+    title = translation.t(title)
+
     percent = 0
     if probability is not None:
         percent = round(probability * 100, 1)
 
-    st.markdown("## 🤖 AI Prediction")
+    st.markdown(f"## 🤖 {translation.t('AI Prediction')}")
 
     st.markdown(f"""
 <div style="

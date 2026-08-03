@@ -32,6 +32,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+import translation
+translation.init()
+t = translation.t
+
+# ==========================================================
+# LANGUAGE / DIRECTION HELPER
+# ==========================================================
+
+def get_lang():
+    # Try common translation module accessors first, fall back to session_state.
+    for fn_name in ("get_lang", "get_language", "current_lang"):
+        fn = getattr(translation, fn_name, None)
+        if callable(fn):
+            try:
+                return fn()
+            except Exception:
+                pass
+    return st.session_state.get("lang", "en")
+
+IS_RTL = str(get_lang()).lower().startswith("ar")
+DIR = "rtl" if IS_RTL else "ltr"
+
 # ==========================================================
 # LOAD CSS
 # ==========================================================
@@ -41,6 +63,94 @@ with open("style.css", encoding="utf-8") as f:
         f"<style>{f.read()}</style>",
         unsafe_allow_html=True
     )
+
+# ==========================================================
+# PAGE-LOCAL CSS (hero, cards, RTL)
+# ==========================================================
+
+st.markdown(
+f"""
+<style>
+html, body, [data-testid="stAppViewContainer"] {{
+    direction: {DIR};
+}}
+
+.hv-hero {{
+    background: linear-gradient(135deg, #0F2027 0%, #2C5364 60%, #00C2FF 100%);
+    border-radius: 18px;
+    padding: 36px 32px;
+    color: #fff;
+    text-align: {"right" if IS_RTL else "left"};
+    margin-bottom: 18px;
+}}
+.hv-hero h1 {{
+    margin: 8px 0 4px 0;
+    font-size: 2rem;
+}}
+.hv-hero p {{
+    opacity: .9;
+    font-size: 1rem;
+    margin: 0;
+}}
+.hv-badge {{
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: .85rem;
+}}
+
+.hv-card {{
+    background: var(--secondary-background-color, #1c1f26);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    transition: transform .15s ease, box-shadow .15s ease;
+    text-align: {"right" if IS_RTL else "left"};
+}}
+.hv-card:hover {{
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+}}
+
+.hv-result-card {{
+    border-radius: 20px;
+    padding: 26px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,.2);
+    margin-bottom: 12px;
+}}
+.hv-result-high {{ background: linear-gradient(135deg,#3a0000,#8B0000); color:#fff; }}
+.hv-result-moderate {{ background: linear-gradient(135deg,#4a3b00,#B8860B); color:#fff; }}
+.hv-result-low {{ background: linear-gradient(135deg,#003b1f,#0f9d58); color:#fff; }}
+
+.hv-badge-risk {{
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.2);
+    font-weight: 700;
+    margin-top: 6px;
+}}
+
+.hv-footer {{
+    text-align: center;
+    padding: 24px;
+}}
+
+/* RTL fixes for native Streamlit widgets */
+[dir="rtl"] label, .hv-rtl label {{
+    text-align: right !important;
+}}
+{"div[data-testid='stMetric'] { text-align: right; }" if IS_RTL else ""}
+{"div[data-testid='stMarkdownContainer'] { text-align: right; }" if IS_RTL else ""}
+{"div[data-testid='stExpander'] { text-align: right; }" if IS_RTL else ""}
+{"[data-testid='stHorizontalBlock'] { flex-direction: row-reverse; }" if IS_RTL else ""}
+</style>
+""",
+unsafe_allow_html=True
+)
 
 sidebar()
 
@@ -102,6 +212,9 @@ for key,value in defaults.items():
 
 # ==========================================================
 # PDF REPORT
+# (NOTE: FPDF default font is Latin-1 only, cannot render Arabic
+# glyphs. This report always stays English regardless of language
+# toggle unless a Unicode Arabic font is embedded.)
 # ==========================================================
 
 def generate_pdf(data):
@@ -160,24 +273,42 @@ def generate_pdf(data):
     pdf.output(temp.name)
 
     return temp.name
+
+# ==========================================================
+# UI HELPER: DASHBOARD CARD
+# ==========================================================
+
+def render_card(col, icon, label, value):
+    with col:
+        st.markdown(
+            f"""
+            <div class="hv-card">
+                <div style="font-size:1.6rem;">{icon}</div>
+                <div style="opacity:.7;font-size:.85rem;margin-top:4px;">{label}</div>
+                <div style="font-size:1.2rem;font-weight:700;margin-top:2px;">{value}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 # ==========================================================
 # HERO
 # ==========================================================
 
 st.markdown(
 f"""
-<div class="hero">
+<div class="hv-hero">
 
-<span class="hero-badge">
-🩸 AI Disease Screening
+<span class="hv-badge">
+🩸 {t("AI Disease Screening")}
 </span>
 
 <h1>
-Thrombosis Risk Prediction
+{t("Thrombosis Risk Prediction")}
 </h1>
 
 <p>
-Artificial Intelligence Based Blood Clot Screening System
+{t("Artificial Intelligence Based Blood Clot Screening System")}
 </p>
 
 </div>
@@ -185,39 +316,18 @@ Artificial Intelligence Based Blood Clot Screening System
 unsafe_allow_html=True
 )
 
-st.write("")
-
 # ==========================================================
 # DASHBOARD
 # ==========================================================
 
-st.subheader("📊 AI Dashboard")
+st.subheader(t("📊 AI Dashboard"))
 
 m1,m2,m3,m4 = st.columns(4)
 
-with m1:
-    st.metric(
-        "Disease",
-        "Thrombosis"
-    )
-
-with m2:
-    st.metric(
-        "AI Model",
-        "Random Forest"
-    )
-
-with m3:
-    st.metric(
-        "Risk Factors",
-        "10"
-    )
-
-with m4:
-    st.metric(
-        "Status",
-        "🟢 Ready"
-    )
+render_card(m1, "🩸", t("Disease"), t("Thrombosis"))
+render_card(m2, "🤖", t("AI Model"), "Random Forest")
+render_card(m3, "⚠", t("Risk Factors"), "10")
+render_card(m4, "🟢", t("Status"), t("Ready"))
 
 st.divider()
 
@@ -227,29 +337,29 @@ st.divider()
 
 if st.session_state.page == 1:
 
-    st.header("👤 Patient Information")
+    st.header(t("👤 Patient Information"))
 
     col1,col2 = st.columns(2)
 
     with col1:
 
         st.session_state.name = st.text_input(
-            "Patient Name",
+            t("Patient Name"),
             value=st.session_state.name
         )
 
         st.session_state.age = st.number_input(
-            "Age",
+            t("Age"),
             1,
             120,
             value=st.session_state.age
         )
 
         st.session_state.gender = st.selectbox(
-            "Gender",
+            t("Gender"),
             [
-                "Male",
-                "Female"
+                t("Male"),
+                t("Female")
             ],
             index=0 if st.session_state.gender=="Male" else 1
         )
@@ -257,27 +367,27 @@ if st.session_state.page == 1:
     with col2:
 
         st.session_state.height = st.number_input(
-            "Height (cm)",
+            t("Height (cm)"),
             min_value=100,
             max_value=230,
             value=st.session_state.height
         )
 
         st.session_state.weight = st.number_input(
-            "Weight (kg)",
+            t("Weight (kg)"),
             min_value=20,
             max_value=250,
             value=st.session_state.weight
         )
 
         st.session_state.d_dimer = st.number_input(
-            "D-Dimer (ng/mL)",
+            t("D-Dimer (ng/mL)"),
             min_value=0.0,
             value=float(st.session_state.d_dimer)
         )
 
         st.session_state.blood_type = st.selectbox(
-            "Blood Type",
+            t("Blood Type"),
             [
                 "A",
                 "B",
@@ -291,10 +401,10 @@ if st.session_state.page == 1:
 
     st.progress(33)
 
-    st.caption("Step 1 / 3")
+    st.caption(t("Step 1 / 3"))
 
     if st.button(
-        "Next ➜",
+        t("Next ➜"),
         use_container_width=True
     ):
 
@@ -307,71 +417,71 @@ if st.session_state.page == 1:
 
 if st.session_state.page == 2:
 
-    st.header("🩺 Clinical Information")
+    st.header(t("🩺 Clinical Information"))
 
     c1,c2 = st.columns(2)
 
     with c1:
 
         st.session_state.swelling = st.selectbox(
-            "Leg Swelling",
-            ["No","Yes"],
+            t("Leg Swelling"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.swelling=="No" else 1
         )
 
         st.session_state.pain = st.selectbox(
-            "Leg Pain",
-            ["No","Yes"],
+            t("Leg Pain"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.pain=="No" else 1
         )
 
         st.session_state.history = st.selectbox(
-            "Previous Blood Clot",
-            ["No","Yes"],
+            t("Previous Blood Clot"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.history=="No" else 1
         )
 
         st.session_state.mobility = st.selectbox(
-            "Recent Immobility",
-            ["No","Yes"],
+            t("Recent Immobility"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.mobility=="No" else 1
         )
 
         st.session_state.surgery = st.selectbox(
-            "Recent Surgery",
-            ["No","Yes"],
+            t("Recent Surgery"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.surgery=="No" else 1
         )
 
     with c2:
 
         st.session_state.family_history = st.selectbox(
-            "Family History",
-            ["No","Yes"],
+            t("Family History"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.family_history=="No" else 1
         )
 
         st.session_state.smoking = st.selectbox(
-            "Smoking",
-            ["No","Yes"],
+            t("Smoking"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.smoking=="No" else 1
         )
 
         st.session_state.hypertension = st.selectbox(
-            "Hypertension",
-            ["No","Yes"],
+            t("Hypertension"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.hypertension=="No" else 1
         )
 
         st.session_state.diabetes = st.selectbox(
-            "Diabetes",
-            ["No","Yes"],
+            t("Diabetes"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.diabetes=="No" else 1
         )
 
         st.session_state.cholesterol = st.selectbox(
-            "High Cholesterol",
-            ["No","Yes"],
+            t("High Cholesterol"),
+            [t("No"),t("Yes")],
             index=0 if st.session_state.cholesterol=="No" else 1
         )
 
@@ -379,14 +489,14 @@ if st.session_state.page == 2:
 
     st.progress(66)
 
-    st.caption("Step 2 / 3")
+    st.caption(t("Step 2 / 3"))
 
     left,right = st.columns(2)
 
     with left:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             use_container_width=True
         ):
 
@@ -396,7 +506,7 @@ if st.session_state.page == 2:
     with right:
 
         if st.button(
-            "Analyze ➜",
+            t("Analyze ➜"),
             use_container_width=True
         ):
 
@@ -409,10 +519,10 @@ if st.session_state.page == 2:
 
 if st.session_state.page == 3:
 
-    st.header("🤖 AI Prediction")
+    st.header(t("🤖 AI Prediction"))
 
     st.write(
-        "HealthVibe AI is analyzing your clinical data..."
+        t("HealthVibe AI is analyzing your clinical data...")
     )
 
     st.divider()
@@ -439,11 +549,11 @@ if st.session_state.page == 3:
 
     if prediction == 1:
 
-        result = "🔴 High Risk"
+        result = t("🔴 High Risk")
 
     else:
 
-        result = "🟢 Low Risk"
+        result = t("🟢 Low Risk")
 
     st.session_state.risk_score = probability
     st.session_state.risk_result = result
@@ -487,8 +597,29 @@ if st.session_state.page == 3:
         st.session_state.saved_result = True
 
     # ==========================================
-    # RESULT
+    # RESULT CARD (display-only risk band, does NOT touch model output)
     # ==========================================
+
+    if probability >= 70:
+        band_class = "hv-result-high"
+        band_label = t("High Risk")
+    elif probability >= 35:
+        band_class = "hv-result-moderate"
+        band_label = t("Moderate Risk")
+    else:
+        band_class = "hv-result-low"
+        band_label = t("Low Risk")
+
+    st.markdown(
+        f"""
+        <div class="hv-result-card {band_class}">
+            <div style="font-size:1rem;opacity:.85;">{t("AI Prediction Result")}</div>
+            <div style="font-size:2.2rem;font-weight:800;margin:6px 0;">{probability:.1f}%</div>
+            <div class="hv-badge-risk">{band_label}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     m1,m2 = st.columns(2)
 
@@ -496,7 +627,7 @@ if st.session_state.page == 3:
 
         st.metric(
 
-            "Risk Probability",
+            t("Risk Probability"),
 
             f"{probability:.1f}%"
 
@@ -506,7 +637,7 @@ if st.session_state.page == 3:
 
         st.metric(
 
-            "Prediction",
+            t("Prediction"),
 
             result
 
@@ -526,7 +657,7 @@ if st.session_state.page == 3:
 
             value=probability,
 
-            title={"text":"Risk %"},
+            title={"text": t("Risk %")},
 
             gauge={
 
@@ -569,40 +700,40 @@ if st.session_state.page == 3:
     factors=[]
 
     if st.session_state.d_dimer>500:
-        factors.append("High D-Dimer")
+        factors.append(t("High D-Dimer"))
 
     if st.session_state.swelling=="Yes":
-        factors.append("Leg Swelling")
+        factors.append(t("Leg Swelling"))
 
     if st.session_state.pain=="Yes":
-        factors.append("Leg Pain")
+        factors.append(t("Leg Pain"))
 
     if st.session_state.history=="Yes":
-        factors.append("Previous Thrombosis")
+        factors.append(t("Previous Thrombosis"))
 
     if st.session_state.mobility=="Yes":
-        factors.append("Immobility")
+        factors.append(t("Immobility"))
 
     if st.session_state.surgery=="Yes":
-        factors.append("Recent Surgery")
+        factors.append(t("Recent Surgery"))
 
     if st.session_state.smoking=="Yes":
-        factors.append("Smoking")
+        factors.append(t("Smoking"))
 
     if st.session_state.hypertension=="Yes":
-        factors.append("Hypertension")
+        factors.append(t("Hypertension"))
 
     if st.session_state.diabetes=="Yes":
-        factors.append("Diabetes")
+        factors.append(t("Diabetes"))
 
     if st.session_state.cholesterol=="Yes":
-        factors.append("High Cholesterol")
+        factors.append(t("High Cholesterol"))
 
-    st.subheader("⚠ Risk Factors")
+    st.subheader(t("⚠ Risk Factors"))
 
     if len(factors)==0:
 
-        st.success("No major risk factors detected.")
+        st.success(t("No major risk factors detected."))
 
     else:
 
@@ -612,14 +743,14 @@ if st.session_state.page == 3:
             st.divider()
 
     # ==========================================
-    # RECOMMENDATIONS
+    # RECOMMENDATIONS (by risk band: Low / Moderate / High)
     # ==========================================
 
-    st.subheader("💡 AI Recommendations")
+    st.subheader(t("💡 AI Recommendations"))
 
-    if prediction == 1:
+    if band_class == "hv-result-high":
 
-        st.error("""
+        st.error(t("""
 ### High Risk
 
 - Consult a vascular specialist immediately.
@@ -627,11 +758,23 @@ if st.session_state.page == 3:
 - Avoid prolonged sitting.
 - Maintain hydration.
 - Follow physician instructions.
-""")
+"""))
+
+    elif band_class == "hv-result-moderate":
+
+        st.warning(t("""
+### Moderate Risk
+
+- Schedule a follow-up with your physician.
+- Increase light physical activity and mobility.
+- Monitor for swelling or pain.
+- Maintain hydration and a balanced diet.
+- Repeat D-Dimer testing if symptoms persist.
+"""))
 
     else:
 
-        st.success("""
+        st.success(t("""
 ### Low Risk
 
 - Continue regular physical activity.
@@ -639,12 +782,12 @@ if st.session_state.page == 3:
 - Drink enough water.
 - Avoid smoking.
 - Keep regular follow-up if symptoms appear.
-""")
+"""))
 
     st.divider()
 
     # ==========================================
-    # PDF REPORT
+    # PDF REPORT (kept English - FPDF has no Arabic glyphs)
     # ==========================================
 
     report = {
@@ -675,7 +818,7 @@ if st.session_state.page == 3:
 
         st.download_button(
 
-            "📄 Download Report",
+            t("📄 Download Report"),
 
             file,
 
@@ -699,7 +842,7 @@ if st.session_state.page == 3:
 
         if st.button(
 
-            "⬅ Back",
+            t("⬅ Back"),
 
             use_container_width=True
 
@@ -713,7 +856,7 @@ if st.session_state.page == 3:
 
         if st.button(
 
-            "🏠 Dashboard",
+            t("🏠 Dashboard"),
 
             use_container_width=True
 
@@ -727,23 +870,26 @@ if st.session_state.page == 3:
 
 st.divider()
 
-st.markdown("""
+st.markdown(f"""
 
-<div style="text-align:center;padding:20px;">
+<div class="hv-footer">
 
 <h3 style="color:#00C2FF;">
 HealthVibe AI
 </h3>
 
-<p style="color:gray;">
-Artificial Intelligence Disease Prediction Platform
+<p style="color:gray;margin:2px 0;">
+{t("Version")} 1.0 &nbsp;|&nbsp; {t("AI Model")}: Random Forest
 </p>
 
-<p style="color:gray;">
-Developed by <b>Badr Ahmed</b>
+<p style="color:gray;margin:2px 0;">
+{t("Artificial Intelligence Disease Prediction Platform")}
+</p>
+
+<p style="color:gray;margin:2px 0;">
+{t("Developed by ")}<b>Badr Ahmed</b> &copy; 2026
 </p>
 
 </div>
 
 """,unsafe_allow_html=True)
-    

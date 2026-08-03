@@ -29,6 +29,10 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+t = translation.t
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -50,7 +54,7 @@ user = st.session_state.user
 profile = get_profile(user["id"])
 
 if profile is None:
-    st.warning("Please complete your profile first.")
+    st.warning(t("Please complete your profile first."))
     st.switch_page("pages/Profile.py")
     st.stop()
 
@@ -65,7 +69,7 @@ def load_model():
 try:
     model = load_model()
 except Exception as e:
-    st.error(f"Model Loading Error : {e}")
+    st.error(f"{t('Model Loading Error: ')}{e}")
     st.stop()
 
 create_tables()
@@ -94,9 +98,9 @@ progress = (st.session_state.step / 4) * 100
 st.markdown(f"""
 <div class="hero">
 
-<h1>🩸 Diabetes Prediction</h1>
+<h1>🩸 {t("Diabetes Prediction")}</h1>
 
-<p>AI Clinical Decision Support System</p>
+<p>{t("AI Clinical Decision Support System")}</p>
 
 <div style="margin-top:20px;height:10px;background:#1E293B;border-radius:20px;overflow:hidden;">
 
@@ -110,7 +114,7 @@ background:linear-gradient(90deg,#00C2FF,#2563EB);
 </div>
 
 <p style="margin-top:10px;">
-Step {st.session_state.step} / 4
+{t("Step")} {st.session_state.step} / 4
 </p>
 
 </div>
@@ -126,7 +130,7 @@ st.write("")
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Patient Information")
+    st.subheader(t("👤 Patient Information"))
 
     name = profile["full_name"] or ""
     age = profile["age"] or 20
@@ -134,18 +138,18 @@ if st.session_state.step == 1:
     weight = profile["weight"] or 70.0
     height = profile["height"] or 170.0
 
-    st.success("Patient information loaded successfully.")
+    st.success(t("Patient information loaded successfully."))
 
     c1, c2, c3 = st.columns(3)
 
-    c1.metric("Age", age)
-    c2.metric("Weight", f"{weight} kg")
-    c3.metric("Height", f"{height} cm")
+    c1.metric(t("Age"), age)
+    c2.metric(t("Weight"), f"{weight} kg")
+    c3.metric(t("Height"), f"{height} cm")
 
-    st.text_input("Full Name", value=name, disabled=True)
-    st.text_input("Gender", value=gender, disabled=True)
+    st.text_input(t("Full Name"), value=name, disabled=True)
+    st.text_input(t("Gender"), value=t(gender), disabled=True)
 
-    if st.button("Next ➜", width="stretch"):
+    if st.button(t("Next ➜"), width="stretch"):
 
         patient["name"] = name
         patient["age"] = age
@@ -162,7 +166,7 @@ if st.session_state.step == 1:
 
 elif st.session_state.step == 2:
 
-    st.subheader("🩺 Medical Information")
+    st.subheader(t("🩺 Medical Information"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
@@ -170,7 +174,7 @@ elif st.session_state.step == 2:
     if patient["gender"] == "Female":
 
         pregnancies = st.number_input(
-            "Pregnancies",
+            t("Pregnancies"),
             min_value=0,
             max_value=20,
             value=patient.get("pregnancies", 0)
@@ -181,21 +185,21 @@ elif st.session_state.step == 2:
         pregnancies = 0
 
     glucose = st.number_input(
-        "Glucose",
+        t("Glucose"),
         min_value=50,
         max_value=300,
         value=patient.get("glucose", 120)
     )
 
     blood_pressure = st.number_input(
-        "Blood Pressure",
+        t("Blood Pressure"),
         min_value=40,
         max_value=200,
         value=patient.get("blood_pressure", 70)
     )
 
     insulin = st.number_input(
-        "Insulin",
+        t("Insulin"),
         min_value=0,
         max_value=900,
         value=patient.get("insulin", 80)
@@ -213,7 +217,7 @@ elif st.session_state.step == 2:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step2",
             width="stretch"
         ):
@@ -224,7 +228,7 @@ elif st.session_state.step == 2:
     with col2:
 
         if st.button(
-            "Next ➜",
+            t("Next ➜"),
             key="next_step2",
             width="stretch"
         ):
@@ -240,12 +244,12 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader("📋 Clinical Measurements")
+    st.subheader(t("📋 Clinical Measurements"))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
     bmi = st.number_input(
-        "BMI",
+        t("BMI"),
         min_value=10.0,
         max_value=80.0,
         value=float(patient.get("bmi", 25.0)),
@@ -253,14 +257,14 @@ elif st.session_state.step == 3:
     )
 
     skin = st.number_input(
-        "Skin Thickness",
+        t("Skin Thickness"),
         min_value=0,
         max_value=100,
         value=int(patient.get("skin", 20))
     )
 
     dpf = st.number_input(
-        "Diabetes Pedigree Function",
+        t("Diabetes Pedigree Function"),
         min_value=0.0,
         max_value=3.0,
         value=float(patient.get("dpf", 0.5)),
@@ -278,7 +282,7 @@ elif st.session_state.step == 3:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step3",
             width="stretch"
         ):
@@ -288,7 +292,7 @@ elif st.session_state.step == 3:
     with col2:
 
      if st.button(
-        "🧠 Predict",
+        t("🧠 Predict"),
         key="predict_btn",
         width="stretch"
     ):
@@ -318,7 +322,7 @@ elif st.session_state.step == 3:
             patient["probability"] = probability
 
         except Exception as e:
-            st.error(f"Prediction Error: {e}")
+            st.error(f"{t('Prediction Error : ')}{e}")
             st.stop()
 
         st.session_state.step = 4
@@ -332,20 +336,20 @@ elif st.session_state.step == 3:
 
 elif st.session_state.step == 4:
 
-    st.subheader("📊 AI Prediction Result")
+    st.subheader(t("📊 AI Prediction Result"))
 
     prediction = patient.get("prediction", 0)
 
     if prediction == 1:
 
         risk = 92
-        result = "High Risk"
+        result = t("High Risk")
         color = "#EF4444"
 
     else:
 
         risk = 8
-        result = "Low Risk"
+        result = t("Low Risk")
         color = "#22C55E"
 
     ai_gauge(risk)
@@ -358,7 +362,7 @@ elif st.session_state.step == 4:
     </h2>
 
     <p>
-    AI Prediction Completed Successfully
+    {t("AI Prediction Completed Successfully")}
     </p>
 
     </div>
@@ -377,7 +381,7 @@ elif st.session_state.step == 4:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             width="stretch"
         ):
 
@@ -391,7 +395,7 @@ elif st.session_state.step == 4:
     with col2:
 
         if st.button(
-            "💾 Save Result",
+            t("💾 Save Result"),
             width="stretch"
         ):
 
@@ -411,11 +415,11 @@ elif st.session_state.step == 4:
                     patient
                 )
 
-                st.success("Saved Successfully ✅")
+                st.success(t("Saved Successfully ✅"))
 
             except Exception as e:
 
-                st.error(f"Database Error : {e}")
+                st.error(f"{t('Database Error : ')}{e}")
 
     # ==========================
     # PDF
@@ -432,7 +436,7 @@ elif st.session_state.step == 4:
             )
 
             st.download_button(
-                "📄 Download PDF",
+                t("📄 Download PDF"),
                 pdf,
                 "Diabetes_Report.pdf",
                 mime="application/pdf",
@@ -441,12 +445,12 @@ elif st.session_state.step == 4:
 
         except Exception as e:
 
-            st.error(f"PDF Error : {e}")
+            st.error(f"{t('PDF Error : ')}{e}")
 
     st.write("")
 
     if st.button(
-        "🏠 Back To Dashboard",
+        t("🏠 Back To Dashboard"),
         width="stretch"
     ):
 
