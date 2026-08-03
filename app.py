@@ -1,7 +1,6 @@
 import streamlit as st
-import streamlit as st
+import translation
 
-st.switch_page("pages/Splash.py")
 
 st.set_page_config(
     page_title="HealthVibe AI",
@@ -9,26 +8,28 @@ st.set_page_config(
     layout="wide"
 )
 
+translation.init()
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
         unsafe_allow_html=True
     )
 
-st.markdown("""
+st.markdown(f"""
 
 <div style="text-align:center;padding-top:50px;">
 
 <h1 style="font-size:55px;color:#00C2FF;">
-🏥 HealthVibe AI
+🏥 {translation.t("HealthVibe AI")}
 </h1>
 
 <h3 style="color:white;">
-AI Clinical Decision Support Platform
+{translation.t("AI Clinical Decision Support Platform")}
 </h3>
 
 <p style="color:#94A3B8;font-size:20px;">
-Choose how you want to continue
+{translation.t("Choose how you want to continue")}
 </p>
 
 </div>
@@ -42,13 +43,13 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    st.markdown("## 👤 Patient")
+    st.markdown(f"## 👤 {translation.t('Patient')}")
 
-    st.write("Access your medical dashboard")
+    st.write(translation.t("Access your medical dashboard"))
 
     if st.button(
-        "Continue as Patient",
-        use_container_width=True
+        translation.t("Continue as Patient"),
+        width="stretch"
     ):
 
         st.session_state.role = "Patient"
@@ -57,13 +58,13 @@ with col1:
 
 with col2:
 
-    st.markdown("## 👨‍⚕️ Doctor")
+    st.markdown(f"## 👨‍⚕️ {translation.t('Doctor')}")
 
-    st.write("Access your doctor dashboard")
+    st.write(translation.t("Access your doctor dashboard"))
 
     if st.button(
-        "Continue as Doctor",
-        use_container_width=True
+        translation.t("Continue as Doctor"),
+        width="stretch"
     ):
 
         st.session_state.role = "Doctor"

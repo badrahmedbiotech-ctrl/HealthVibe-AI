@@ -1,594 +1,819 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
-import time
-from PIL import Image
 
-from utils.navigation import sidebar
+from components.auth_guard import require_patient
+require_patient()
 
-# ===========================================
-# PAGE CONFIG
-# ===========================================
-
-st.set_page_config(
-    page_title="Pulmonary Fibrosis AI",
-    page_icon="🫁",
-    layout="wide",
-    initial_sidebar_state="expanded"
+from components.database import (
+    get_profile,
+    create_tables,
+    save_assessment,
+    save_fibrosis
 )
 
-# ===========================================
-# LOAD CSS
-# ===========================================
+from utils.navigation import sidebar
+from components.stepper import stepper
+from components.patient_summary import patient_summary
+from components.ai_gauge import ai_gauge
+from components.loading_animation import ai_loading
+from components.pdf_report import create_pdf
+
+# ==========================================
+# PAGE CONFIG
+# ==========================================
+
+st.set_page_config(
+    page_title="Respiratory Disease Prediction",
+    page_icon="🫁",
+    layout="wide"
+)
+
+import translation
+translation.init()
+t = translation.t
 
 with open("style.css", encoding="utf-8") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
 sidebar()
 
-# ===========================================
-# LOAD MODEL
-# ===========================================
+# ==========================================
+# LOGIN CHECK
+# ==========================================
 
-model = joblib.load("models/respiratory_model.pkl")
+if "user" not in st.session_state:
+    st.switch_page("pages/Login.py")
+    st.stop()
+
+user = st.session_state.user
+
+profile = get_profile(user["id"])
+
+if profile is None:
+    st.warning(t("Please complete your profile first."))
+    st.switch_page("pages/Profile.py")
+    st.stop()
+
+# ==========================================
+# LOAD MODEL
+# ==========================================
+
+@st.cache_resource
+def load_model():
+    return joblib.load("models/respiratory_model.pkl")
+
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"{t('Model Loading Error: ')}{e}")
+    st.stop()
 
 dataset = pd.read_csv("dataset/Fibrosis_data.csv")
 
-symptoms_list = sorted(
-    dataset["Symptoms"].dropna().unique()
-)
+create_tables()
 
-# ===========================================
+# ==========================================
+# SESSION STATE
+# ==========================================
+
+if "step" not in st.session_state:
+    st.session_state.step = 1
+
+if "patient" not in st.session_state:
+    st.session_state.patient = {}
+
+if "analyzed" not in st.session_state:
+    st.session_state.analyzed = False
+
+if "prediction" not in st.session_state:
+    st.session_state.prediction = ""
+
+if "confidence" not in st.session_state:
+    st.session_state.confidence = 0
+
+patient = st.session_state.patient
+# ==========================================
 # HERO
-# ===========================================
+# ==========================================
 
-st.markdown("""
+progress = (st.session_state.step / 4) * 100
 
+st.markdown(f"""
 <div class="hero">
 
-<h1>
-🫁 Pulmonary Fibrosis AI
-</h1>
+<h1>🫁 {t("Respiratory Disease Prediction")}</h1>
 
 <p>
-
-Artificial Intelligence System for Respiratory Disease Prediction
-
+{t("AI Clinical Decision Support System")}
 </p>
+
+<div style="
+margin-top:20px;
+height:10px;
+background:#1E293B;
+border-radius:20px;
+overflow:hidden;
+">
+
+<div style="
+width:{progress}%;
+height:100%;
+background:linear-gradient(90deg,#00C2FF,#2563EB);
+">
+</div>
 
 </div>
 
+<p style="margin-top:10px;">
+{t("Step")} {st.session_state.step} / 4
+</p>
+
+</div>
 """, unsafe_allow_html=True)
 
-# ===========================================
-# TOP DASHBOARD
-# ===========================================
-
-st.subheader("📊 AI Dashboard")
-
-a,b,c,d = st.columns(4)
-
-with a:
-    st.metric(
-        "Diseases",
-        len(dataset["Disease"].unique())
-    )
-
-with b:
-    st.metric(
-        "Dataset",
-        f"{len(dataset):,}"
-    )
-
-with c:
-    st.metric(
-        "AI Accuracy",
-        "92.6%"
-    )
-
-with d:
-    st.metric(
-        "Status",
-        "🟢 Online"
-    )
-
-st.divider()
-
-# ===========================================
-# BASIC INFORMATION
-# ===========================================
-
-st.subheader("👤 Patient Information")
-
-left, right = st.columns(2)
-
-with left:
-
-    full_name = st.text_input(
-        "Full Name",
-        placeholder="Enter patient's full name"
-    )
-
-    age = st.number_input(
-        "Age",
-        1,
-        120,
-        30
-    )
-
-    gender = st.selectbox(
-        "Gender",
-        [
-            "Male",
-            "Female"
-        ]
-    )
-
-with right:
-
-    height = st.number_input(
-        "Height (cm)",
-        100,
-        250,
-        170
-    )
-
-    weight = st.number_input(
-        "Weight (kg)",
-        20,
-        250,
-        70
-    )
-
-    bmi = weight / ((height / 100) ** 2)
-
-    if bmi < 18.5:
-        bmi_status = "Underweight"
-
-    elif bmi < 25:
-        bmi_status = "Normal"
-
-    elif bmi < 30:
-        bmi_status = "Overweight"
-
-    else:
-        bmi_status = "Obese"
+stepper(st.session_state.step)
 
 st.write("")
 
-m1, m2, m3, m4 = st.columns(4)
+# ==========================================
+# STEP 1
+# ==========================================
 
-m1.metric("👤 Age", age)
-m2.metric("⚖ BMI", f"{bmi:.1f}")
-m3.metric("🚻 Gender", gender)
-m4.metric("📏 Height", f"{height} cm")
+if st.session_state.step == 1:
 
-st.progress(100 if full_name else 80)
+    st.subheader(t("👤 Patient Information"))
 
-st.caption("Patient Profile")
+    name = profile["full_name"] or ""
+    age = profile["age"] or 30
+    gender = profile["gender"] or "Male"
+    weight = profile["weight"] or 70.0
+    height = profile["height"] or 170.0
 
-st.divider()
+    bmi = round(weight / ((height / 100) ** 2), 1)
 
-# ===========================================
-# MEDICAL HISTORY
-# ===========================================
+    st.success(t("Patient information loaded successfully."))
 
-st.subheader("🩺 Medical History")
+    c1, c2, c3, c4 = st.columns(4)
 
-col1, col2 = st.columns(2)
+    c1.metric(t("Age"), age)
+    c2.metric(t("Weight"), f"{weight} kg")
+    c3.metric(t("Height"), f"{height} cm")
+    c4.metric(t("BMI"), bmi)
 
-with col1:
+    st.text_input(
+        t("Full Name"),
+        value=name,
+        disabled=True
+    )
+
+    st.text_input(
+        t("Gender"),
+        value=gender,
+        disabled=True
+    )
+
+    if st.button(
+        t("Next ➜"),
+        key="next_step1",
+        width="stretch"
+    ):
+
+        patient["name"] = name
+        patient["age"] = age
+        patient["gender"] = gender
+        patient["weight"] = weight
+        patient["height"] = height
+        patient["bmi"] = bmi
+
+        st.session_state.step = 2
+        st.rerun()
+# ==========================================
+# STEP 2
+# ==========================================
+
+elif st.session_state.step == 2:
+
+    st.subheader(t("🩺 Medical Information"))
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    symptoms = sorted(
+        dataset["Symptoms"]
+        .dropna()
+        .unique()
+        .tolist()
+    )
+
+    symptom = st.selectbox(
+        t("Main Symptom"),
+        symptoms,
+        index=0
+    )
 
     smoking = st.selectbox(
-        "Smoking Status",
+        t("Smoking Status"),
         [
-            "No",
-            "Former Smoker",
-            "Current Smoker"
+            t("Never"),
+            t("Former"),
+            t("Current")
         ]
     )
-
-    asthma = st.checkbox("Asthma")
-
-    copd = st.checkbox("COPD")
-
-    hypertension = st.checkbox("Hypertension")
-
-with col2:
-
-    diabetes = st.checkbox("Diabetes")
-
-    family_history = st.checkbox(
-        "Family History"
-    )
-
-    tuberculosis = st.checkbox(
-        "Tuberculosis"
-    )
-
-    lung_cancer = st.checkbox(
-        "Lung Cancer"
-    )
-
-st.divider()
-
-# ===========================================
-# SYMPTOMS
-# ===========================================
-
-st.subheader("🤒 Symptoms")
-
-symptom = st.selectbox(
-    "Main Symptom",
-    symptoms_list
-)
-
-st.divider()
-
-# ===========================================
-# LIFESTYLE
-# ===========================================
-
-st.subheader("🌍 Lifestyle")
-
-left, right = st.columns(2)
-
-with left:
 
     exercise = st.selectbox(
-        "Exercise",
+        t("Physical Activity"),
         [
-            "Regular",
-            "Sometimes",
-            "Rarely"
+            t("Regular"),
+            t("Sometimes"),
+            t("Rarely")
         ]
     )
 
-    occupation = st.text_input(
-        "Occupation"
+    pollution = st.selectbox(
+        t("Air Pollution Exposure"),
+        [
+            t("Low"),
+            t("Medium"),
+            t("High")
+        ]
+    )
+
+    chemicals = st.selectbox(
+        t("Chemical Exposure"),
+        [
+            t("No"),
+            t("Yes")
+        ]
     )
 
     sleep = st.slider(
-        "Sleep Hours",
+        t("Sleep Hours"),
         3,
         12,
         7
     )
 
-with right:
+    patient["symptom"] = symptom
+    patient["smoking"] = smoking
+    patient["exercise"] = exercise
+    patient["pollution"] = pollution
+    patient["chemicals"] = chemicals
+    patient["sleep"] = sleep
 
-    passive_smoking = st.selectbox(
-        "Passive Smoking",
-        [
-            "No",
-            "Yes"
-        ]
-    )
+    st.write("")
 
-    pollution = st.selectbox(
-        "Air Pollution",
-        [
-            "Low",
-            "Medium",
-            "High"
-        ]
-    )
+    col1, col2 = st.columns(2)
 
-    chemicals = st.selectbox(
-        "Chemical Exposure",
-        [
-            "No",
-            "Yes"
-        ]
-    )
+    with col1:
 
-st.divider()
+        if st.button(
+            t("⬅ Back"),
+            key="back_step2",
+            width="stretch"
+        ):
 
-# ===========================================
-# VITAL SIGNS
-# ===========================================
+            st.session_state.step = 1
+            st.rerun()
 
-st.subheader("❤️ Vital Signs")
+    with col2:
 
-left, right = st.columns(2)
+        if st.button(
+            t("Next ➜"),
+            key="next_step2",
+            width="stretch"
+        ):
 
-with left:
+            st.session_state.step = 3
+            st.rerun()
 
-    temperature = st.number_input(
-        "Temperature",
-        34.0,
-        42.0,
-        37.0
-    )
+    st.markdown("</div>", unsafe_allow_html=True) 
+# ==========================================
+# STEP 3
+# ==========================================
 
-    heart_rate = st.number_input(
-        "Heart Rate",
-        30,
-        200,
-        80
-    )
+elif st.session_state.step == 3:
 
-with right:
+    st.subheader(t("🧠 AI Prediction"))
 
-    spo2 = st.slider(
-        "SpO₂",
-        50,
-        100,
-        98
-    )
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
-    respiratory_rate = st.number_input(
-        "Respiratory Rate",
-        5,
-        40,
-        18
-    )
+    patient_summary(patient)
 
-st.divider()
+    st.divider()
 
-# ===========================================
-# CLINICAL TESTS
-# ===========================================
+    st.subheader(t("❤️ Vital Signs"))
 
-st.subheader("🧪 Clinical Tests")
+    col1, col2 = st.columns(2)
 
-c1, c2 = st.columns(2)
+    with col1:
 
-with c1:
-
-    ct_scan = st.selectbox(
-        "CT Scan",
-        [
-            "Normal",
-            "Abnormal"
-        ]
-    )
-
-    chest_xray = st.selectbox(
-        "Chest X-Ray",
-        [
-            "Normal",
-            "Abnormal"
-        ]
-    )
-
-with c2:
-
-    pft = st.selectbox(
-        "Pulmonary Function Test",
-        [
-            "Normal",
-            "Reduced"
-        ]
-    )
-
-    fibrosis_history = st.selectbox(
-        "Previous Fibrosis Diagnosis",
-        [
-            "No",
-            "Yes"
-        ]
-    )
-
-st.divider()
-
-# ===========================================
-# CT SCAN IMAGE
-# ===========================================
-
-st.divider()
-
-st.subheader("🩻 CT Scan Upload")
-
-uploaded_image = st.file_uploader(
-    "Upload Chest CT Scan",
-    type=["png", "jpg", "jpeg"]
-)
-
-if uploaded_image is not None:
-
-    image = Image.open(uploaded_image)
-
-    st.image(
-        image,
-        caption="Uploaded CT Scan",
-        use_container_width=True
-    )
-
-    st.success("✅ CT Scan Uploaded Successfully")
-
-# ===========================================
-# LIVE DASHBOARD
-# ===========================================
-
-st.subheader("📊 Live Patient Dashboard")
-
-d1, d2, d3, d4 = st.columns(4)
-
-d1.metric("BMI", f"{bmi:.1f}")
-d2.metric("SpO₂", f"{spo2}%")
-d3.metric("Heart Rate", f"{heart_rate} bpm")
-d4.metric("Temperature", f"{temperature:.1f} °C")
-
-st.divider()
-
-# ===========================================
-# AI ANALYSIS
-# ===========================================
-
-if st.button("🤖 Analyze Patient", use_container_width=True):
-
-    with st.spinner("🧠 AI is analyzing patient data..."):
-        time.sleep(2)
-
-        input_data = pd.DataFrame({
-            "Symptoms": [symptom],
-            "Age": [age],
-            "Sex": [gender.lower()]
-        })
-
-        prediction = model.predict(input_data)[0]
-
-        confidence = (
-            model.predict_proba(input_data)[0].max() * 100
+        spo2 = st.slider(
+            t("SpO₂ (%)"),
+            50,
+            100,
+            patient.get("spo2", 98)
         )
 
-    st.success("✅ Analysis Completed Successfully")
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.metric(
-            "🩺 Predicted Disease",
-            prediction
+        temperature = st.number_input(
+            t("Temperature (°C)"),
+            min_value=34.0,
+            max_value=42.0,
+            value=float(patient.get("temperature", 37.0)),
+            step=0.1
         )
 
-    with c2:
-        st.metric(
-            "🎯 Confidence",
-            f"{confidence:.2f}%"
+    with col2:
+
+        heart_rate = st.number_input(
+            t("Heart Rate (bpm)"),
+            min_value=30,
+            max_value=200,
+            value=int(patient.get("heart_rate", 80))
         )
+
+        respiratory_rate = st.number_input(
+            t("Respiratory Rate"),
+            min_value=5,
+            max_value=40,
+            value=int(patient.get("respiratory_rate", 18))
+        )
+
+    patient["spo2"] = spo2
+    patient["temperature"] = temperature
+    patient["heart_rate"] = heart_rate
+    patient["respiratory_rate"] = respiratory_rate
+
+    st.write("")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button(
+            t("⬅ Back"),
+            key="back_step3",
+            width="stretch"
+        ):
+
+            st.session_state.step = 2
+            st.rerun()
+
+    with col2:
+
+        if st.button(
+            t("🧠 Predict"),
+            key="predict_btn",
+            width="stretch"
+        ):
+
+            ai_loading()
+
+            input_data = pd.DataFrame([{
+
+                "Symptoms": patient["symptom"],
+                "Age": patient["age"],
+                "Sex": patient["gender"].lower()
+
+            }])
+
+            try:
+
+                prediction = model.predict(input_data)[0]
+
+                try:
+
+                    probability = float(
+                        model.predict_proba(input_data)[0].max()
+                    )
+
+                except:
+
+                    probability = 1.0
+
+            except Exception as e:
+
+                st.error(f"{t('Prediction Error : ')}{e}")
+                st.stop()
+
+            patient["prediction"] = prediction
+            patient["prediction_text"] = prediction
+            patient["probability"] = probability
+
+            st.session_state.step = 4
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)      
+# ==========================================
+# STEP 4
+# ==========================================
+
+elif st.session_state.step == 4:
+
+    st.subheader(t("📊 AI Prediction Result"))
+
+    prediction = patient.get("prediction_text", "Unknown")
+    probability = patient.get("probability", 0)
+
+    confidence = int(probability * 100)
+
+    ai_gauge(confidence)
 
     result = dataset[
         dataset["Disease"] == prediction
     ]
 
+    treatment = t("Consult your physician.")
+
+    nature = "Unknown"
+
     if not result.empty:
 
-        treatment = str(result.iloc[0]["Treatment"])
-        nature = str(result.iloc[0]["Nature"])
+        if "Treatment" in result.columns:
+            treatment = str(result.iloc[0]["Treatment"])
 
-        st.divider()
+        if "Nature" in result.columns:
+            nature = str(result.iloc[0]["Nature"])
 
-        st.subheader("💊 Suggested Treatment")
+    # ==========================
+    # COLORS
+    # ==========================
 
-        st.info(treatment)
+    if nature.lower() == "high":
 
-        st.subheader("🚨 Severity")
+        color = "#EF4444"
 
-        if nature.lower() == "high":
-            st.error("🔴 HIGH")
+    elif nature.lower() == "medium":
 
-        elif nature.lower() == "medium":
-            st.warning("🟡 MEDIUM")
+        color = "#F59E0B"
 
-        else:
-            st.success("🟢 LOW")
+    else:
 
-st.divider()
+        color = "#22C55E"
 
-# ===========================================
-# IMAGE ANALYSIS
-# ===========================================
+    st.markdown(f"""
+    <div class="card">
 
-if uploaded_image is not None:
+    <h2 style="color:{color};">
 
-    st.subheader("🩻 CT Scan Analysis")
+    {prediction}
 
-    st.info(
-        "🔬 AI Image Analysis Module Connected Successfully."
+    </h2>
+
+    <p>
+
+    {t("AI Prediction Completed Successfully")}
+
+    </p>
+
+    </div>
+
+    """, unsafe_allow_html=True)
+
+    patient_summary(patient)
+
+    st.divider()
+
+    st.subheader(t("💊 Suggested Treatment"))
+
+    st.info(treatment)
+
+    st.subheader(t("🚨 Disease Severity"))
+
+    if nature.lower() == "high":
+
+        st.error(t("🔴 High"))
+
+    elif nature.lower() == "medium":
+
+        st.warning(t("🟡 Medium"))
+
+    else:
+
+        st.success(t("🟢 Low"))
+
+    st.divider()
+
+    st.subheader(t("⚠ Medical Disclaimer"))
+
+    st.warning(t("""
+
+This AI prediction is intended for screening purposes only.
+
+It is NOT a confirmed medical diagnosis.
+
+Please consult a qualified healthcare professional
+for examination, confirmation and treatment.
+
+""")) 
+    st.write("")
+
+    col1, col2, col3 = st.columns(3)
+
+    # ==========================
+    # BACK
+    # ==========================
+
+    with col1:
+
+        if st.button(
+            t("⬅ Back"),
+            key="back_step4",
+            width="stretch"
+        ):
+
+            st.session_state.step = 3
+            st.rerun()
+
+    # ==========================
+    # SAVE
+    # ==========================
+
+    with col2:
+
+        if st.button(
+            t("💾 Save Result"),
+            key="save_fibrosis",
+            width="stretch"
+        ):
+
+            try:
+
+                assessment_id = save_assessment(
+
+                    user["id"],
+                    "Respiratory Disease",
+                    prediction,
+                    probability * 100
+
+                )
+
+                patient["prediction"] = prediction
+
+                save_fibrosis(
+
+                    assessment_id,
+                    patient
+
+                )
+
+                st.success(t("Saved Successfully ✅"))
+
+            except Exception as e:
+
+                st.error(f"{t('Database Error : ')}{e}")
+
+    # ==========================
+    # PDF
+    # ==========================
+
+    with col3:
+
+        if st.button(
+            t("📄 Download Report"),
+            key="pdf_respiratory",
+            width="stretch"
+        ):
+
+            pdf_patient = patient.copy()
+
+            pdf_patient["prediction"] = prediction
+            pdf_patient["probability"] = probability
+
+            pdf = create_pdf(pdf_patient)
+
+            with open(pdf, "rb") as file:
+
+                st.download_button(
+
+                    t("⬇ Download PDF"),
+
+                    data=file.read(),
+
+                    file_name="Respiratory_Report.pdf",
+
+                    mime="application/pdf",
+
+                    key="download_pdf"
+
+                )
+
+    st.divider()
+
+    if st.button(
+
+        t("🏠 Back To Dashboard"),
+
+        key="dashboard_btn",
+
+        width="stretch"
+
+    ):
+
+        st.session_state.step = 1
+        st.session_state.patient = {}
+
+        st.switch_page("pages/Dashboard.py")
+# ==========================================================
+# RESULTS
+# ==========================================================
+
+if st.session_state.analyzed:
+
+    st.divider()
+
+    st.header(t("📊 AI Analysis Result"))
+
+    prediction = st.session_state.prediction
+    confidence = st.session_state.confidence
+
+    if confidence >= 80:
+        color = "#EF4444"
+        level = "High Confidence"
+
+    elif confidence >= 60:
+        color = "#F59E0B"
+        level = "Moderate Confidence"
+
+    else:
+        color = "#22C55E"
+        level = "Low Confidence"
+
+    st.markdown(f"""
+    <div class="card">
+
+    <h2 style="color:{color};">
+    {prediction}
+    </h2>
+
+    <p>{t(level)}</p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.progress(int(confidence))
+
+    st.metric(
+        t("AI Confidence"),
+        f"{confidence:.1f}%"
     )
 
-    st.progress(85)
+    st.warning(t("""
+⚠️ This AI prediction is **not a medical diagnosis**.
 
-    st.success(
-        "No obvious severe fibrosis pattern detected."
-    )
+Please consult a pulmonologist to confirm the diagnosis and determine the appropriate treatment plan.
+"""))
 
-# ===========================================
-# PATIENT REPORT
-# ===========================================
+    st.divider()
 
-st.subheader("📋 Patient Report")
+    st.subheader(t("💡 General Recommendations"))
 
-left, right = st.columns(2)
+    recommendations = []
 
-with left:
+    recommendations.append(t("🩺 Visit a chest specialist."))
+    recommendations.append(t("🚭 Avoid smoking completely."))
+    recommendations.append(t("😷 Avoid dust and polluted air."))
+    recommendations.append(t("💧 Stay hydrated."))
+    recommendations.append(t("🏃 Maintain light physical activity if possible."))
 
-    st.metric("Name", full_name)
-    st.metric("Age", age)
-    st.metric("Gender", gender)
-    st.metric("BMI", f"{bmi:.1f}")
+    for rec in recommendations:
+        st.write(rec)
 
-with right:
+    st.divider()
 
-    st.metric("Smoking", smoking)
-    st.metric("SpO₂", f"{spo2}%")
-    st.metric("Heart Rate", f"{heart_rate} bpm")
-    st.metric("Temperature", f"{temperature:.1f} °C")
+    col1, col2, col3 = st.columns(3)
+
+    # ====================================
+    # BACK
+    # ====================================
+
+    with col1:
+
+        if st.button(
+            t("⬅ Back"),
+            key="back_result",
+            use_container_width=True
+        ):
+
+            st.session_state.page = 3
+            st.session_state.analyzed = False
+            st.rerun()
+
+    # ====================================
+    # SAVE
+    # ====================================
+
+    with col2:
+
+        if st.button(
+            t("💾 Save Result"),
+            key="save_result",
+            use_container_width=True
+        ):
+
+            assessment_id = save_assessment(
+
+                user["id"],
+
+                "Respiratory Diseases",
+
+                prediction,
+
+                confidence
+
+            )
+
+            patient = {
+
+                "oxygen": spo2,
+
+                "fev1": 0,
+
+                "fvc": 0,
+
+                "prediction": prediction
+
+            }
+
+            save_fibrosis(
+                assessment_id,
+                patient
+            )
+
+            st.success(t("Saved Successfully ✅"))
+
+        # ====================================
+    # PDF
+    # ====================================
+
+    with col3:
+
+        if st.button(
+            t("📄 Download Report"),
+            use_container_width=True
+        ):
+
+            patient = {
+                "name": profile["full_name"] if profile else "",
+                "age": age,
+                "gender": gender,
+                "bmi": bmi,
+                "prediction": prediction,
+                "probability": confidence / 100,
+                "symptom": symptom,
+                "spo2": spo2,
+                "heart_rate": heart_rate,
+                "temperature": temperature,
+                "smoking": smoking
+            }
+
+            pdf = create_pdf(patient)
+
+            with open(pdf, "rb") as file:
+
+                st.download_button(
+                    t("⬇ Download PDF"),
+                    data=file.read(),
+                    file_name="Respiratory_Report.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
 
 st.divider()
 
-# ===========================================
-# RISK CALCULATOR
-# ===========================================
+st.warning(t("""
+⚠️ **Medical Disclaimer**
 
-risk = 0
+This AI prediction is intended only for preliminary screening and educational purposes.
 
-if smoking == "Current Smoker":
-    risk += 30
+It **does not replace a physician's diagnosis**.
 
-if bmi >= 30:
-    risk += 20
+If you have persistent symptoms such as:
 
-if spo2 < 94:
-    risk += 30
+• Shortness of breath
+• Chest pain
+• Persistent cough
+• Fever
+• Coughing blood
 
-if symptom == "coughing":
-    risk += 10
+Please consult a pulmonologist or healthcare provider immediately.
 
-if symptom == "shortness of breath":
-    risk += 10
-
-if symptom == "tight feeling in the chest":
-    risk += 10
-
-if symptom == "wheezing":
-    risk += 10
-
-risk = min(risk, 100)
-
-st.subheader("📈 Risk Assessment")
-
-st.progress(risk)
-
-st.metric(
-    "Estimated Risk",
-    f"{risk}%"
-)
-
-if risk < 30:
-
-    st.success("🟢 LOW RISK")
-
-elif risk < 60:
-
-    st.warning("🟡 MODERATE RISK")
-
-else:
-
-    st.error("🔴 HIGH RISK")
-
-st.divider()
-
+Further investigations such as Chest X-ray, CT Scan, Pulmonary Function Test (PFT), blood tests, and clinical examination may be required to confirm the diagnosis.
+"""))
 st.markdown(
-"""
-<div style="text-align:center">
+f"""
+---
+<center>
 
-<h3 style="color:#00C2FF;">
-🫁 HealthVibe AI
-</h3>
+### 🫁 HealthVibe AI
 
-<p style="color:#94A3B8;">
-Pulmonary Fibrosis Intelligent Screening System
-</p>
+{t("Respiratory Disease Screening System")}
 
-<p style="color:gray;">
-Developed by <b>Badr Ahmed</b>
-</p>
+{t("Developed by ")}**Badr Ahmed**
 
-</div>
+</center>
 """,
 unsafe_allow_html=True
 )

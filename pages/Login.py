@@ -15,6 +15,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+import translation
+translation.init()
+t = translation.t
+
 create_users_table()
 
 # ==========================================
@@ -124,33 +128,34 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown(
-    '<div class="title">HealthVibe AI</div>',
+    f'<div class="title">{t("HealthVibe AI")}</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="subtitle">Welcome Back</div>',
+    f'<div class="subtitle">{t("Welcome Back")}</div>',
     unsafe_allow_html=True
 )
 
 role = st.radio(
-    "Login As",
+    t("Login As"),
     ["Patient", "Doctor"],
+    format_func=t,
     horizontal=True
 )
 
 email = st.text_input(
-    "📧 Email",
-    placeholder="Enter your email"
+    t("📧 Email"),
+    placeholder=t("Enter your email")
 )
 
 password = st.text_input(
-    "🔒 Password",
+    t("🔒 Password"),
     type="password",
-    placeholder="Enter your password"
+    placeholder=t("Enter your password")
 )
 
-remember = st.checkbox("Remember me")
+remember = st.checkbox(t("Remember me"))
 
 # ==========================================
 # LOGIN BUTTON
@@ -159,20 +164,20 @@ remember = st.checkbox("Remember me")
 st.write("")
 
 if st.button(
-    "🚀 Login",
-    use_container_width=True
+    t("🚀 Login"),
+    width="stretch"
 ):
 
     user = login_user(email, password)
 
     if user is None:
 
-        st.error("❌ Invalid Email or Password")
+        st.error(t("❌ Invalid Email or Password"))
 
     elif user["role"] != role:
 
         st.error(
-            f"This account belongs to a {user['role']}."
+            t("This account belongs to a {role}.").format(role=t(user["role"]))
         )
 
     else:
@@ -186,7 +191,7 @@ if st.button(
         st.session_state.email = user["email"]
         st.session_state.role = user["role"]
 
-        st.success("✅ Login Successful")
+        st.success(t("✅ Login Successful"))
 
         st.balloons()
 
@@ -196,17 +201,17 @@ if st.button(
 st.markdown("<br>", unsafe_allow_html=True)
 
 st.markdown(
-"""
+f"""
 <div style="text-align:center;color:#94A3B8;">
-Don't have an account?
+{t("Don't have an account?")}
 </div>
 """,
 unsafe_allow_html=True
 )
 
 if st.button(
-    "📝 Create New Account",
-    use_container_width=True
+    t("📝 Create New Account"),
+    width="stretch"
 ):
 
     st.session_state.role = role

@@ -1,45 +1,23 @@
 import streamlit as st
-
-from components.auth_guard import require_patient
-
-require_patient()
-
 import joblib
 import pandas as pd
 
-# ==========================
-# LOGIN CHECK
-# ==========================
+from components.auth_guard import require_patient
+require_patient()
 
-if "user" not in st.session_state:
-    st.switch_page("pages/Login.py")
-    st.stop()
-
-user = st.session_state["user"]
-
-from components.database import get_profile
-
-profile = get_profile(user["id"])
-
-if profile is None:
-    st.warning("Please complete your profile first.")
-    st.switch_page("pages/Profile.py")
-    st.stop()
+from components.database import (
+    get_profile,
+    create_tables,
+    save_assessment,
+    save_diabetes
+)
 
 from utils.navigation import sidebar
-from components.database import get_profile
 from components.stepper import stepper
-from components.result_card import result_card
-from components.recommendation import recommendation
 from components.patient_summary import patient_summary
 from components.ai_gauge import ai_gauge
 from components.loading_animation import ai_loading
 from components.pdf_report import create_pdf
-
-from components.database import (
-    create_tables,
-    save_patient
-)
 
 # ==========================================
 # PAGE CONFIG
@@ -51,6 +29,10 @@ st.set_page_config(
     layout="wide"
 )
 
+import translation
+translation.init()
+t = translation.t
+
 with open("style.css", encoding="utf-8") as f:
     st.markdown(
         f"<style>{f.read()}</style>",
@@ -60,6 +42,23 @@ with open("style.css", encoding="utf-8") as f:
 sidebar()
 
 # ==========================================
+# LOGIN CHECK
+# ==========================================
+
+if "user" not in st.session_state:
+    st.switch_page("pages/Login.py")
+    st.stop()
+
+user = st.session_state.user
+
+profile = get_profile(user["id"])
+
+if profile is None:
+    st.warning(t("Please complete your profile first."))
+    st.switch_page("pages/Profile.py")
+    st.stop()
+
+# ==========================================
 # MODEL
 # ==========================================
 
@@ -67,7 +66,11 @@ sidebar()
 def load_model():
     return joblib.load("models/diabetes_model.pkl")
 
-model = load_model()
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"{t('Model Loading Error: ')}{e}")
+    st.stop()
 
 create_tables()
 
@@ -84,17 +87,34 @@ if "patient" not in st.session_state:
 if "saved" not in st.session_state:
     st.session_state.saved = False
 
+patient = st.session_state.patient
+
 # ==========================================
 # HERO
 # ==========================================
 
-st.markdown("""
+progress = (st.session_state.step / 4) * 100
+
+st.markdown(f"""
 <div class="hero">
 
-<h1>🩸 Diabetes Assessment</h1>
+<h1>🩸 {t("Diabetes Prediction")}</h1>
 
-<p>
-Complete the following assessment to estimate diabetes risk.
+<p>{t("AI Clinical Decision Support System")}</p>
+
+<div style="margin-top:20px;height:10px;background:#1E293B;border-radius:20px;overflow:hidden;">
+
+<div style="
+width:{progress}%;
+height:100%;
+background:linear-gradient(90deg,#00C2FF,#2563EB);
+">
+</div>
+
+</div>
+
+<p style="margin-top:10px;">
+{t("Step")} {st.session_state.step} / 4
 </p>
 
 </div>
@@ -110,7 +130,7 @@ st.write("")
 
 if st.session_state.step == 1:
 
-    st.subheader("👤 Patient Information")
+    st.subheader(t("👤 Patient Information"))
 
     name = profile["full_name"] or ""
     age = profile["age"] or 20
@@ -118,32 +138,24 @@ if st.session_state.step == 1:
     weight = profile["weight"] or 70.0
     height = profile["height"] or 170.0
 
-    st.success("✅ Patient information loaded from your profile.")
+    st.success(t("Patient information loaded successfully."))
 
-    col1, col2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
 
-    with col1:
-        st.text_input("Full Name", value=name, disabled=True)
-        st.number_input("Age", value=int(age), disabled=True)
-        st.text_input("Gender", value=gender, disabled=True)
+    c1.metric(t("Age"), age)
+    c2.metric(t("Weight"), f"{weight} kg")
+    c3.metric(t("Height"), f"{height} cm")
 
-    with col2:
-        st.number_input("Weight (kg)", value=float(weight), disabled=True)
-        st.number_input("Height (cm)", value=float(height), disabled=True)
+    st.text_input(t("Full Name"), value=name, disabled=True)
+    st.text_input(t("Gender"), value=t(gender), disabled=True)
 
-    st.write("")
+    if st.button(t("Next ➜"), width="stretch"):
 
-    if st.button(
-        "Next ➜",
-        key="next_step1",
-        use_container_width=True
-    ):
-
-        st.session_state.patient["name"] = name
-        st.session_state.patient["age"] = age
-        st.session_state.patient["gender"] = gender
-        st.session_state.patient["weight"] = weight
-        st.session_state.patient["height"] = height
+        patient["name"] = name
+        patient["age"] = age
+        patient["gender"] = gender
+        patient["weight"] = weight
+        patient["height"] = height
 
         st.session_state.step = 2
         st.rerun()
@@ -154,35 +166,49 @@ if st.session_state.step == 1:
 
 elif st.session_state.step == 2:
 
-    st.subheader("🩺 Medical Information")
+    st.subheader(t("🩺 Medical Information"))
 
-    pregnancies = st.number_input(
-        "Pregnancies",
-        min_value=0,
-        max_value=20,
-        value=st.session_state.patient.get("pregnancies", 0)
-    )
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    # Female Only
+    if patient["gender"] == "Female":
+
+        pregnancies = st.number_input(
+            t("Pregnancies"),
+            min_value=0,
+            max_value=20,
+            value=patient.get("pregnancies", 0)
+        )
+
+    else:
+
+        pregnancies = 0
 
     glucose = st.number_input(
-        "Glucose",
+        t("Glucose"),
         min_value=50,
         max_value=300,
-        value=st.session_state.patient.get("glucose", 120)
+        value=patient.get("glucose", 120)
     )
 
     blood_pressure = st.number_input(
-        "Blood Pressure",
+        t("Blood Pressure"),
         min_value=40,
         max_value=200,
-        value=st.session_state.patient.get("blood_pressure", 70)
+        value=patient.get("blood_pressure", 70)
     )
 
     insulin = st.number_input(
-        "Insulin",
+        t("Insulin"),
         min_value=0,
         max_value=900,
-        value=st.session_state.patient.get("insulin", 80)
+        value=patient.get("insulin", 80)
     )
+
+    patient["pregnancies"] = pregnancies
+    patient["glucose"] = glucose
+    patient["blood_pressure"] = blood_pressure
+    patient["insulin"] = insulin
 
     st.write("")
 
@@ -191,29 +217,26 @@ elif st.session_state.step == 2:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step2",
-            use_container_width=True
+            width="stretch"
         ):
+
             st.session_state.step = 1
             st.rerun()
 
     with col2:
 
         if st.button(
-            "Next ➜",
+            t("Next ➜"),
             key="next_step2",
-            use_container_width=True
+            width="stretch"
         ):
-
-            st.session_state.patient["pregnancies"] = pregnancies
-            st.session_state.patient["glucose"] = glucose
-            st.session_state.patient["blood_pressure"] = blood_pressure
-            st.session_state.patient["insulin"] = insulin
 
             st.session_state.step = 3
             st.rerun()
 
+    st.markdown("</div>", unsafe_allow_html=True)        
 
 # ==========================================
 # STEP 3
@@ -221,29 +244,36 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader("📊 Additional Measurements")
+    st.subheader(t("📋 Clinical Measurements"))
 
-    skin_thickness = st.number_input(
-        "Skin Thickness",
-        min_value=0,
-        max_value=100,
-        value=st.session_state.patient.get("skin_thickness", 20)
-    )
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     bmi = st.number_input(
-        "BMI",
+        t("BMI"),
         min_value=10.0,
-        max_value=70.0,
-        value=st.session_state.patient.get("bmi", 25.0)
+        max_value=80.0,
+        value=float(patient.get("bmi", 25.0)),
+        step=0.1
     )
 
-    pedigree = st.number_input(
-        "Diabetes Pedigree Function",
+    skin = st.number_input(
+        t("Skin Thickness"),
+        min_value=0,
+        max_value=100,
+        value=int(patient.get("skin", 20))
+    )
+
+    dpf = st.number_input(
+        t("Diabetes Pedigree Function"),
         min_value=0.0,
         max_value=3.0,
-        value=st.session_state.patient.get("pedigree", 0.500),
-        format="%.3f"
+        value=float(patient.get("dpf", 0.5)),
+        step=0.01
     )
+
+    patient["bmi"] = bmi
+    patient["skin"] = skin
+    patient["dpf"] = dpf
 
     st.write("")
 
@@ -252,198 +282,177 @@ elif st.session_state.step == 3:
     with col1:
 
         if st.button(
-            "⬅ Back",
+            t("⬅ Back"),
             key="back_step3",
-            use_container_width=True
+            width="stretch"
         ):
             st.session_state.step = 2
             st.rerun()
 
     with col2:
 
-        if st.button(
-            "🤖 Analyze with AI",
-            key="analyze_ai",
-            use_container_width=True
-        ):
+     if st.button(
+        t("🧠 Predict"),
+        key="predict_btn",
+        width="stretch"
+    ):
 
-            st.session_state.patient["skin_thickness"] = skin_thickness
-            st.session_state.patient["bmi"] = bmi
-            st.session_state.patient["pedigree"] = pedigree
+        ai_loading()
 
-            st.session_state.step = 4
-            st.rerun()
+        input_data = pd.DataFrame([{
+            "Pregnancies": patient["pregnancies"],
+            "Glucose": patient["glucose"],
+            "BloodPressure": patient["blood_pressure"],
+            "SkinThickness": patient["skin"],
+            "Insulin": patient["insulin"],
+            "BMI": patient["bmi"],
+            "DiabetesPedigreeFunction": patient["dpf"],
+            "Age": patient["age"]
+        }])
+
+        try:
+            prediction = model.predict(input_data)[0]
+
+            if hasattr(model, "predict_proba"):
+                probability = float(model.predict_proba(input_data)[0][1])
+            else:
+                probability = 1.0 if prediction == 1 else 0.0
+
+            patient["prediction"] = int(prediction)
+            patient["probability"] = probability
+
+        except Exception as e:
+            st.error(f"{t('Prediction Error : ')}{e}")
+            st.stop()
+
+        st.session_state.step = 4
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # ==========================================
 # STEP 4
 # ==========================================
 
 elif st.session_state.step == 4:
 
-    st.subheader("🤖 AI Analysis Result")
+    st.subheader(t("📊 AI Prediction Result"))
 
-    patient = st.session_state.patient
+    prediction = patient.get("prediction", 0)
 
-    input_data = pd.DataFrame(
-        [[
-            patient["pregnancies"],
-            patient["glucose"],
-            patient["blood_pressure"],
-            patient["skin_thickness"],
-            patient["insulin"],
-            patient["bmi"],
-            patient["pedigree"],
-            patient["age"]
-        ]],
-        columns=[
-            "Pregnancies",
-            "Glucose",
-            "BloodPressure",
-            "SkinThickness",
-            "Insulin",
-            "BMI",
-            "DiabetesPedigreeFunction",
-            "Age"
-        ]
-    )
+    if prediction == 1:
 
-    ai_loading()
+        risk = 92
+        result = t("High Risk")
+        color = "#EF4444"
 
-    prediction = model.predict(input_data)[0]
+    else:
 
-    try:
-        probability = model.predict_proba(input_data)[0][1]
-    except Exception:
-        probability = 0
+        risk = 8
+        result = t("Low Risk")
+        color = "#22C55E"
 
-    patient["prediction"] = int(prediction)
-    patient["probability"] = float(probability)
+    ai_gauge(risk)
 
-    if not st.session_state.saved:
+    st.markdown(f"""
+    <div class="card">
 
-        patient["user_id"] = st.session_state.user["id"]
+    <h2 style="color:{color};">
+    {result}
+    </h2>
 
-        save_patient(patient)
+    <p>
+    {t("AI Prediction Completed Successfully")}
+    </p>
 
-        st.session_state.saved = True
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.success("Analysis Completed Successfully ✅")
-
-    ai_gauge(probability)
+    patient_summary(patient)
 
     st.write("")
 
-    result_card(
-        prediction,
-        probability
-    )
+    col1, col2, col3 = st.columns(3)
 
-    st.write("")
-
-    recommendation(prediction)
-
-    st.write("")
-
-    patient_summary({
-
-        "Full Name": patient["name"],
-        "Age": patient["age"],
-        "Gender": patient["gender"],
-        "Weight (kg)": patient["weight"],
-        "Height (cm)": patient["height"],
-        "Pregnancies": patient["pregnancies"],
-        "Glucose": patient["glucose"],
-        "Blood Pressure": patient["blood_pressure"],
-        "Skin Thickness": patient["skin_thickness"],
-        "Insulin": patient["insulin"],
-        "BMI": patient["bmi"],
-        "Pedigree": patient["pedigree"]
-
-    })
-
-    st.divider()
-
-    st.subheader("📄 Medical Report")
-
-    pdf_file = create_pdf(patient)
-
-    with open(pdf_file, "rb") as pdf:
-
-        st.download_button(
-
-            "⬇ Download PDF Report",
-
-            data=pdf,
-
-            file_name=pdf_file,
-
-            mime="application/pdf",
-
-            use_container_width=True
-
-        )
-
-    st.divider()
-
-    col1, col2 = st.columns(2)
+    # ==========================
+    # BACK
+    # ==========================
 
     with col1:
 
         if st.button(
-
-            "⬅ Back",
-
-            key="back_step4",
-
-            use_container_width=True
-
+            t("⬅ Back"),
+            width="stretch"
         ):
 
             st.session_state.step = 3
-
             st.rerun()
+
+    # ==========================
+    # SAVE
+    # ==========================
 
     with col2:
 
         if st.button(
-
-            "🔄 New Assessment",
-
-            key="new_assessment",
-
-            use_container_width=True
-
+            t("💾 Save Result"),
+            width="stretch"
         ):
 
-            st.session_state.step = 1
-            st.session_state.patient = {}
-            st.session_state.saved = False
+            try:
 
-            st.rerun()
+                assessment_id = save_assessment(
+                    user["id"],
+                   "Diabetes",
+                    prediction,
+                    patient.get("probability", 0)
+                )
 
-# ==========================================
-# FOOTER
-# ==========================================
+                patient["prediction"] = prediction
 
-st.divider()
+                save_diabetes(
+                    assessment_id,
+                    patient
+                )
 
-st.markdown("""
+                st.success(t("Saved Successfully ✅"))
 
-<div class="footer">
+            except Exception as e:
 
-<h2 style="color:#00C2FF;">
-HealthVibe AI
-</h2>
+                st.error(f"{t('Database Error : ')}{e}")
 
-<p>
-AI-powered Diabetes Prediction System
-</p>
+    # ==========================
+    # PDF
+    # ==========================
 
-<hr>
+    with col3:
 
-<p style="color:#94A3B8;">
-Developed by <b>Badr Ahmed</b>
-</p>
+        try:
 
-</div>
+            pdf = create_pdf(
+                "Diabetes Report",
+                patient,
+                prediction
+            )
 
-""", unsafe_allow_html=True)
+            st.download_button(
+                t("📄 Download PDF"),
+                pdf,
+                "Diabetes_Report.pdf",
+                mime="application/pdf",
+                width="stretch"
+            )
+
+        except Exception as e:
+
+            st.error(f"{t('PDF Error : ')}{e}")
+
+    st.write("")
+
+    if st.button(
+        t("🏠 Back To Dashboard"),
+        width="stretch"
+    ):
+
+        st.session_state.step = 1
+        st.switch_page("pages/Dashboard.py")

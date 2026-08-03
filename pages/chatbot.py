@@ -8,10 +8,16 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 
+ HEAD
 load_dotenv(dotenv_path=".env")
 import os
 api_key = os.getenv("GROQ_API_KEY")
 print("API Key:", api_key)
+
+from utils.navigation import sidebar
+
+load_dotenv() 
+     origin/main
 # ==========================
 # Page Config
 # ==========================
@@ -21,11 +27,55 @@ st.set_page_config(
     layout="centered",
 )
 
+import translation
+translation.init()
+
+# ==========================
+# CHAT INITIALIZATION
+# ==========================
+
+if "all_chats" not in st.session_state:
+    st.session_state.all_chats = {}
+
+if "current_chat" not in st.session_state:
+
+    chat_id = str(uuid.uuid4())
+
+    st.session_state.current_chat = chat_id
+
+    st.session_state.all_chats[chat_id] = {
+
+        "title": "New Chat",
+
+        "messages": [
+            {
+                "role": "assistant",
+                "content": "مرحباً 👋 أنا مساعدك الصحي الذكي HealthVibe AI. كيف يمكنني مساعدتك اليوم؟"
+            }
+        ]
+    }
+
+
+# ==========================
+# LOAD CURRENT CHAT
+# ==========================
+
+current_chat_id = st.session_state.current_chat
+
+st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
+
+# ==========================================
+# SIDEBAR
+# ==========================================
+
+sidebar()
+
 # ==========================
 # Title
 # ==========================
 st.title("🩺 HealthVibe AI")
 st.caption("Your healthcare assistant")
+
 
 # ==========================
 # LOAD DATASETS
@@ -63,6 +113,7 @@ if "datasets" not in st.session_state:
     st.session_state.datasets = load_datasets()
 
 # ==========================
+ HEAD
 # Sidebar (Chat History)
 # ==========================
 
@@ -113,6 +164,7 @@ current_chat_id = st.session_state.current_chat
 st.session_state.messages = st.session_state.all_chats[current_chat_id]["messages"]
 
 # ==========================
+     origin/main
 # Groq Client
 # ==========================
 

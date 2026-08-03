@@ -1,180 +1,221 @@
 import streamlit as st
+from utils.navigation import sidebar
 
-from components.theme import apply_theme
-
-from components.preferences import (
-    init_preferences,
-    set_theme,
-    set_language
-)
+# ==========================================
+# PAGE CONFIG
+# ==========================================
 
 st.set_page_config(
     page_title="Settings",
     page_icon="⚙️",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-init_preferences()
-apply_theme()
+import translation
+translation.init()
 
-# أول مرة يفتح Settings
-if "settings_page" not in st.session_state:
-    st.session_state.settings_page = "home"
+# ==========================================
+# CSS
+# ==========================================
 
-# ==========================
-# الصفحة الرئيسية
-# ==========================
-if st.session_state.settings_page == "home":
+with open("style.css", encoding="utf-8") as f:
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
-    st.title("⚙️ Settings")
+sidebar()
 
-    if st.button("👤 My Profile", use_container_width=True):
-        st.session_state.settings_page = "profile"
-        st.rerun()
+# ==========================================
+# LOGIN
+# ==========================================
 
-    if st.button("🌙 Appearance", use_container_width=True):
-        st.session_state.settings_page = "appearance"
-        st.rerun()
+if "logged_in" not in st.session_state:
+    st.switch_page("app.py")
+    st.stop()
 
-    if st.button("🌐 Language", use_container_width=True):
-        st.session_state.settings_page = "language"
-        st.rerun()
+user = st.session_state.user
 
-    if st.button("🔔 Notifications", use_container_width=True):
-        st.session_state.settings_page = "notifications"
-        st.rerun()
+username = user["username"]
+role = user["role"]
 
-    if st.button("🤖 AI Assistant", use_container_width=True):
-        st.session_state.settings_page = "ai"
-        st.rerun()
+# ==========================================
+# HERO
+# ==========================================
 
-    if st.button("🔒 Privacy & Security", use_container_width=True):
-        st.session_state.settings_page = "privacy"
-        st.rerun()
+st.markdown(f"""
+<div class="hero">
 
-    if st.button("ℹ️ About", use_container_width=True):
-        st.session_state.settings_page = "about"
-        st.rerun()
+<span class="hero-badge">
+⚙️ {translation.t("⚙️ System Settings")}
+</span>
 
-    if st.button("🚪 Log Out", use_container_width=True):
-        st.session_state.settings_page = "logout"
-        st.rerun()
+<div style="display:flex;justify-content:space-between;align-items:center;">
 
+<div>
 
-# ==========================
-# My Profile
-# ==========================
-elif st.session_state.settings_page == "profile":
+<h1>
+{translation.t("Settings")}
+</h1>
 
-    st.title("👤 My Profile")
+<p>
+
+{translation.t("Welcome")} {username}
+
+</p>
+
+</div>
+
+<div style="font-size:95px;">
+⚙️
+</div>
+
+</div>
+
+</div>
+""", unsafe_allow_html=True)
+
+st.write("")
+
+# ==========================================
+# ACCOUNT SETTINGS
+# ==========================================
+
+st.subheader(translation.t("👤 Account Settings"))
+
+c1, c2 = st.columns(2)
+
+with c1:
 
     st.text_input(
-        "Full Name",
-        value=st.session_state.get("username", ""),
+        translation.t("Username"),
+        value=username,
         disabled=True
     )
 
     st.text_input(
-        "Email",
-        value=st.session_state.get("email", ""),
+        translation.t("Role"),
+        value=role,
+        disabled=True
+    )
+
+with c2:
+
+    email = st.text_input(
+        translation.t("Email"),
+        value=st.session_state.user.get("email", ""),
         disabled=True
     )
 
     st.text_input(
-        "Role",
-        value=st.session_state.get("role", ""),
+        translation.t("Status"),
+        value=translation.t("Active"),
         disabled=True
     )
 
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
+st.divider()
 
+# ==========================================
+# SYSTEM SETTINGS
+# ==========================================
 
-# ==========================
-# باقي الصفحات (مؤقتًا)
-# ==========================
-elif st.session_state.settings_page == "appearance":
+st.subheader(translation.t("⚙️ Preferences"))
 
-    st.title("🌙 Appearance")
+dark_mode = st.toggle(
+    translation.t("Dark Mode"),
+    value=True
+)
 
-    theme = st.radio(
-        "Choose Theme",
-        ["Dark", "Light"],
-        index=0 if st.session_state.theme == "Dark" else 1
+notifications = st.toggle(
+    translation.t("Enable Notifications"),
+    value=True
+)
+
+ai_recommendation = st.toggle(
+    translation.t("AI Recommendations"),
+    value=True
+)
+
+language = st.selectbox(
+    translation.t("Language"),
+    [
+        "English",
+        "Arabic"
+    ],
+    format_func=translation.t
+)
+
+st.divider()
+
+st.write("")
+
+# ==========================================
+# ACCOUNT SETTINGS
+# ==========================================
+
+st.subheader(translation.t("👤 Account Settings"))
+
+c1, c2 = st.columns(2)
+
+with c1:
+
+    st.text_input(
+        translation.t("Username"),
+        value=username,
+        disabled=True
     )
 
-    if st.button("Save Theme", use_container_width=True):
-        set_theme(theme)
-        st.success("Theme updated successfully ✅")
-
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
-
-
-elif st.session_state.settings_page == "language":
-
-    st.title("🌐 Language")
-
-    language = st.selectbox(
-        "Choose Language",
-        ["English", "العربية"],
-        index=0 if st.session_state.language == "English" else 1
+    st.text_input(
+        translation.t("Role"),
+        value=role,
+        disabled=True
     )
 
-    if st.button("Save Language", use_container_width=True):
-        set_language(language)
-        st.success("Language updated successfully ✅")
+with c2:
 
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
+    email = st.text_input(
+        translation.t("Email"),
+        value=st.session_state.user.get("email", ""),
+        disabled=True
+    )
 
-elif st.session_state.settings_page == "notifications":
+    st.text_input(
+        translation.t("Status"),
+        value=translation.t("Active"),
+        disabled=True
+    )
 
-    st.title("🔔 Notifications")
+st.divider()
 
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
+# ==========================================
+# SYSTEM SETTINGS
+# ==========================================
 
+st.subheader(translation.t("⚙️ Preferences"))
 
-elif st.session_state.settings_page == "ai":
+dark_mode = st.toggle(
+    translation.t("Dark Mode"),
+    value=True
+)
 
-    st.title("🤖 AI Assistant")
+notifications = st.toggle(
+    translation.t("Enable Notifications"),
+    value=True
+)
 
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
+ai_recommendation = st.toggle(
+    translation.t("AI Recommendations"),
+    value=True
+)
 
+language = st.selectbox(
+    translation.t("Language"),
+    [
+        "English",
+        "Arabic"
+    ],
+    format_func=translation.t
+)
 
-elif st.session_state.settings_page == "privacy":
-
-    st.title("🔒 Privacy & Security")
-
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
-
-
-elif st.session_state.settings_page == "about":
-
-    st.title("ℹ️ About")
-
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
-
-
-elif st.session_state.settings_page == "logout":
-
-    st.title("🚪 Log Out")
-
-    if st.button("Confirm Log Out"):
-        st.session_state.clear()
-        st.switch_page("pages/Login.py")
-
-    if st.button("⬅️ Back"):
-        st.session_state.settings_page = "home"
-        st.rerun()
+st.divider()

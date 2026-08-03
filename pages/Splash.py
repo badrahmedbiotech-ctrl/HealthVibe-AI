@@ -8,6 +8,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+import translation
+translation.init()
+
 st.markdown("""
 <style>
 #MainMenu{visibility:hidden;}
@@ -25,7 +28,7 @@ border-radius:25px;
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
+st.markdown(f"""
 <h1 style="text-align:center;
 color:#00C2FF;
 font-size:60px;">
@@ -33,22 +36,22 @@ font-size:60px;">
 </h1>
 
 <h1 style="text-align:center;">
-HealthVibe AI
+{translation.t("HealthVibe AI")}
 </h1>
 
 <p style="text-align:center;color:gray;">
-AI Clinical Decision Support System
+{translation.t("AI Clinical Decision Support System")}
 </p>
 """, unsafe_allow_html=True)
 st.markdown(
-"""
-<h1 style='color:white;'>HealthVibe AI</h1>
-<h4 style='color:#10B981;'>Vibe Better, Live Better</h4>
+f"""
+<h1 style='color:white;'>{translation.t("HealthVibe AI")}</h1>
+<h4 style='color:#10B981;'>{translation.t("Vibe Better, Live Better")}</h4>
 """,
 unsafe_allow_html=True
 )
 
-st.spinner("Loading...")
+st.spinner(translation.t("Loading..."))
 
 time.sleep(2)
 

@@ -1,474 +1,546 @@
 import streamlit as st
-import pandas as pd
 import joblib
-from sklearn.preprocessing import LabelEncoder
+import pandas as pd
+
+
+from components.auth_guard import require_patient
+require_patient()
+
+from components.database import (
+    get_profile,
+    save_assessment,
+    save_obesity
+)
+
+from utils.navigation import sidebar
+from components.stepper import stepper
+from components.patient_summary import patient_summary
+from components.ai_gauge import ai_gauge
+from components.loading_animation import ai_loading
+from components.pdf_report import create_pdf
+
+# ==========================================
+# PAGE CONFIG
+# ==========================================
 
 st.set_page_config(
-    page_title="HealthVibe - Obesity",
+    page_title="Obesity Prediction",
     page_icon="⚖️",
     layout="wide"
 )
 
-st.title("⚖️ Obesity Prediction")
-st.write("Enter your information to predict your obesity level.")
+import translation
+translation.init()
 
-# ======================
-# Load Model
-# ======================
+with open("style.css", encoding="utf-8") as f:
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
+
+sidebar()
+# ==========================================
+# LOGIN CHECK
+# ==========================================
+
+if "user" not in st.session_state:
+    st.switch_page("pages/Login.py")
+    st.stop()
+
+user = st.session_state.user
+
+profile = get_profile(user["id"])
+
+if profile is None:
+    st.warning(translation.t("Please complete your profile first."))
+    st.switch_page("pages/Profile.py")
+    st.stop()
+
+# ==========================================
+# LOAD MODEL
+# ==========================================
 
 model = joblib.load("models/obesity_model.pkl")
 
-encoder = LabelEncoder()
+if "step" not in st.session_state:
+    st.session_state.step = 1
 
-prediction = None
-result = None
-confidence = None
+if "patient" not in st.session_state:
+    st.session_state.patient = {}
 
-# ======================
-# Inputs
-# ======================
+patient = st.session_state.patient
 
-gender = st.selectbox(
-    "Gender",
-    ["Male", "Female"]
-)
+# ==========================================
+# STEP INDICATOR
+# ==========================================
 
-age = st.number_input(
-    "Age",
-    min_value=1,
-    max_value=100,
-    value=25
-)
+st.title(translation.t("⚖️ Obesity Prediction"))
 
-height = st.number_input(
-    "Height (meters)",
-    min_value=1.00,
-    max_value=2.50,
-    value=1.70
-)
+stepper(st.session_state.step)
 
-weight = st.number_input(
-    "Weight (kg)",
-    min_value=20,
-    max_value=250,
-    value=70
-)
+# ==========================================
+# STEP 1
+# ==========================================
 
-bmi = weight / (height ** 2)
+if st.session_state.step == 1:
 
-st.metric(
-    "Current BMI",
-    round(bmi,2)
-)
+    st.subheader(translation.t("👤 Personal Information"))
 
-family_history = st.selectbox(
-    "Family history with overweight",
-    ["yes","no"]
-)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
-high_calorie = st.selectbox(
-    "Frequent high calorie food",
-    ["yes","no"]
-)
-
-vegetables = st.slider(
-    "Vegetable Consumption",
-    1,
-    3,
-    2
-)
-
-meals = st.slider(
-    "Main Meals per Day",
-    1,
-    4,
-    3
-)
-
-snacks = st.selectbox(
-    "Food Between Meals",
-    [
-        "no",
-        "Sometimes",
-        "Frequently",
-        "Always"
-    ]
-)
-
-smoke = st.selectbox(
-    "Smoking",
-    [
-        "yes",
-        "no"
-    ]
-)
-
-water = st.slider(
-    "Water Intake",
-    1.0,
-    3.0,
-    2.0
-)
-
-calories = st.selectbox(
-    "Calories Monitoring",
-    [
-        "yes",
-        "no"
-    ]
-)
-
-activity = st.slider(
-    "Physical Activity",
-    0.0,
-    3.0,
-    1.0
-)
-
-technology = st.slider(
-    "Technology Time",
-    0.0,
-    2.0,
-    1.0
-)
-
-alcohol = st.selectbox(
-    "Alcohol Consumption",
-    [
-        "no",
-        "Sometimes",
-        "Frequently"
-    ]
-)
-
-transport = st.selectbox(
-    "Transportation",
-    [
-        "Walking",
-        "Bike",
-        "Motorbike",
-        "Automobile",
-        "Public_Transportation"
-    ]
-)
-# ======================
-# Prediction
-# ======================
-
-if st.button("🔍 Predict"):
-
-    gender_enc = encoder.fit_transform([gender])[0]
-    family_enc = encoder.fit_transform([family_history])[0]
-    high_calorie_enc = encoder.fit_transform([high_calorie])[0]
-    snacks_enc = encoder.fit_transform([snacks])[0]
-    smoke_enc = encoder.fit_transform([smoke])[0]
-    calories_enc = encoder.fit_transform([calories])[0]
-    alcohol_enc = encoder.fit_transform([alcohol])[0]
-    transport_enc = encoder.fit_transform([transport])[0]
-
-    data = pd.DataFrame([[
-        gender_enc,
-        age,
-        height,
-        weight,
-        family_enc,
-        high_calorie_enc,
-        vegetables,
-        meals,
-        snacks_enc,
-        smoke_enc,
-        water,
-        calories_enc,
-        activity,
-        technology,
-        alcohol_enc,
-        transport_enc
-    ]], columns=[
-        "Gender",
-        "Age",
-        "Height",
-        "Weight",
-        "Family history with overweight",
-        "Frequent consumption of high-caloric food",
-        "Frequency of vegetable consumption",
-        "Number of main meals the person eats per day",
-        "Consumption of food between meals",
-        "SMOKE",
-        "Daily water consumption",
-        "Whether the person takes calorie supplements",
-        "Physical activity frequency",
-        "Time spent using technology",
-        "Alcohol consumption",
-        "Means of transportation used"
-    ])
-
-    prediction = model.predict(data)
-    probability = model.predict_proba(data)[0]
-    confidence = probability.max() * 100
-
-    labels = {
-        0: "Insufficient Weight",
-        1: "Normal Weight",
-        2: "Overweight Level I",
-        3: "Overweight Level II",
-        4: "Obesity Type I",
-        5: "Obesity Type II",
-        6: "Obesity Type III"
-    }
-
-    result = labels[int(prediction[0])]
-# ======================
-# Prediction Summary
-# ======================
-
-if prediction is not None:
-
-    st.divider()
-
-    st.subheader("📊 Prediction Summary")
-
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
-        st.metric(
-            "⚖️ BMI",
-            round(bmi, 2)
+
+        gender = st.selectbox(
+            translation.t("Gender"),
+            ["Male", "Female"],
+            index=0 if patient.get("gender", "Male") == "Male" else 1,
+            format_func=translation.t
+        )
+
+        age = st.number_input(
+            translation.t("Age"),
+            min_value=1,
+            max_value=100,
+            value=int(patient.get("age", 25))
         )
 
     with col2:
-        st.metric(
-            "🧠 AI Prediction",
-            result
+
+        height = st.number_input(
+            translation.t("Height (m)"),
+            min_value=1.00,
+            max_value=2.50,
+            value=float(patient.get("height", 1.70)),
+            step=0.01
         )
+
+        weight = st.number_input(
+            translation.t("Weight (kg)"),
+            min_value=20,
+            max_value=250,
+            value=int(patient.get("weight", 70))
+        )
+
+    bmi = weight / (height ** 2)
+
+    st.metric(
+        translation.t("BMI"),
+        round(bmi, 2)
+    )
+
+    patient["gender"] = gender
+    patient["age"] = age
+    patient["height"] = height
+    patient["weight"] = weight
+    patient["bmi"] = bmi
+
+    st.write("")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.button(
+            translation.t("⬅ Back"),
+            disabled=True,
+            width="stretch"
+        )
+
+    with col2:
+
+        if st.button(
+            translation.t("Next ➡"),
+            width="stretch"
+        ):
+
+            st.session_state.step = 2
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ==========================================
+# STEP 2
+# ==========================================
+
+elif st.session_state.step == 2:
+
+    st.subheader(translation.t("🥗 Lifestyle Information"))
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        family_history = st.selectbox(
+            translation.t("Family History of Overweight"),
+            ["no", "yes"],
+            index=1 if patient.get("family_history", "no") == "yes" else 0,
+            format_func=translation.t
+        )
+
+        smoke = st.selectbox(
+            translation.t("Smoking"),
+            ["no", "yes"],
+            index=1 if patient.get("smoke", "no") == "yes" else 0,
+            format_func=translation.t
+        )
+
+        high_calorie = st.selectbox(
+            translation.t("Frequent High Calorie Food"),
+            ["no", "yes"],
+            index=1 if patient.get("high_calorie", "no") == "yes" else 0,
+            format_func=translation.t
+        )
+
+        vegetables = st.slider(
+            translation.t("Vegetable Consumption"),
+            1, 3,
+            int(patient.get("vegetables", 2))
+        )
+
+        meals = st.slider(
+            translation.t("Main Meals Per Day"),
+            1, 4,
+            int(patient.get("meals", 3))
+        )
+
+    with col2:
+
+        water = st.slider(
+            translation.t("Daily Water Intake"),
+            1.0, 3.0,
+            float(patient.get("water", 2.0))
+        )
+
+        activity = st.slider(
+            translation.t("Physical Activity"),
+            0.0, 3.0,
+            float(patient.get("activity", 1.0))
+        )
+
+        technology = st.slider(
+            translation.t("Technology Usage"),
+            0.0, 2.0,
+            float(patient.get("technology", 1.0))
+        )
+
+        alcohol = st.selectbox(
+            translation.t("Alcohol Consumption"),
+            ["no", "Sometimes", "Frequently"],
+            index=["no", "Sometimes", "Frequently"].index(
+                patient.get("alcohol", "no")
+            ),
+            format_func=translation.t
+        )
+
+        transport = st.selectbox(
+            translation.t("Transportation"),
+            [
+                "Walking",
+                "Bike",
+                "Motorbike",
+                "Automobile",
+                "Public_Transportation"
+            ],
+            index=[
+                "Walking",
+                "Bike",
+                "Motorbike",
+                "Automobile",
+                "Public_Transportation"
+            ].index(
+                patient.get("transport", "Walking")
+            ),
+            format_func=translation.t
+        )
+
+    patient["family_history"] = family_history
+    patient["smoke"] = smoke
+    patient["high_calorie"] = high_calorie
+    patient["vegetables"] = vegetables
+    patient["meals"] = meals
+    patient["water"] = water
+    patient["activity"] = activity
+    patient["technology"] = technology
+    patient["alcohol"] = alcohol
+    patient["transport"] = transport
+
+    st.write("")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button(
+            translation.t("⬅ Back"),
+            width="stretch"
+        ):
+            st.session_state.step = 1
+            st.rerun()
+
+    with col2:
+
+        if st.button(
+            translation.t("Next ➡"),
+            width="stretch"
+        ):
+            st.session_state.step = 3
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ==========================================
+# STEP 3
+# ==========================================
+
+elif st.session_state.step == 3:
+
+    st.subheader(translation.t("🧠 AI Prediction"))
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    patient_summary(patient)
+
+    st.write("")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        if st.button(
+            translation.t("⬅ Back"),
+            key="back_step3",
+            width="stretch"
+        ):
+
+            st.session_state.step = 2
+            st.rerun()
+
+    with col2:
+
+        if st.button(
+            translation.t("🧠 Predict"),
+            key="predict_btn",
+            width="stretch"
+        ):
+
+            ai_loading()
+
+            gender_map = {
+                "Male": 0,
+                "Female": 1
+            }
+
+            yes_no_map = {
+                "no": 0,
+                "yes": 1
+            }
+
+            snacks_map = {
+                "no": 0,
+                "Sometimes": 1,
+                "Frequently": 2,
+                "Always": 3
+            }
+
+            alcohol_map = {
+                "no": 0,
+                "Sometimes": 1,
+                "Frequently": 2
+            }
+
+            transport_map = {
+                "Walking": 0,
+                "Bike": 1,
+                "Motorbike": 2,
+                "Automobile": 3,
+                "Public_Transportation": 4
+            }
+
+            input_data = pd.DataFrame([{
+
+                "Gender": gender_map[patient["gender"]],
+                "Age": patient["age"],
+                "Height": patient["height"],
+                "Weight": patient["weight"],
+                "Family history with overweight": yes_no_map[patient["family_history"]],
+                "Frequent consumption of high-caloric food": yes_no_map[patient["high_calorie"]],
+                "Frequency of vegetable consumption": patient["vegetables"],
+                "Number of main meals the person eats per day": patient["meals"],
+
+                # مؤقتًا لحد ما نضيفها في Step 2
+                "Consumption of food between meals": 1,
+
+                "SMOKE": yes_no_map[patient["smoke"]],
+                "Daily water consumption": patient["water"],
+                "Whether the person takes calorie supplements": 0,
+                "Physical activity frequency": patient["activity"],
+                "Time spent using technology": patient["technology"],
+                "Alcohol consumption": alcohol_map[patient["alcohol"]],
+                "Means of transportation used": transport_map[patient["transport"]]
+
+            }])
+
+            try:
+
+                prediction = model.predict(input_data)[0]
+
+                try:
+                    probability = float(
+                        model.predict_proba(input_data)[0].max()
+                    )
+                except:
+                    probability = 1.0 if prediction else 0.0
+
+            except Exception as e:
+
+                st.error(f"{translation.t('Prediction Error : ')}{e}")
+                st.stop()
+
+            labels = {
+                 0: "Insufficient Weight",
+                 1: "Normal Weight",
+                 2: "Overweight Level I",
+                 3: "Overweight Level II",
+                 4: "Obesity Type I",
+                 5: "Obesity Type II",
+                 6: "Obesity Type III"
+            }
+
+            patient["prediction"] = int(prediction)
+            patient["prediction_text"] = labels[int(prediction)]
+            patient["probability"] = probability
+
+            st.session_state.step = 4
+            st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+# ==========================================
+# STEP 4
+# ==========================================
+
+elif st.session_state.step == 4:
+
+    st.subheader(translation.t("📊 AI Prediction Result"))
+
+    prediction = int(patient.get("prediction", 0))
+    result = patient.get("prediction_text", "Unknown")
+
+    probability = patient.get("probability", 0)
+
+    risk = int(probability * 100)
+
+    if prediction <= 1:
+        color = "#22C55E"
+    elif prediction <= 3:
+        color = "#F59E0B"
+    else:
+        color = "#EF4444"
+
+    ai_gauge(risk)
+
+    st.markdown(f"""
+    <div class="card">
+
+    <h2 style="color:{color};">
+    {translation.t(result)}
+    </h2>
+
+    <p>
+    {translation.t("AI Prediction Completed Successfully")}
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    patient_summary(patient)
+
+    st.write("")
+
+    col1, col2, col3 = st.columns(3)
+
+    # ==========================
+    # BACK
+    # ==========================
+
+    with col1:
+
+        if st.button(
+            translation.t("⬅ Back"),
+            width="stretch"
+        ):
+
+            st.session_state.step = 3
+            st.rerun()
+
+    # ==========================
+    # SAVE
+    # ==========================
+
+    with col2:
+
+        
+        if st.button(translation.t("💾 Save Result"), width="stretch"):
+
+            try:
+
+                labels = {
+                    0: "Insufficient Weight",
+                    1: "Normal Weight",
+                    2: "Overweight Level I",
+                    3: "Overweight Level II",
+                    4: "Obesity Type I",
+                    5: "Obesity Type II",
+                    6: "Obesity Type III"
+                }
+                prediction_text = labels.get(prediction, "Unknown")
+
+                assessment_id = save_assessment(
+
+                   user["id"],
+                   "Obesity",
+                   prediction_text,
+                   probability * 100
+
+                )
+
+                save_obesity(
+
+                    assessment_id,
+                    patient
+
+                )
+
+                st.success(translation.t("Saved Successfully ✅"))
+
+            except Exception as e:
+
+                st.error(f"{translation.t('Database Error : ')}{e}")
+
+    # ==========================
+    # PDF
+    # ==========================
 
     with col3:
-        st.metric(
-            "🎯 Confidence",
-            f"{confidence:.1f}%"
-        )
 
-    st.divider()
+     if st.button(translation.t("📄 Download Report"), width="stretch"):
+ 
+        pdf_patient = patient.copy()
 
-# ======================
-# Risk Level
-# ======================
+        pdf_patient["prediction"] = result
+        pdf_patient["probability"] = probability
 
-    if bmi < 25:
-        risk = "🟢 Low"
+        pdf = create_pdf(pdf_patient)
 
-    elif bmi < 30:
-        risk = "🟠 Moderate"
+        with open(pdf, "rb") as file:
 
-    elif bmi < 35:
-        risk = "🔴 High"
-
-    else:
-        risk = "🚨 Very High"
-
-    st.subheader("❤️ Risk Level")
-
-    st.info(risk)
-
-# ======================
-# BMI Status 
-# ======================
-
-    if bmi < 18.5:
-        st.info("🟡 Underweight")
-
-    elif bmi < 25:
-        st.success("🟢 Healthy Weight")
-
-    elif bmi < 30:
-        st.warning("🟠 Overweight")
-
-    elif bmi < 35:
-        st.error("🔴 Obesity Class I")
-
-    elif bmi < 40:
-        st.error("🔴 Obesity Class II")
-
-    else:
-        st.error("🚨 Severe Obesity")
-# ======================
-# Risk Factors
-# ======================
-
-    st.divider()
-
-    st.subheader("⚠️ Risk Factors")
-
-    risk_list = []
-
-    if bmi >= 30:
-        risk_list.append("⚖️ High BMI")
-
-    if smoke == "yes":
-        risk_list.append("🚬 Smoking")
-
-    if family_history == "yes":
-        risk_list.append("👨‍👩‍👧 Family History")
-
-    if activity < 1:
-        risk_list.append("🏃 Low Physical Activity")
-
-    if water < 2:
-        risk_list.append("💧 Low Water Intake")
-
-    if high_calorie == "yes":
-        risk_list.append("🍔 High Calorie Diet")
-
-    if len(risk_list) == 0:
-        st.success("✅ No Major Risk Factors")
-
-    else:
-        for item in risk_list:
-            st.write("•", item)
-
-# ======================
-# Recommendations
-# ======================
-
-    st.divider()
-
-    st.subheader("💡 Personalized Recommendations")
-
-    if bmi < 18.5:
-
-        st.info("🥛 Increase healthy calorie intake.")
-        st.info("🍗 Eat more protein.")
-        st.info("🏋️ Strength training is recommended.")
-
-    elif bmi < 25:
-
-        st.success("✅ Maintain your healthy lifestyle.")
-        st.success("🥗 Balanced diet.")
-        st.success("🏃 Continue exercising.")
-
-    elif bmi < 30:
-
-        st.warning("🥗 Reduce sugar and fast food.")
-        st.warning("🚶 Walk at least 30 minutes daily.")
-        st.warning("💧 Drink more water.")
-
-    else:
-
-        st.error("⚠️ Reduce high-calorie foods.")
-        st.error("🏃 Exercise at least 150 minutes weekly.")
-        st.error("🥦 Increase vegetables and fruits.")
-        st.error("🩺 Consult a nutrition specialist.")
-# ======================
-# Obesity Lab Analysis
-# ======================
-
-st.divider()
-
-st.header("🧪 Obesity Lab Analysis")
-
-hba1c = st.number_input(
-    "HbA1c (%)",
-    3.0, 15.0, 5.5
-)
-
-fbs = st.number_input(
-    "Fasting Blood Sugar (mg/dL)",
-    50, 300, 90
-)
-
-cholesterol = st.number_input(
-    "Total Cholesterol (mg/dL)",
-    100, 400, 180
-)
-
-ldl = st.number_input(
-    "LDL Cholesterol (mg/dL)",
-    20, 300, 90
-)
-
-hdl = st.number_input(
-    "HDL Cholesterol (mg/dL)",
-    10, 100, 50
-)
-
-triglycerides = st.number_input(
-    "Triglycerides (mg/dL)",
-    20, 500, 120
-)
-
-if st.button("🧪 Analyze Lab Results"):
-
-    st.subheader("📋 Lab Report")
-
-    # HbA1c
-    if hba1c < 5.7:
-        st.success("✅ HbA1c : Normal")
-    elif hba1c < 6.5:
-        st.warning("⚠️ HbA1c : Prediabetes")
-    else:
-        st.error("🔴 HbA1c : Diabetes")
-
-    # FBS
-    if fbs < 100:
-        st.success("✅ Fasting Blood Sugar : Normal")
-    elif fbs < 126:
-        st.warning("⚠️ Fasting Blood Sugar : Prediabetes")
-    else:
-        st.error("🔴 Fasting Blood Sugar : High")
-
-    # Cholesterol
-    if cholesterol < 200:
-        st.success("✅ Total Cholesterol : Normal")
-    elif cholesterol < 240:
-        st.warning("⚠️ Total Cholesterol : Borderline")
-    else:
-        st.error("🔴 Total Cholesterol : High")
-
-    # LDL
-    if ldl < 100:
-        st.success("✅ LDL : Optimal")
-    elif ldl < 160:
-        st.warning("⚠️ LDL : Elevated")
-    else:
-        st.error("🔴 LDL : Very High")
-
-    # HDL
-    if hdl >= 60:
-        st.success("✅ HDL : Excellent")
-    elif hdl >= 40:
-        st.warning("⚠️ HDL : Acceptable")
-    else:
-        st.error("🔴 HDL : Low")
-
-    # Triglycerides
-    if triglycerides < 150:
-        st.success("✅ Triglycerides : Normal")
-    elif triglycerides < 200:
-        st.warning("⚠️ Triglycerides : Borderline High")
-    else:
-        st.error("🔴 Triglycerides : High")
-
-    st.divider()
-
-    st.subheader("💡 Overall Recommendation")
-
-    if (
-        hba1c < 5.7
-        and fbs < 100
-        and cholesterol < 200
-        and ldl < 100
-        and hdl >= 40
-        and triglycerides < 150
-    ):
-        st.success("🎉 Your laboratory results are generally within the normal range.")
-
-    else:
-        st.warning(
-            "⚠️ Some laboratory values are outside the normal range. Please consult your physician for further evaluation."
-        )
-# ======================
-# Footer
-# ======================
-
-st.divider()
-
-st.caption("🏥 HealthVibe AI • Obesity Prediction Module")
+            st.download_button(
+                translation.t("⬇ Download PDF"),
+                data=file.read(),
+                file_name="Obesity_Report.pdf",
+                mime="application/pdf",
+                width="stretch"
+            )
