@@ -1,6 +1,10 @@
 import streamlit as st
 
 
+# ==========================================================
+# LOGIN
+# ==========================================================
+
 def require_login():
 
     user = st.session_state.get("user")
@@ -13,12 +17,16 @@ def require_login():
 
         st.stop()
 
+    return user
+
+
+# ==========================================================
+# PATIENT
+# ==========================================================
 
 def require_patient():
 
-    require_login()
-
-    user = st.session_state.get("user")
+    user = require_login()
 
     if user["role"] != "Patient":
 
@@ -26,15 +34,55 @@ def require_patient():
 
         st.stop()
 
+    return user
+
+
+# ==========================================================
+# DOCTOR
+# ==========================================================
 
 def require_doctor():
 
-    require_login()
-
-    user = st.session_state.get("user")
+    user = require_login()
 
     if user["role"] != "Doctor":
 
         st.error("Access Denied")
 
         st.stop()
+
+    return user
+
+
+# ==========================================================
+# ADMIN
+# ==========================================================
+
+def require_admin():
+
+    user = require_login()
+
+    if user["role"] != "Admin":
+
+        st.error("Access Denied")
+
+        st.stop()
+
+    return user
+
+
+# ==========================================================
+# ADMIN OR DOCTOR
+# ==========================================================
+
+def require_admin_or_doctor():
+
+    user = require_login()
+
+    if user["role"] not in ["Admin", "Doctor"]:
+
+        st.error("Access Denied")
+
+        st.stop()
+
+    return user
