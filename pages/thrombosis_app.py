@@ -250,6 +250,11 @@ def generate_pdf(data):
 
     for k,v in data.items():
 
+   
+  
+     with st.form("thrombosis_form"):
+        col1, col2 = st.columns(2)
+
         value = str(v)
 
         value = (
@@ -272,7 +277,7 @@ def generate_pdf(data):
     )
 
     pdf.output(temp.name)
-
+    temp.close()
     return temp.name
 
 # ==========================================================
@@ -366,45 +371,52 @@ if st.session_state.page == 1:
         )
 
     with col2:
+     submit = st.button("Predict")
+    if submit:
+        risk_score = 0
+        features = []
+        contributions = []
 
-        st.session_state.height = st.number_input(
+st.session_state.height = st.number_input(
             t("Height (cm)"),
             min_value=100,
             max_value=230,
             value=st.session_state.height
         )
-
-        st.session_state.weight = st.number_input(
+st.session_state.weight = st.number_input(
             t("Weight (kg)"),
             min_value=20,
             max_value=250,
             value=st.session_state.weight
         )
 
-        st.session_state.d_dimer = st.number_input(
+st.session_state.d_dimer = st.number_input(
             t("D-Dimer (ng/mL)"),
             min_value=0.0,
             value=float(st.session_state.d_dimer)
         )
 
-        st.session_state.blood_type = st.selectbox(
-            t("Blood Type"),
-            [
-                "A",
-                "B",
-                "AB",
-                "O"
-            ],
-            index=["A","B","AB","O"].index(st.session_state.blood_type)
-        )
 
-    st.divider()
+blood_types = ["A+", "B+", "AB+", "O+", "A-", "B-", "AB-", "O-"]
 
-    st.progress(33)
+if st.session_state.blood_type not in blood_types:
+    st.session_state.blood_type = "O+"
 
-    st.caption(t("Step 1 / 3"))
+st.session_state.blood_type = st.selectbox(
+    t("Blood Type"),
+    blood_types,
+    index=blood_types.index(st.session_state.blood_type),
+    key="blood_type_selec"
+)
 
-    if st.button(
+
+st.divider()
+
+st.progress(33)
+
+st.caption(t("Step 1 / 3"))
+
+if st.button(
         t("Next ➜"),
         use_container_width=True
     ):
@@ -820,26 +832,37 @@ if st.session_state.page == 3:
         st.download_button(
 
             t("📄 Download Report"),
+             file,
+        file_name="HealthVibe_Thrombosis_Report.pdf",
+        mime="application/pdf",
+        use_container_width=True
+    )
+        
+    if "High Risk" in result_status:
+        st.error(f"🔴 Result: {result_status}")
+    elif "Moderate Risk" in result_status:
+        st.warning(f"⚠️ Result: {result_status}")
+    else:
+        st.success(f"🟢 Result: {result_status}")
 
-            file,
+    file,
+       
 
-            file_name="HealthVibe_Thrombosis_Report.pdf",
+    file_name="HealthVibe_Thrombosis_Report.pdf",
 
-            mime="application/pdf",
+    mime="application/pdf",
 
-            use_container_width=True
+use_container_width=True 
 
-        )
-
-    st.divider()
+st.divider()
 
     # ==========================================
     # QUICK ACTIONS
     # ==========================================
 
-    c1,c2 = st.columns(2)
+c1,c2 = st.columns(2)
 
-    with c1:
+with c1:
 
         if st.button(
 
@@ -853,7 +876,7 @@ if st.session_state.page == 3:
 
             st.rerun()
 
-    with c2:
+with c2:
 
         if st.button(
 
