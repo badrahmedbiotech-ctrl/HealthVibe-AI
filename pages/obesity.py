@@ -109,14 +109,14 @@ if st.session_state.step == 1:
         )
 
     with col2:
-
         height = st.number_input(
-            translation.t("Height (m)"),
-            min_value=1.00,
-            max_value=2.50,
-            value=float(patient.get("height", 1.70)),
-            step=0.01
-        )
+    "Height (cm)",
+    min_value=100.0,
+    max_value=250.0,
+    value=float(patient.get("height", 170.0)),
+    step=1.0
+      )
+        
 
         weight = st.number_input(
             translation.t("Weight (kg)"),

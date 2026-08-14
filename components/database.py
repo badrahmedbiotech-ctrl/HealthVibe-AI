@@ -1052,3 +1052,178 @@ def delete_user(user_id):
 
     conn.commit()
     conn.close()
+# ==========================================
+# DASHBOARD STATISTICS
+# ==========================================
+
+def average_risk(user_id=None):
+    """
+    Calculate average assessment probability.
+    Returns 0 if there are no assessments.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT AVG(probability)
+        FROM assessments
+        WHERE user_id = ?
+        """
+
+        result = conn.execute(
+            query,
+            (user_id,)
+        ).fetchone()[0]
+
+    else:
+
+        query = """
+        SELECT AVG(probability)
+        FROM assessments
+        """
+
+        result = conn.execute(query).fetchone()[0]
+
+    conn.close()
+
+    if result is None:
+        return 0
+
+    return float(result)
+
+
+def latest_assessments(limit=5, user_id=None):
+    """
+    Return latest assessments as a DataFrame.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT *
+        FROM assessments
+        WHERE user_id = ?
+        ORDER BY datetime(created_at) DESC
+        LIMIT ?
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(user_id, limit)
+        )
+
+    else:
+
+        query = """
+        SELECT *
+        FROM assessments
+        ORDER BY datetime(created_at) DESC
+        LIMIT ?
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(limit,)
+        )
+
+    conn.close()
+
+    return df
+
+
+def disease_statistics(user_id=None):
+    """
+    Return assessment count grouped by disease.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT
+            disease,
+            COUNT(*) AS count
+        FROM assessments
+        WHERE user_id = ?
+        GROUP BY disease
+        ORDER BY count DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(user_id,)
+        )
+
+    else:
+
+        query = """
+        SELECT
+            disease,
+            COUNT(*) AS count
+        FROM assessments
+        GROUP BY disease
+        ORDER BY count DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn
+        )
+
+    conn.close()
+
+    return df
+
+
+def risk_statistics(user_id=None):
+    """
+    Return assessment count grouped by prediction/risk.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT
+            prediction,
+            COUNT(*) AS count
+        FROM assessments
+        WHERE user_id = ?
+        GROUP BY prediction
+        ORDER BY count DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(user_id,)
+        )
+
+    else:
+
+        query = """
+        SELECT
+            prediction,
+            COUNT(*) AS count
+        FROM assessments
+        GROUP BY prediction
+        ORDER BY count DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn
+        )
+
+    conn.close()
+
+    return df
