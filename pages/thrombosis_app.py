@@ -911,7 +911,7 @@ HealthVibe AI
 </p>
 
 <p style="color:gray;margin:2px 0;">
-{t("Developed by ")}<b>Badr Ahmed</b> &copy; 2026
+{t("Developed by ")}<b>Visionaries</b> &copy; 2026
 </p>
 
 </div>

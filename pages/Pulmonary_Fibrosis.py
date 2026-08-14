@@ -813,7 +813,7 @@ f"""
 
 {t("Respiratory Disease Screening System")}
 
-{t("Developed by ")}**Badr Ahmed**
+{t("Developed by ")}**Visionaries**
 
 </center>
 """,
