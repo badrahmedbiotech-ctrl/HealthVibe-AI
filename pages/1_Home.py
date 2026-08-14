@@ -512,7 +512,7 @@ border:1px solid #2A2A2A;
 ">
 
 <p style="color:#94A3B8;">
-{t("Developed by ")}<b>Badr Ahmed</b>
+{t("Developed by ")}<b>Visionaries</b>
 </p>
 
 <p style="color:#94A3B8;">

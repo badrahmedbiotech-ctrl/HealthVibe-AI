@@ -212,7 +212,12 @@ box-shadow:
 0 10px 25px rgba(0,194,255,.25);
 
 }
-
+.stButton > button,
+.stButton > button p,
+.stButton > button span {
+    color: #071A3D !important;
+    opacity: 1 !important;
+}
 .stButton>button:hover{
 
 transform:translateY(-3px);

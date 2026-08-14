@@ -1,12 +1,11 @@
 import streamlit as st
 import translation
-
+from utils.navigation import sidebar
 st.set_page_config(page_title="About HealthVibe", page_icon="💙")
 
 translation.init()
-
+sidebar()
 IS_AR = st.session_state.get("lang", "en") == "ar"
-
 # ==========================================================
 # PAGE-LOCAL RTL CSS (only injected when Arabic is active —
 # does not touch English/LTR rendering at all)

@@ -516,7 +516,7 @@ st.markdown(f"""
 <hr>
 
 <p style="color:#94A3B8;">
-{translation.t("Developed by ")}<b>Badr Ahmed</b>
+{translation.t("Developed by ")}<b>Visionaries</b>
 </p>
 
 </div>
