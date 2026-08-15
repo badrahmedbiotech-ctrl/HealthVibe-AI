@@ -21,7 +21,6 @@ with open("style.css", encoding="utf-8") as f:
     )
 
 st.markdown(f"""
-
 <div style="text-align:center;padding-top:50px;">
 
 <h1 style="font-size:55px;color:#00C2FF;">
@@ -37,19 +36,26 @@ st.markdown(f"""
 </p>
 
 </div>
-
 """, unsafe_allow_html=True)
 
 st.write("")
 st.write("")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
+
+# ==========================================================
+# PATIENT
+# ==========================================================
 
 with col1:
 
-    st.markdown(f"## 👤 {translation.t('Patient')}")
+    st.markdown(
+        f"## 👤 {translation.t('Patient')}"
+    )
 
-    st.write(translation.t("Access your medical dashboard"))
+    st.write(
+        translation.t("Access your medical dashboard")
+    )
 
     if st.button(
         translation.t("Continue as Patient"),
@@ -60,11 +66,20 @@ with col1:
 
         st.switch_page("pages/Login.py")
 
+
+# ==========================================================
+# DOCTOR
+# ==========================================================
+
 with col2:
 
-    st.markdown(f"## 👨‍⚕️ {translation.t('Doctor')}")
+    st.markdown(
+        f"## 👨‍⚕️ {translation.t('Doctor')}"
+    )
 
-    st.write(translation.t("Access your doctor dashboard"))
+    st.write(
+        translation.t("Access your doctor dashboard")
+    )
 
     if st.button(
         translation.t("Continue as Doctor"),
@@ -72,5 +87,27 @@ with col2:
     ):
 
         st.session_state.role = "Doctor"
+
+        st.switch_page("pages/Login.py")
+
+
+# ==========================================================
+# ADMIN
+# ==========================================================
+
+with col3:
+
+    st.markdown("## 🛡️ Admin")
+
+    st.write(
+        "Full access to HealthVibe AI platform"
+    )
+
+    if st.button(
+        "Continue as Admin",
+        width="stretch"
+    ):
+
+        st.session_state.role = "Admin"
 
         st.switch_page("pages/Login.py")
