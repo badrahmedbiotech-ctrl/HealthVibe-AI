@@ -23,9 +23,11 @@ def sidebar():
             unsafe_allow_html=True
         )
 
+        st.caption(
+            translation.t("Clinical Decision Support Platform")
+        )
+
         st.divider()
-
-
         # ==========================
         # USER CARD
         # ==========================

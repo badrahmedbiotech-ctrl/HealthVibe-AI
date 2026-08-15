@@ -2,6 +2,36 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
+from components.branding import *
+from components.colors import *
+from components.branding import LOGO
+
+col1, col2 = st.columns([1, 5])
+
+with col1:
+    st.image(str(LOGO), width=90)
+
+with col2:
+    st.title("HealthVibe AI")
+    st.caption("Vibe Better, Live Better")
+
+from utils.navigation import sidebar
+
+from components.database import (
+    total_patients,
+    total_assessments,
+    average_risk,
+    latest_assessments,
+    disease_statistics,
+    risk_statistics,
+    get_all_history,
+    get_profile
+)
+
+from components.doctor_db import (
+    doctors_count,
+    available_doctors
+)
 from utils.navigation import sidebar
 
 from components.database import (
@@ -26,7 +56,7 @@ from components.doctor_db import (
 
 st.set_page_config(
     page_title="HealthVibe AI Dashboard",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="wide",
     initial_sidebar_state="expanded"
 )
