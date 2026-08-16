@@ -3,10 +3,11 @@ import pandas as pd
 import plotly.express as px
 
 from components.auth_guard import require_doctor
+from utils.navigation import sidebar
+
+sidebar()
 
 require_doctor()
-
-from utils.navigation import sidebar
 
 from components.doctor_db import (
     create_doctors_table,
