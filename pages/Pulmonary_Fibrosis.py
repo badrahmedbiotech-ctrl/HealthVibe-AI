@@ -174,7 +174,7 @@ if st.session_state.step == 1:
 
     st.text_input(
         t("Gender"),
-        value=gender,
+        value=t(gender),
         disabled=True
     )
 
@@ -213,7 +213,8 @@ elif st.session_state.step == 2:
     symptom = st.selectbox(
         t("Main Symptom"),
         symptoms,
-        index=0
+        index=0,
+        format_func=t
     )
 
     smoking = st.selectbox(
@@ -460,7 +461,7 @@ elif st.session_state.step == 4:
 
     <h2 style="color:{color};">
 
-    {prediction}
+    {t(prediction)}
 
     </h2>
 
@@ -480,7 +481,7 @@ elif st.session_state.step == 4:
 
     st.subheader(t("💊 Suggested Treatment"))
 
-    st.info(treatment)
+    st.info(t(treatment))
 
     st.subheader(t("🚨 Disease Severity"))
 
@@ -647,7 +648,7 @@ if st.session_state.analyzed:
     <div class="card">
 
     <h2 style="color:{color};">
-    {prediction}
+    {t(prediction)}
     </h2>
 
     <p>{t(level)}</p>

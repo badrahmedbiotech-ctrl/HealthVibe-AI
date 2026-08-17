@@ -20,6 +20,14 @@ FIELD_LABELS = {
     "resting_bp_systolic": "Systolic Blood Pressure",
     "smoker_status": "Smoking Status",
 
+    "pregnancies": "Pregnancies",
+    "glucose": "Glucose",
+    "blood_pressure": "Blood Pressure",
+    "insulin": "Insulin",
+    "skin": "Skin Thickness",
+    "dpf": "Diabetes Pedigree Function",
+
+
     "prediction": "Prediction",
     "probability": "Probability",
     "prediction_text": "Prediction Result"
@@ -36,11 +44,16 @@ def patient_summary(data):
         for key in data.keys()
     ]
 
+    values = [
+        translation.t(str(v))
+        for v in data.values()
+    ]
+
     df = pd.DataFrame({
 
         translation.t("Feature"): features,
 
-        translation.t("Value"): data.values()
+        translation.t("Value"): values
 
     })
 

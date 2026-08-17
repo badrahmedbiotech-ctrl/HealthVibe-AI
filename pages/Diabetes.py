@@ -432,19 +432,21 @@ elif st.session_state.step == 4:
 
         try:
 
-            pdf = create_pdf(
-                "Diabetes Report",
-                patient,
-                prediction
-            )
+            pdf_patient = patient.copy()
+            pdf_patient["prediction"] = result
+            pdf_patient["probability"] = patient.get("probability", 0)
 
-            st.download_button(
-                t("📄 Download PDF"),
-                pdf,
-                "Diabetes_Report.pdf",
-                mime="application/pdf",
-                width="stretch"
-            )
+            pdf = create_pdf(pdf_patient)
+
+            with open(pdf, "rb") as file:
+
+                st.download_button(
+                    t("📄 Download PDF"),
+                    data=file.read(),
+                    file_name="Diabetes_Report.pdf",
+                    mime="application/pdf",
+                    width="stretch"
+                )
 
         except Exception as e:
 

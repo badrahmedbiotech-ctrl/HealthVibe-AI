@@ -430,7 +430,7 @@ HealthVibe AI هي منصة رعاية صحية ذكية تجمع بين الذ�
         "🧠 Predict": "🧠 تنبؤ",
         "Prediction Error : ": "خطأ في التنبؤ : ",
         "Low Risk": "خطورة منخفضة",
-        "Borderline Risk": "خطورة حدّية",
+        "Borderline Risk": "خطورة حديّة",
         "High Risk": "خطورة مرتفعة",
         "Unknown": "غير معروف",
         "📊 AI Prediction Result": "📊 نتيجة تنبؤ الذكاء الاصطناعي",
@@ -450,6 +450,7 @@ HealthVibe AI هي منصة رعاية صحية ذكية تجمع بين الذ�
         "LDL Cholesterol": "الكوليسترول الضار LDL",
         "HDL Cholesterol": "الكوليسترول النافع HDL",
         "Triglycerides": "الدهون الثلاثية",
+        "HbA1c": "السكر التراكمي",
         "Probability": "نسبة الاحتمال",
         "Prediction": "التشخيص المتوقع",
         "Prediction Result": "نتيجة التشخيص",
@@ -1042,6 +1043,8 @@ HealthVibe AI لا يغني
         "High Cholesterol": "ارتفاع الكوليسترول",
         "Step 2 / 3": "الخطوة 2 / 3",
         "Analyze ➜": "تحليل ➜",
+        "Predict": "تنبؤ",
+
 
         "🤖 AI Prediction": "🤖 تنبؤ الذكاء الاصطناعي",
         "HealthVibe AI is analyzing your clinical data...": "HealthVibe AI بيحلل بياناتك السريرية الآن...",
@@ -1115,6 +1118,103 @@ HealthVibe AI لا يغني
         "Medium": "متوسط",
         "Chemical Exposure": "التعرض للمواد الكيميائية",
         "Sleep Hours": "عدد ساعات النوم",
+
+        # --- Pulmonary_Fibrosis.py symptoms (verify exact spelling matches your CSV) ---
+        "Coughing": "سعال",
+        "Persistent Cough": "سعال مستمر",
+        "Shortness of Breath": "ضيق في التنفس",
+        "Fatigue": "إرهاق",
+        "Chest Pain": "ألم في الصدر",
+        "Wheezing": "أزيز في التنفس",
+        "Fever": "حمى",
+        "Coughing Blood": "سعال مصحوب بدم",
+        "Weight Loss": "فقدان الوزن",
+        "Clubbing of Fingers": "تعجّر الأصابع",
+        "None": "لا يوجد",
+        "shallow breathing": "تنفس ضحل",
+        "sharp chest pain": "ألم حاد في الصدر",
+        "short of breath": "ضيق في التنفس",
+        "short, shallow and rapid breathing": "تنفس سريع وضحل وقصير",
+        "shortness of breath": "ضيق في التنفس",
+        "stuffy nose": "انسداد الأنف",
+        "sweating": "تعرّق",
+        "tight feeling in the chest": "شعور بضيق في الصدر",
+        "vomiting": "قيء",
+        "weight loss": "فقدان الوزن",
+        "wheezing": "أزيز في التنفس",
+        "wheezing cough": "سعال مصحوب بأزيز",
+        "whistling sound while breathing": "صوت صفير أثناء التنفس",
+        "whistling sound while you breathe": "صوت صفير أثناء التنفس",
+        "yellow cough": "سعال مصحوب ببلغم أصفر",
+
+        "low energy": "طاقة منخفضة",
+        "A cough that lasts more than three weeks": "سعال يستمر أكثر من ثلاثة أسابيع",
+        "A dry, crackling sound in the lungs while breathing in": "صوت جاف وخشخشة في الرئتين أثناء الشهيق",
+        "Bluish skin": "زرقان الجلد",
+        "Chest congestion": "احتقان الصدر",
+        "Chest tightness or chest pain": "ضيق أو ألم في الصدر",
+        "Chills": "قشعريرة",
+        "Coughing up blood": "سعال مصحوب بدم",
+        "Coughing up yellow or green mucus daily": "سعال يومي ببلغم أصفر أو أخضر",
+        "Daytime sleepiness": "نعاس أثناء النهار",
+        "Difficulties with memory and concentration": "صعوبات في التركيز والذاكرة",
+        "Dry mouth": "جفاف الفم",
+        "Fatigue, feeling run-down or tired": "إرهاق وشعور بالتعب",
+        "Feeling run-down or tired": "شعور بالتعب والإرهاق",
+        "Frequently waking": "استيقاظ متكرر",
+        "Loss of appetite": "فقدان الشهية",
+        "Loss of appetite and unintentional weight loss": "فقدان الشهية ونقص الوزن غير المقصود",
+        "Low-grade fever": "حمى خفيفة",
+        "Morning headaches": "صداع صباحي",
+        "Nasal congestion": "احتقان الأنف",
+        "Nausea": "غثيان",
+        "Night sweats": "تعرّق ليلي",
+        "Pauses in breathing": "توقف مؤقت في التنفس",
+        "Persistent dry coug": "سعال جاف مستمر",
+        "Persistent dry cough": "سعال جاف مستمر",
+        "Rapid heartbeat": "تسارع ضربات القلب",
+        "Runny nose": "سيلان الأنف",
+        "Shortness of breath that gets worse during flare-ups": "ضيق تنفس يزداد سوءًا أثناء النوبات",
+        "Snoring": "شخير",
+        "Sore throat": "التهاب الحلق",
+        "Unusual moodiness": "تقلب مزاج غير معتاد",
+        "Weight loss from loss of appetite": "فقدان الوزن بسبب فقدان الشهية",
+        "Wider and rounder than normal fingertips and toes": "أطراف أصابع اليدين والقدمين أعرض وأكثر استدارة من الطبيعي",
+        "allergy": "حساسية",
+        "breath": "تنفس",
+        "chronic cough": "سعال مزمن",
+        "cold": "برد",
+        "cough": "سعال",
+        "cough with blood": "سعال مصحوب بدم",
+        "diarrhea": "إسهال",
+        "distressing": "مزعج",
+        "dry cough": "سعال جاف",
+        "edema": "استسقاء (تورّم)",
+        "fainting": "إغماء",
+        "faster heart beating": "تسارع ضربات القلب",
+        "greenish cough": "سعال مصحوب ببلغم أخضر",
+        "muscle aches": "آلام العضلات",
+        "nausea": "غثيان",
+        "pain": "ألم",
+        "runny nose": "سيلان الأنف",
+        "shaking": "ارتجاف",
+
+        "Rapid breathing": "تنفس سريع",
+        "heart palpitations": "خفقان القلب",
+        "high fever": "حمى مرتفعة",
+        "irritability": "تهيّج",
+        "joint pain": "ألم في المفاصل",
+        "lower back pain": "ألم أسفل الظهر",
+        "mucus": "بلغم",
+
+        "blood_pressure": "ضغط الدم",
+        "skin": "سُمك طية الجلد",
+        "dpf": "مؤشر وراثة السكري",
+
+
+
+
+
 
         "❤️ Vital Signs": "❤️ العلامات الحيوية",
         "SpO₂ (%)": "تشبع الأكسجين SpO₂ (%)",
@@ -1399,7 +1499,31 @@ def init():
         )
 
 
+_NORMALIZED_CACHE = {}
+
+
+def _normalized_dict(lang: str) -> dict:
+    if lang not in _NORMALIZED_CACHE:
+        _NORMALIZED_CACHE[lang] = {
+            k.strip().lower(): v
+            for k, v in TRANSLATIONS.get(lang, {}).items()
+            if isinstance(k, str)
+        }
+    return _NORMALIZED_CACHE[lang]
+
+
 def t(text: str) -> str:
-    """Translate a raw English string. Falls back to the original text if no translation exists."""
+    """Translate a raw English string. Falls back to the original text if no translation exists.
+    Tries an exact match first, then a case/whitespace-insensitive match."""
     lang = st.session_state.get("lang", "en")
-    return TRANSLATIONS.get(lang, {}).get(text, text)
+    lang_dict = TRANSLATIONS.get(lang, {})
+
+    if text in lang_dict:
+        return lang_dict[text]
+
+    if isinstance(text, str):
+        normalized = _normalized_dict(lang).get(text.strip().lower())
+        if normalized is not None:
+            return normalized
+
+    return text

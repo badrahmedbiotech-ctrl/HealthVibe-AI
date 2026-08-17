@@ -161,7 +161,7 @@ if st.session_state.step == 1:
 
     st.text_input(
         translation.t("Gender"),
-        value=gender,
+        value=translation.t(gender),
         disabled=True
     )
 
@@ -248,7 +248,8 @@ elif st.session_state.step == 2:
         smoker = st.selectbox(
             translation.t("Smoking Status"),
             ["No", "Yes"],
-            index=0 if patient.get("smoker_status", "No") == "No" else 1
+            index=0 if patient.get("smoker_status", "No") == "No" else 1,
+            format_func=translation.t
         )
 
     bmi = round(
