@@ -11,7 +11,8 @@ from utils.navigation import sidebar
 
 from components.database import (
     save_assessment,
-    save_thrombosis
+    save_thrombosis,
+    get_profile
 )
 from components.branding import *
 from components.colors import *
@@ -153,7 +154,37 @@ html, body, [data-testid="stAppViewContainer"] {{
 unsafe_allow_html=True
 )
 
+# ==========================================================
+# CHECK LOGIN FIRST (قبل كل شيء)
+# ==========================================================
+if "logged_in" not in st.session_state or not st.session_state.logged_in:
+    st.switch_page("app.py")
+    st.stop()
+
 sidebar()
+
+# ==========================================================
+# LOAD PATIENT PROFILE
+# ==========================================================
+
+user = st.session_state.get("user", {})
+user_id = user.get("id")
+
+profile = get_profile(user_id) if user_id else None
+
+if profile:
+    profile = dict(profile)
+
+    # Load patient data automatically
+    st.session_state.name = profile.get("full_name") or user.get("full_name", "")
+    st.session_state.age = int(profile.get("age") or 45)
+    st.session_state.gender = profile.get("gender") or "Male"
+    st.session_state.weight = float(profile.get("weight") or 70)
+    st.session_state.height = float(profile.get("height") or 170)
+    st.session_state.blood_type = profile.get("blood_group") or "O+"
+
+    # Optional: automatically use profile smoking status
+    st.session_state.smoking = profile.get("smoking") or "No"
 
 # ==========================================================
 # SESSION DEFAULTS
@@ -249,12 +280,6 @@ def generate_pdf(data):
     pdf.set_font("Arial","",12)
 
     for k,v in data.items():
-
-   
-  
-     with st.form("thrombosis_form"):
-        col1, col2 = st.columns(2)
-
         value = str(v)
 
         value = (
@@ -361,74 +386,78 @@ if st.session_state.page == 1:
             value=st.session_state.age
         )
 
-        st.session_state.gender = st.selectbox(
+        # FIX: st.session_state.gender is stored as the raw English value
+        # ("Male"/"Female") coming from the profile, but the selectbox
+        # options are translated. Compare/derive against the translated
+        # label so the correct option is pre-selected in any language,
+        # and always store back the canonical English value ("Male"/
+        # "Female") so downstream comparisons (page 3, model input,
+        # BMI/report) stay consistent regardless of UI language.
+        gender_options = [t("Male"), t("Female")]
+        current_gender_label = t("Male") if st.session_state.gender == "Male" else t("Female")
+
+        gender_choice = st.selectbox(
             t("Gender"),
-            [
-                t("Male"),
-                t("Female")
-            ],
-            index=0 if st.session_state.gender=="Male" else 1
+            gender_options,
+            index=gender_options.index(current_gender_label)
+        )
+
+        st.session_state.gender = "Male" if gender_choice == t("Male") else "Female"
+
+        st.session_state.height = st.number_input(
+            t("Height (cm)"),
+            min_value=100.0,
+            max_value=230.0,
+            value=float(st.session_state.height)
         )
 
     with col2:
-     submit = st.button("Predict")
-    if submit:
-        risk_score = 0
-        features = []
-        contributions = []
 
-st.session_state.height = st.number_input(
-            t("Height (cm)"),
-            min_value=100,
-            max_value=230,
-            value=st.session_state.height
-        )
-st.session_state.weight = st.number_input(
+        st.session_state.weight = st.number_input(
             t("Weight (kg)"),
-            min_value=20,
-            max_value=250,
-            value=st.session_state.weight
+            min_value=20.0,
+            max_value=250.0,
+            value=float(st.session_state.weight)
         )
 
-st.session_state.d_dimer = st.number_input(
+        st.session_state.d_dimer = st.number_input(
             t("D-Dimer (ng/mL)"),
             min_value=0.0,
             value=float(st.session_state.d_dimer)
         )
 
+        blood_types = ["A+", "B+", "AB+", "O+", "A-", "B-", "AB-", "O-"]
 
-blood_types = ["A+", "B+", "AB+", "O+", "A-", "B-", "AB-", "O-"]
+        if st.session_state.blood_type not in blood_types:
+            st.session_state.blood_type = "O+"
 
-if st.session_state.blood_type not in blood_types:
-    st.session_state.blood_type = "O+"
+        st.session_state.blood_type = st.selectbox(
+            t("Blood Type"),
+            blood_types,
+            index=blood_types.index(st.session_state.blood_type),
+            key="blood_type_select"
+        )
 
-st.session_state.blood_type = st.selectbox(
-    t("Blood Type"),
-    blood_types,
-    index=blood_types.index(st.session_state.blood_type),
-    key="blood_type_selec"
-)
+    st.divider()
 
+    st.progress(33)
 
-st.divider()
+    st.caption(t("Step 1 / 3"))
 
-st.progress(33)
+    if st.button(
+            t("Next ➜"),
+            use_container_width=True
+        ):
 
-st.caption(t("Step 1 / 3"))
+            st.session_state.page = 2
 
-if st.button(
-        t("Next ➜"),
-        use_container_width=True
-    ):
+            st.rerun()
 
-        st.session_state.page = 2
-
-        st.rerun()
 # ==========================================================
 # PAGE 2
 # ==========================================================
 
-if st.session_state.page == 2:
+elif st.session_state.page == 2:
 
     st.header(t("🩺 Clinical Information"))
 
@@ -530,7 +559,7 @@ if st.session_state.page == 2:
 # PAGE 3
 # ==========================================================
 
-if st.session_state.page == 3:
+elif st.session_state.page == 3:
 
     st.header(t("🤖 AI Prediction"))
 
@@ -541,31 +570,139 @@ if st.session_state.page == 3:
     st.divider()
 
     # ==========================================
-    # PREPARE DATA
+    # PREPARE DATA + COMBINED RISK ASSESSMENT
     # ==========================================
+    # IMPORTANT (why the scoring was rebuilt):
+    # The trained Random Forest model only "sees" 5 raw features:
+    # Age, Gender, Height, Weight and D-Dimer. It has NO visibility
+    # into the 9 real clinical risk factors collected on Page 2
+    # (previous DVT, recent surgery, immobility, swelling, pain,
+    # family history, smoking, hypertension, diabetes) or into BMI.
+    #
+    # The previous version blended 60% model / 40% clinical score.
+    # Because the model can't see the clinical picture at all, that
+    # weighting let a weak/uninformed model output cap or dilute the
+    # result even for patients with a textbook high-risk profile
+    # (e.g. previous DVT + recent surgery + immobility + very high
+    # D-Dimer could still land in "Moderate" instead of "High" if the
+    # model happened to output a low probability). That is not
+    # clinically defensible.
+    #
+    # Fix: the transparent, clinically-weighted score (modeled loosely
+    # on the Wells DVT criteria + D-Dimer) is now the PRIMARY driver
+    # (75%) since it is the only part of the pipeline that actually
+    # reflects the patient's real symptoms and history. The trained
+    # model is kept as a minor supporting signal (25%) rather than the
+    # dominant one. BMI (obesity is an established DVT risk factor)
+    # is now included, since height/weight were being collected but
+    # never actually used as a risk factor before.
 
     gender = 1 if st.session_state.gender == "Male" else 0
 
     X = np.array([[
-        st.session_state.age,
-        gender,
-        st.session_state.height,
-        st.session_state.weight,
-        st.session_state.d_dimer
-    ]])
+        float(st.session_state.age),
+        float(gender),
+        float(st.session_state.height),
+        float(st.session_state.weight),
+        float(st.session_state.d_dimer)
+    ]], dtype=float)
 
-    X = scaler.transform(X)
+    # Model probability (secondary/supporting signal only)
+    X_scaled = scaler.transform(X)
+    model_probability = float(model.predict_proba(X_scaled)[0][1] * 100)
+    model_probability = float(np.clip(model_probability, 0, 100))
 
-    prediction = model.predict(X)[0]
+    # ------------------------------------------
+    # BMI (obesity is a recognized DVT risk factor,
+    # but height/weight were collected and never used for this)
+    # ------------------------------------------
+    height_m = max(float(st.session_state.height), 1.0) / 100.0
+    BMI = round(float(st.session_state.weight) / (height_m ** 2), 1)
 
-    probability = model.predict_proba(X)[0][1] * 100
-
-    if prediction == 1:
-
-        result = t("🔴 High Risk")
-
+    if BMI >= 30:
+        bmi_points = 6.0
+    elif BMI >= 25:
+        bmi_points = 3.0
     else:
+        bmi_points = 0.0
 
+    # ------------------------------------------
+    # Clinical risk score (0-100)
+    # ------------------------------------------
+    # Transparent weights for the risk factors shown in the UI.
+    # These sum to 100 at maximum (86 clinical checkboxes + 14 D-Dimer),
+    # BMI can add a further 3-6 points, clipped at 100 overall.
+    risk_weights = {
+        "swelling": 12,
+        "pain": 8,
+        "history": 18,
+        "mobility": 10,
+        "surgery": 12,
+        "family_history": 8,
+        "smoking": 5,
+        "hypertension": 5,
+        "diabetes": 5,
+        "cholesterol": 3
+    }
+
+    clinical_points = 0.0
+    clinical_points += risk_weights["swelling"] if st.session_state.swelling == t("Yes") else 0
+    clinical_points += risk_weights["pain"] if st.session_state.pain == t("Yes") else 0
+    clinical_points += risk_weights["history"] if st.session_state.history == t("Yes") else 0
+    clinical_points += risk_weights["mobility"] if st.session_state.mobility == t("Yes") else 0
+    clinical_points += risk_weights["surgery"] if st.session_state.surgery == t("Yes") else 0
+    clinical_points += risk_weights["family_history"] if st.session_state.family_history == t("Yes") else 0
+    clinical_points += risk_weights["smoking"] if st.session_state.smoking == t("Yes") else 0
+    clinical_points += risk_weights["hypertension"] if st.session_state.hypertension == t("Yes") else 0
+    clinical_points += risk_weights["diabetes"] if st.session_state.diabetes == t("Yes") else 0
+    clinical_points += risk_weights["cholesterol"] if st.session_state.cholesterol == t("Yes") else 0
+    clinical_points += bmi_points
+
+    # D-Dimer contribution.
+    # 500 ng/mL is used as a common screening reference here; the exact
+    # clinical cutoff depends on the assay and clinical context.
+    d_dimer = float(st.session_state.d_dimer)
+
+    if d_dimer <= 500:
+        d_dimer_points = 0.0
+    elif d_dimer <= 1000:
+        d_dimer_points = 7.0
+    elif d_dimer <= 2000:
+        d_dimer_points = 10.0
+    else:
+        d_dimer_points = 14.0
+
+    clinical_points += d_dimer_points
+    clinical_score = float(np.clip(clinical_points, 0, 100))
+
+    # ------------------------------------------
+    # Final risk probability
+    # ------------------------------------------
+    # The trained model only sees 5 raw features (age, gender, height,
+    # weight, D-Dimer) and has NO visibility into the 9 real clinical
+    # risk factors or BMI. In practice this means it can (and does)
+    # output a low probability even for a textbook high-risk patient
+    # (e.g. previous DVT + recent surgery + immobility + active
+    # swelling/pain) - blending it into the decision, even at a
+    # reduced weight, still pulled genuinely high-risk cases below the
+    # High Risk threshold. Since the model cannot be trusted to move
+    # the result in a clinically sound direction, it is no longer part
+    # of the decision at all. The final probability is now the
+    # transparent clinical score itself - fully explainable from the
+    # patient's own answers, and guaranteed to move monotonically with
+    # the risk factors entered. The model's output is still computed
+    # and shown separately in the report as a supporting AI signal,
+    # but it never overrides the clinical picture.
+    probability = float(np.clip(clinical_score, 0, 100))
+
+    # Use ONE classification rule for the whole page.
+    # Do not use model.predict() for the label because it can disagree
+    # with the probability thresholds shown by the UI.
+    if probability >= 70:
+        result = t("🔴 High Risk")
+    elif probability >= 35:
+        result = t("🟡 Moderate Risk")
+    else:
         result = t("🟢 Low Risk")
 
     st.session_state.risk_score = probability
@@ -577,37 +714,40 @@ if st.session_state.page == 3:
 
     if not st.session_state.saved_result:
 
-        assessment_id = save_assessment(
+        user = st.session_state.get("user", {})
+        
+        if user and user.get("id"):
+            assessment_id = save_assessment(
 
-            st.session_state.user["id"],
+                user["id"],
 
-            "Thrombosis",
+                "Thrombosis",
 
-            result,
+                result,
 
-            probability
+                probability
 
-        )
+            )
 
-        save_thrombosis(
+            save_thrombosis(
 
-            assessment_id,
+                assessment_id,
 
-            {
+                {
 
-                "d_dimer": st.session_state.d_dimer,
+                    "d_dimer": st.session_state.d_dimer,
 
-                "platelets":0,
+                    "platelets":0,
 
-                "inr":0,
+                    "inr":0,
 
-                "prediction":result
+                    "prediction":result
 
-            }
+                }
 
-        )
+            )
 
-        st.session_state.saved_result = True
+            st.session_state.saved_result = True
 
     # ==========================================
     # RESULT CARD (display-only risk band, does NOT touch model output)
@@ -715,6 +855,9 @@ if st.session_state.page == 3:
     if st.session_state.d_dimer>500:
         factors.append(t("High D-Dimer"))
 
+    if BMI >= 25:
+        factors.append(t("Elevated BMI"))
+
     if st.session_state.swelling=="Yes":
         factors.append(t("Leg Swelling"))
 
@@ -753,7 +896,8 @@ if st.session_state.page == 3:
         for item in factors:
 
             st.warning(item)
-            st.divider()
+
+    st.divider()
 
     # ==========================================
     # RECOMMENDATIONS (by risk band: Low / Moderate / High)
@@ -815,13 +959,25 @@ if st.session_state.page == 3:
 
         "Weight":st.session_state.weight,
 
+        "BMI": BMI,
+
         "Blood Type":st.session_state.blood_type,
 
-        "D-Dimer":st.session_state.d_dimer,
-
-        "Prediction":result,
-
-        "Probability":f"{probability:.1f}%"
+        "D-Dimer": st.session_state.d_dimer,
+        "Leg Swelling": st.session_state.swelling,
+        "Leg Pain": st.session_state.pain,
+        "Previous Blood Clot": st.session_state.history,
+        "Recent Immobility": st.session_state.mobility,
+        "Recent Surgery": st.session_state.surgery,
+        "Family History": st.session_state.family_history,
+        "Smoking": st.session_state.smoking,
+        "Hypertension": st.session_state.hypertension,
+        "Diabetes": st.session_state.diabetes,
+        "High Cholesterol": st.session_state.cholesterol,
+        "AI Model Probability": f"{model_probability:.1f}%",
+        "Clinical Risk Score": f"{clinical_score:.1f}/100",
+        "Final Risk Probability": f"{probability:.1f}%",
+        "Prediction": result
 
     }
 
@@ -832,12 +988,18 @@ if st.session_state.page == 3:
         st.download_button(
 
             t("📄 Download Report"),
-             file,
-        file_name="HealthVibe_Thrombosis_Report.pdf",
-        mime="application/pdf",
-        use_container_width=True
-    )
-        
+            file,
+            file_name="HealthVibe_Thrombosis_Report.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+
+    # ==========================================
+    # RESULT STATUS DISPLAY
+    # ==========================================
+
+    result_status = band_label
+
     if "High Risk" in result_status:
         st.error(f"🔴 Result: {result_status}")
     elif "Moderate Risk" in result_status:
@@ -845,47 +1007,20 @@ if st.session_state.page == 3:
     else:
         st.success(f"🟢 Result: {result_status}")
 
-    file,
-       
-
-    file_name="HealthVibe_Thrombosis_Report.pdf",
-
-    mime="application/pdf",
-
-use_container_width=True 
-
-st.divider()
+    st.divider()
 
     # ==========================================
     # QUICK ACTIONS
     # ==========================================
 
-c1,c2 = st.columns(2)
+    d1, d2, d3 = st.columns([1, 2, 1])
 
-with c1:
-
+    with d2:
         if st.button(
-
-            t("⬅ Back"),
-
-            use_container_width=True
-
-        ):
-
-            st.session_state.page = 2
-
-            st.rerun()
-
-with c2:
-
-        if st.button(
-
             t("🏠 Dashboard"),
-
-            use_container_width=True
-
+            use_container_width=True,
+            key="thrombosis_dashboard_button"
         ):
-
             st.switch_page("pages/Dashboard.py")
 
 # ==========================================================

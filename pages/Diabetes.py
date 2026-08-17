@@ -255,7 +255,7 @@ elif st.session_state.step == 3:
         t("BMI"),
         min_value=10.0,
         max_value=80.0,
-        value=float(patient.get("bmi", 25.0)),
+        value=25.0,
         step=0.1
     )
 
@@ -294,42 +294,42 @@ elif st.session_state.step == 3:
 
     with col2:
 
-     if st.button(
-        t("🧠 Predict"),
-        key="predict_btn",
-        width="stretch"
-    ):
+        if st.button(
+            t("🧠 Predict"),
+            key="predict_btn",
+            width="stretch"
+        ):
 
-        ai_loading()
+            ai_loading()
 
-        input_data = pd.DataFrame([{
-            "Pregnancies": patient["pregnancies"],
-            "Glucose": patient["glucose"],
-            "BloodPressure": patient["blood_pressure"],
-            "SkinThickness": patient["skin"],
-            "Insulin": patient["insulin"],
-            "BMI": patient["bmi"],
-            "DiabetesPedigreeFunction": patient["dpf"],
-            "Age": patient["age"]
-        }])
+            input_data = pd.DataFrame([{
+                "Pregnancies": patient["pregnancies"],
+                "Glucose": patient["glucose"],
+                "BloodPressure": patient["blood_pressure"],
+                "SkinThickness": patient["skin"],
+                "Insulin": patient["insulin"],
+                "BMI": patient["bmi"],
+                "DiabetesPedigreeFunction": patient["dpf"],
+                "Age": patient["age"]
+            }])
 
-        try:
-            prediction = model.predict(input_data)[0]
+            try:
+                prediction = model.predict(input_data)[0]
 
-            if hasattr(model, "predict_proba"):
-                probability = float(model.predict_proba(input_data)[0][1])
-            else:
-                probability = 1.0 if prediction == 1 else 0.0
+                if hasattr(model, "predict_proba"):
+                    probability = float(model.predict_proba(input_data)[0][1])
+                else:
+                    probability = 1.0 if prediction == 1 else 0.0
 
-            patient["prediction"] = int(prediction)
-            patient["probability"] = probability
+                patient["prediction"] = int(prediction)
+                patient["probability"] = probability
 
-        except Exception as e:
-            st.error(f"{t('Prediction Error : ')}{e}")
-            st.stop()
+            except Exception as e:
+                st.error(f"{t('Prediction Error : ')}{e}")
+                st.stop()
 
-        st.session_state.step = 4
-        st.rerun()
+            st.session_state.step = 4
+            st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -342,120 +342,114 @@ elif st.session_state.step == 4:
     st.subheader(t("📊 AI Prediction Result"))
 
     prediction = patient.get("prediction", 0)
+    probability = patient.get("probability", 0.0)
 
-    if prediction == 1:
-
-        risk = 92
-        result = t("High Risk")
-        color = "#EF4444"
-
-    else:
-
-        risk = 8
+    if probability < 0.40:
         result = t("Low Risk")
         color = "#22C55E"
 
-    ai_gauge(risk)
+    elif probability < 0.70:
+        result = t("Moderate Risk")
+        color = "#F59E0B"
+
+    else:
+        result = t("High Risk")
+        color = "#EF4444"
+
+    ai_gauge(probability)
 
     st.markdown(f"""
-    <div class="card">
+        <div class="card">
 
-    <h2 style="color:{color};">
-    {result}
-    </h2>
+        <h2 style="color:{color};">
+        {result}
+        </h2>
 
-    <p>
-    {t("AI Prediction Completed Successfully")}
-    </p>
+        <p>
+        {t("AI Prediction Completed Successfully")}
+        </p>
 
-    </div>
-    """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
     patient_summary(patient)
 
     st.write("")
 
-    col1, col2, col3 = st.columns(3)
+    # Save to Database
+    if not st.session_state.saved:
 
-    # ==========================
-    # BACK
-    # ==========================
+        try:
+            assessment_id = save_assessment(
+                user["id"],
+                "Diabetes",
+                prediction,
+                patient.get("probability", 0)
+            )
+
+            # Prepare only the required fields for diabetes table
+            diabetes_data = {
+                "pregnancies": patient.get("pregnancies", 0),
+                "glucose": patient.get("glucose", 0),
+                "blood_pressure": patient.get("blood_pressure", 0),
+                "skin": patient.get("skin", 0),
+                "insulin": patient.get("insulin", 0),
+                "bmi": patient.get("bmi", 0),
+                "dpf": patient.get("dpf", 0),
+                "age": patient.get("age", 0)
+            }
+
+            save_diabetes(
+                assessment_id,
+                diabetes_data
+            )
+
+            st.session_state.saved = True
+
+        except Exception as e:
+            st.error(f"{t('Database Error : ')}{e}")
+
+    st.divider()
+
+    # PDF Download - نفس طريقة Hypertension
+    pdf_file = create_pdf(patient)
+
+    with open(pdf_file, "rb") as pdf:
+
+        st.download_button(
+
+            t("⬇ Download PDF Report"),
+
+            pdf,
+
+            file_name=pdf_file,
+
+            mime="application/pdf",
+
+            width="stretch"
+
+        )
+
+    col1, col2 = st.columns(2)
 
     with col1:
 
         if st.button(
             t("⬅ Back"),
-            width="stretch"
+            width="stretch",
+            key="diabetes_back_result"
         ):
-
             st.session_state.step = 3
             st.rerun()
-
-    # ==========================
-    # SAVE
-    # ==========================
 
     with col2:
 
         if st.button(
-            t("💾 Save Result"),
-            width="stretch"
+            t("🔄 New Assessment"),
+            width="stretch",
+            key="diabetes_new"
         ):
-
-            try:
-
-                assessment_id = save_assessment(
-                    user["id"],
-                   "Diabetes",
-                    prediction,
-                    patient.get("probability", 0)
-                )
-
-                patient["prediction"] = prediction
-
-                save_diabetes(
-                    assessment_id,
-                    patient
-                )
-
-                st.success(t("Saved Successfully ✅"))
-
-            except Exception as e:
-
-                st.error(f"{t('Database Error : ')}{e}")
-
-    # ==========================
-    # PDF
-    # ==========================
-
-    with col3:
-
-        try:
-
-            pdf = create_pdf(
-                "Diabetes Report",
-                patient,
-                prediction
-            )
-
-            st.download_button(
-                t("📄 Download PDF"),
-                pdf,
-                "Diabetes_Report.pdf",
-                mime="application/pdf",
-                width="stretch"
-            )
-
-        except Exception as e:
-
-            st.error(f"{t('PDF Error : ')}{e}")
-
-    st.write("")
-
-    if st.button(
-        t("🏠 Back To Dashboard"),
-        width="stretch"
-    ):
-
-        st.session_state.step = 1
-        st.switch_page("pages/Dashboard.py")
+            st.session_state.step = 1
+            st.session_state.patient = {}
+            st.session_state.saved = False
+            st.rerun()

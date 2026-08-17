@@ -88,16 +88,8 @@ if "step" not in st.session_state:
 if "patient" not in st.session_state:
     st.session_state.patient = {}
 
-if "analyzed" not in st.session_state:
-    st.session_state.analyzed = False
-
-if "prediction" not in st.session_state:
-    st.session_state.prediction = ""
-
-if "confidence" not in st.session_state:
-    st.session_state.confidence = 0
-
 patient = st.session_state.patient
+
 # ==========================================
 # HERO
 # ==========================================
@@ -193,6 +185,7 @@ if st.session_state.step == 1:
 
         st.session_state.step = 2
         st.rerun()
+
 # ==========================================
 # STEP 2
 # ==========================================
@@ -291,7 +284,8 @@ elif st.session_state.step == 2:
             st.session_state.step = 3
             st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True) 
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # ==========================================
 # STEP 3
 # ==========================================
@@ -348,6 +342,11 @@ elif st.session_state.step == 3:
     patient["heart_rate"] = heart_rate
     patient["respiratory_rate"] = respiratory_rate
 
+    # NOTE: the trained model only accepts Symptoms / Age / Sex (the
+    # columns it was trained on in Fibrosis_data.csv). Vital signs are
+    # still collected and shown/saved/printed in the report, but they are
+    # not fed into the model since it was never trained on them.
+
     st.write("")
 
     col1, col2 = st.columns(2)
@@ -387,11 +386,15 @@ elif st.session_state.step == 3:
 
                 try:
 
+                    # Confidence of the predicted class, kept on a 0-1
+                    # scale (same convention as Hypertension.py) so it
+                    # can be reused directly by ai_gauge / save_assessment
+                    # / create_pdf without any extra scaling.
                     probability = float(
                         model.predict_proba(input_data)[0].max()
                     )
 
-                except:
+                except Exception:
 
                     probability = 1.0
 
@@ -407,7 +410,8 @@ elif st.session_state.step == 3:
             st.session_state.step = 4
             st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)      
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # ==========================================
 # STEP 4
 # ==========================================
@@ -417,11 +421,19 @@ elif st.session_state.step == 4:
     st.subheader(t("📊 AI Prediction Result"))
 
     prediction = patient.get("prediction_text", "Unknown")
-    probability = patient.get("probability", 0)
 
-    confidence = int(probability * 100)
+    # probability is always kept on a 0-1 scale here, exactly like
+    # Hypertension.py. Never multiply it by 100 before passing it to
+    # ai_gauge / save_assessment / create_pdf — only when formatting
+    # text for display (probability * 100 for the "%" label).
+    probability = float(patient.get("probability", 0))
 
-    ai_gauge(confidence)
+    ai_gauge(probability)
+
+    st.metric(
+        t("AI Confidence"),
+        f"{probability * 100:.1f}%"
+    )
 
     result = dataset[
         dataset["Disease"] == prediction
@@ -509,7 +521,8 @@ It is NOT a confirmed medical diagnosis.
 Please consult a qualified healthcare professional
 for examination, confirmation and treatment.
 
-""")) 
+"""))
+
     st.write("")
 
     col1, col2, col3 = st.columns(3)
@@ -543,22 +556,19 @@ for examination, confirmation and treatment.
 
             try:
 
+                # Same call convention as Hypertension.py: probability
+                # saved on a 0-1 scale (NOT multiplied by 100), keyword
+                # arguments named the same way.
                 assessment_id = save_assessment(
-
-                    user["id"],
-                    "Respiratory Disease",
-                    prediction,
-                    probability * 100
-
+                    user_id=user["id"],
+                    disease="Respiratory Disease",
+                    prediction=str(prediction),
+                    probability=float(probability)
                 )
 
-                patient["prediction"] = prediction
-
                 save_fibrosis(
-
                     assessment_id,
                     patient
-
                 )
 
                 st.success(t("Saved Successfully ✅"))
@@ -618,170 +628,6 @@ for examination, confirmation and treatment.
         st.session_state.patient = {}
 
         st.switch_page("pages/Dashboard.py")
-# ==========================================================
-# RESULTS
-# ==========================================================
-
-if st.session_state.analyzed:
-
-    st.divider()
-
-    st.header(t("📊 AI Analysis Result"))
-
-    prediction = st.session_state.prediction
-    confidence = st.session_state.confidence
-
-    if confidence >= 80:
-        color = "#EF4444"
-        level = "High Confidence"
-
-    elif confidence >= 60:
-        color = "#F59E0B"
-        level = "Moderate Confidence"
-
-    else:
-        color = "#22C55E"
-        level = "Low Confidence"
-
-    st.markdown(f"""
-    <div class="card">
-
-    <h2 style="color:{color};">
-    {prediction}
-    </h2>
-
-    <p>{t(level)}</p>
-
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.progress(int(confidence))
-
-    st.metric(
-        t("AI Confidence"),
-        f"{confidence:.1f}%"
-    )
-
-    st.warning(t("""
-⚠️ This AI prediction is **not a medical diagnosis**.
-
-Please consult a pulmonologist to confirm the diagnosis and determine the appropriate treatment plan.
-"""))
-
-    st.divider()
-
-    st.subheader(t("💡 General Recommendations"))
-
-    recommendations = []
-
-    recommendations.append(t("🩺 Visit a chest specialist."))
-    recommendations.append(t("🚭 Avoid smoking completely."))
-    recommendations.append(t("😷 Avoid dust and polluted air."))
-    recommendations.append(t("💧 Stay hydrated."))
-    recommendations.append(t("🏃 Maintain light physical activity if possible."))
-
-    for rec in recommendations:
-        st.write(rec)
-
-    st.divider()
-
-    col1, col2, col3 = st.columns(3)
-
-    # ====================================
-    # BACK
-    # ====================================
-
-    with col1:
-
-        if st.button(
-            t("⬅ Back"),
-            key="back_result",
-            use_container_width=True
-        ):
-
-            st.session_state.page = 3
-            st.session_state.analyzed = False
-            st.rerun()
-
-    # ====================================
-    # SAVE
-    # ====================================
-
-    with col2:
-
-        if st.button(
-            t("💾 Save Result"),
-            key="save_result",
-            use_container_width=True
-        ):
-
-            assessment_id = save_assessment(
-
-                user["id"],
-
-                "Respiratory Diseases",
-
-                prediction,
-
-                confidence
-
-            )
-
-            patient = {
-
-                "oxygen": spo2,
-
-                "fev1": 0,
-
-                "fvc": 0,
-
-                "prediction": prediction
-
-            }
-
-            save_fibrosis(
-                assessment_id,
-                patient
-            )
-
-            st.success(t("Saved Successfully ✅"))
-
-        # ====================================
-    # PDF
-    # ====================================
-
-    with col3:
-
-        if st.button(
-            t("📄 Download Report"),
-            use_container_width=True
-        ):
-
-            patient = {
-                "name": profile["full_name"] if profile else "",
-                "age": age,
-                "gender": gender,
-                "bmi": bmi,
-                "prediction": prediction,
-                "probability": confidence / 100,
-                "symptom": symptom,
-                "spo2": spo2,
-                "heart_rate": heart_rate,
-                "temperature": temperature,
-                "smoking": smoking
-            }
-
-            pdf = create_pdf(patient)
-
-            with open(pdf, "rb") as file:
-
-                st.download_button(
-                    t("⬇ Download PDF"),
-                    data=file.read(),
-                    file_name="Respiratory_Report.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
 
 st.divider()
 
