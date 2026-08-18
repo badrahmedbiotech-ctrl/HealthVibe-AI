@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import translation
 
 def ai_loading():
 
@@ -9,25 +10,25 @@ def ai_loading():
 
     steps = [
 
-        ("🩸 Reading Patient Data...",20),
+        ("🩸 Reading Patient Data...", 20),
 
-        ("🧠 Running AI Model...",45),
+        ("🧠 Running AI Model...", 45),
 
-        ("📊 Calculating Risk Score...",70),
+        ("📊 Calculating Risk Score...", 70),
 
-        ("💡 Generating Recommendation...",90),
+        ("💡 Generating Recommendation...", 90),
 
-        ("✅ Finalizing Report...",100)
+        ("✅ Finalizing Report...", 100)
 
     ]
 
-    for text,value in steps:
+    for text, value in steps:
 
         status.markdown(f"""
 
-        ## {text}
+        ## {translation.t(text)}
 
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
         progress.progress(value)
 

@@ -1,6 +1,7 @@
 import sqlite3
 import hashlib
 from pathlib import Path
+import streamlit as st
 
 DB_PATH = Path("database")
 DB_PATH.mkdir(exist_ok=True)
@@ -8,27 +9,38 @@ DB_PATH.mkdir(exist_ok=True)
 DATABASE = DB_PATH / "healthvibe.db"
 
 
+# ==========================================================
+# DATABASE CONNECTION
+# ==========================================================
+
 def connect():
+
     conn = sqlite3.connect(DATABASE)
+
     conn.row_factory = sqlite3.Row
+
     return conn
 
 
-# ===========================
+# ==========================================================
 # PASSWORD HASH
-# ===========================
+# ==========================================================
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+
+    return hashlib.sha256(
+        password.encode()
+    ).hexdigest()
 
 
-# ===========================
+# ==========================================================
 # CREATE USERS TABLE
-# ===========================
+# ==========================================================
 
 def create_users_table():
 
     conn = connect()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -50,41 +62,102 @@ def create_users_table():
     """)
 
     conn.commit()
+
     conn.close()
 
 
-# ===========================
-# REGISTER
-# ===========================
+# ==========================================================
+# CREATE ADMIN
+# ==========================================================
 
-def register_user(full_name, email, password, role):
+def create_admin():
 
     conn = connect()
     cur = conn.cursor()
 
-    try:
+    admin_email = st.secrets["admin"]["email"]
+    admin_password = st.secrets["admin"]["password"]
 
-        cur.execute("""
+    cur.execute(
+        """
+        SELECT id
+        FROM users
+        WHERE email = ?
+        """,
+        (admin_email,)
+    )
 
-        INSERT INTO users(
+    existing_admin = cur.fetchone()
 
-            full_name,
-            email,
-            password,
-            role
+    if existing_admin is None:
 
+        cur.execute(
+            """
+            INSERT INTO users(
+                full_name,
+                email,
+                password,
+                role
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                "HealthVibe Administrator",
+                admin_email,
+                hash_password(admin_password),
+                "Admin"
+            )
         )
 
-        VALUES(?,?,?,?)
+        conn.commit()
 
-        """, (
+    conn.close()
 
-            full_name,
-            email,
-            hash_password(password),
-            role
 
-        ))
+# ==========================================================
+# REGISTER
+# ==========================================================
+
+def register_user(
+    full_name,
+    email,
+    password,
+    role
+):
+
+    conn = connect()
+
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute(
+            """
+
+            INSERT INTO users(
+
+                full_name,
+                email,
+                password,
+                role
+
+            )
+
+            VALUES(?,?,?,?)
+
+            """,
+            (
+
+                full_name,
+
+                email,
+
+                hash_password(password),
+
+                role
+
+            )
+        )
 
         conn.commit()
 
@@ -99,31 +172,38 @@ def register_user(full_name, email, password, role):
         conn.close()
 
 
-# ===========================
+# ==========================================================
 # LOGIN
-# ===========================
+# ==========================================================
 
-def login_user(email, password):
+def login_user(
+    email,
+    password
+):
 
     conn = connect()
 
     cur = conn.cursor()
 
-    cur.execute("""
+    cur.execute(
+        """
 
-    SELECT *
+        SELECT *
 
-    FROM users
+        FROM users
 
-    WHERE email=?
-    AND password=?
+        WHERE email=?
+        AND password=?
 
-    """, (
+        """,
+        (
 
-        email,
-        hash_password(password)
+            email,
 
-    ))
+            hash_password(password)
+
+        )
+    )
 
     user = cur.fetchone()
 

@@ -1,5 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
+import translation
 
 
 def ai_gauge(probability):
@@ -20,6 +21,8 @@ def ai_gauge(probability):
     else:
         color = "#EF4444"
         status = "HIGH RISK"
+
+    status = translation.t(status)
 
     fig = go.Figure(
         go.Indicator(
@@ -121,5 +124,5 @@ def ai_gauge(probability):
 
     st.plotly_chart(
         fig,
-        use_container_width=True
+        width="stretch"
     )

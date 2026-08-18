@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score, classification_report
 
 df = pd.read_csv("dataset/Fibrosis_data.csv")
 
+
 # حذف الصفوف اللي مفيهاش اسم المرض
 df = df.dropna(subset=["Disease"])
 

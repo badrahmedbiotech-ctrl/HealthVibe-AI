@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
+from components.branding import *
 from utils.navigation import sidebar
 
 from components.database import (
@@ -23,10 +23,13 @@ from components.doctor_db import (
 
 st.set_page_config(
     page_title="My Medical Profile",
-    page_icon="🩺",
+    page_icon=str(LOGO),
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+import translation
+translation.init()
 
 # ==========================================
 # LOAD CSS
@@ -116,7 +119,7 @@ st.markdown(f"""
 <div>
 
 <span class="hero-badge">
-🟢 Medical Profile
+{translation.t("🟢 Medical Profile")}
 </span>
 
 <h1>
@@ -124,7 +127,7 @@ st.markdown(f"""
 </h1>
 
 <p>
-Manage your medical information securely
+{translation.t("Manage your medical information securely")}
 </p>
 
 </div>
@@ -147,16 +150,16 @@ st.write("")
 m1, m2, m3, m4 = st.columns(4)
 
 with m1:
-    st.metric("Age", age)
+    st.metric(translation.t("Age"), age)
 
 with m2:
-    st.metric("Gender", gender)
+    st.metric(translation.t("Gender"), translation.t(gender))
 
 with m3:
-    st.metric("Weight", f"{weight} kg")
+    st.metric(translation.t("Weight"), f"{weight} kg")
 
 with m4:
-    st.metric("Height", f"{height} cm")
+    st.metric(translation.t("Height"), f"{height} cm")
 
 st.write("")
 st.divider()
@@ -165,57 +168,66 @@ st.divider()
 # PERSONAL INFORMATION
 # ==========================================
 
-st.subheader("👤 Personal Information")
+st.subheader(translation.t("👤 Personal Information"))
 
 col1, col2 = st.columns(2)
 
 with col1:
 
     full_name = st.text_input(
-        "Full Name",
-        value=full_name
+        translation.t("Full Name"),
+        value=full_name,
+        key="profile_full_name"
     )
 
     age = st.number_input(
-        "Age",
+        translation.t("Age"),
         min_value=1,
         max_value=120,
-        value=age
+        value=age,
+        key="profile_age"
     )
 
     gender = st.selectbox(
-        "Gender",
+        translation.t("Gender"),
         ["Male", "Female"],
-        index=0 if gender == "Male" else 1
+        index=0 if gender == "Male" else 1,
+        format_func=translation.t,
+        key="profile_gender"
     )
 
     birth_date = st.text_input(
-        "Birth Date",
-        value=birth_date
+        translation.t("Birth Date"),
+        value=birth_date,
+        key="profile_birth_date"
     )
 
 with col2:
 
     phone = st.text_input(
-        "Phone Number",
-        value=phone
+        translation.t("Phone Number"),
+        value=phone,
+        key="profile_phone"
     )
 
     address = st.text_input(
-        "Address",
-        value=address
+        translation.t("Address"),
+        value=address,
+        key="profile_address"
     )
 
     weight = st.number_input(
-        "Weight (kg)",
+        translation.t("Weight (kg)"),
         min_value=1.0,
-        value=weight
+        value=weight,
+        key="profile_weight"
     )
 
     height = st.number_input(
-        "Height (cm)",
+        translation.t("Height (cm)"),
         min_value=1.0,
-        value=height
+        value=height,
+        key="profile_height"
     )
 
 st.write("")
@@ -225,14 +237,14 @@ st.divider()
 # MEDICAL INFORMATION
 # ==========================================
 
-st.subheader("🩺 Medical Information")
+st.subheader(translation.t("🩺 Medical Information"))
 
 left, right = st.columns(2)
 
 with left:
 
     blood_group = st.selectbox(
-        "Blood Group",
+        translation.t("Blood Group"),
         [
             "",
             "A+","A-",
@@ -252,41 +264,50 @@ with left:
             "B+","B-",
             "AB+","AB-",
             "O+","O-"
-        ] else "")
+        ] else ""),
+        format_func=lambda x: translation.t("Choose Blood Group") if x == "" else x,
+        key="profile_blood_group"
     )
 
     smoking = st.selectbox(
-        "Smoking",
+        translation.t("Smoking"),
         ["No", "Yes"],
-        index=0 if smoking == "No" else 1
+        index=0 if smoking == "No" else 1,
+        format_func=translation.t,
+        key="profile_smoking"
     )
 
     alcohol = st.selectbox(
-        "Alcohol",
+        translation.t("Alcohol"),
         ["No", "Yes"],
-        index=0 if alcohol == "No" else 1
+        index=0 if alcohol == "No" else 1,
+        format_func=translation.t,
+        key="profile_alcohol"
     )
 
 with right:
 
     allergies = st.text_area(
-        "Allergies",
+        translation.t("Allergies"),
         value=allergies,
-        height=120
+        height=120,
+        key="profile_allergies"
     )
 
     chronic_diseases = st.text_area(
-        "Chronic Diseases",
+        translation.t("Chronic Diseases"),
         value=chronic_diseases,
-        height=120
+        height=120,
+        key="profile_chronic_diseases"
     )
 
 st.write("")
 
 medications = st.text_area(
-    "Current Medications",
+    translation.t("Current Medications"),
     value=medications,
-    height=120
+    height=120,
+    key="profile_medications"
 )
 
 st.divider()
@@ -295,27 +316,30 @@ st.divider()
 # EMERGENCY CONTACT
 # ==========================================
 
-st.subheader("🚨 Emergency Contact")
+st.subheader(translation.t("🚨 Emergency Contact"))
 
 c1, c2 = st.columns(2)
 
 with c1:
 
     emergency_name = st.text_input(
-        "Contact Name",
-        value=emergency_name
+        translation.t("Contact Name"),
+        value=emergency_name,
+        key="profile_emergency_name"
     )
 
     emergency_relation = st.text_input(
-        "Relationship",
-        value=emergency_relation
+        translation.t("Relationship"),
+        value=emergency_relation,
+        key="profile_emergency_relation"
     )
 
 with c2:
 
     emergency_phone = st.text_input(
-        "Phone Number",
-        value=emergency_phone
+        translation.t("Phone Number"),
+        value=emergency_phone,
+        key="profile_emergency_phone"
     )
 
 st.write("")
@@ -325,11 +349,12 @@ st.divider()
 # SAVE PROFILE
 # ==========================================
 
-st.subheader("💾 Save Changes")
+st.subheader(translation.t("💾 Save Changes"))
 
 if st.button(
-    "💾 Save Medical Profile",
-    use_container_width=True
+    translation.t("💾 Save Medical Profile"),
+    width="stretch",
+    key="profile_save_btn"
 ):
 
     update_profile({
@@ -362,7 +387,7 @@ if st.button(
 
     })
 
-    st.success("✅ Medical Profile Updated Successfully")
+    st.success(translation.t("✅ Medical Profile Updated Successfully"))
 
     st.balloons()
 
@@ -373,21 +398,21 @@ st.divider()
 # PROFILE SUMMARY
 # ==========================================
 
-st.subheader("📊 Profile Summary")
+st.subheader(translation.t("📊 Profile Summary"))
 
 s1, s2, s3 = st.columns(3)
 
 with s1:
 
     st.metric(
-        "Profile Completion",
+        translation.t("Profile Completion"),
         "100%"
     )
 
 with s2:
 
     st.metric(
-        "Blood Group",
+        translation.t("Blood Group"),
         blood_group if blood_group else "--"
     )
 
@@ -396,7 +421,7 @@ with s3:
     bmi = round(weight / ((height / 100) ** 2), 1)
 
     st.metric(
-        "BMI",
+        translation.t("BMI"),
         bmi
     )
 
@@ -404,19 +429,19 @@ st.write("")
 
 if bmi < 18.5:
 
-    st.info("⚠ Underweight")
+    st.info(translation.t("⚠ Underweight"))
 
 elif bmi < 25:
 
-    st.success("✅ Normal Weight")
+    st.success(translation.t("✅ Normal Weight"))
 
 elif bmi < 30:
 
-    st.warning("⚠ Overweight")
+    st.warning(translation.t("⚠ Overweight"))
 
 else:
 
-    st.error("🔴 Obesity")
+    st.error(translation.t("🔴 Obesity"))
 
 st.divider()
 
@@ -424,23 +449,25 @@ st.divider()
 # QUICK ACTIONS
 # ==========================================
 
-st.subheader("⚡ Quick Actions")
+st.subheader(translation.t("⚡ Quick Actions"))
 
 b1, b2 = st.columns(2)
 
 with b1:
 
     if st.button(
-        "🏠 Back To Dashboard",
-        use_container_width=True
+        translation.t("🏠 Back To Dashboard"),
+        width="stretch",
+        key="profile_back_dashboard_btn"
     ):
         st.switch_page("pages/Dashboard.py")
 
 with b2:
 
     if st.button(
-        "📋 View Medical History",
-        use_container_width=True
+        translation.t("📋 View Medical History"),
+        width="stretch",
+        key="profile_view_history_btn"
     ):
         st.switch_page("pages/Patient_History.py")
 
@@ -451,7 +478,7 @@ st.divider()
 # HEALTH TIPS
 # ==========================================
 
-st.subheader("💡 Personalized Health Tips")
+st.subheader(translation.t("💡 Personalized Health Tips"))
 
 tips = []
 
@@ -484,7 +511,7 @@ else:
     ]
 
 for tip in tips:
-    st.success(tip)
+    st.success(translation.t(tip))
 
 st.write("")
 st.divider()
@@ -493,18 +520,18 @@ st.divider()
 # ACCOUNT INFO
 # ==========================================
 
-st.subheader("🔐 Account")
+st.subheader(translation.t("🔐 Account"))
 
 a1, a2, a3 = st.columns(3)
 
 with a1:
-    st.metric("Name", full_name_user)
+    st.metric(translation.t("Name"), full_name_user)
 
 with a2:
-    st.metric("Email", user.get("email", ""))
+    st.metric(translation.t("Email"), user.get("email", ""))
 
 with a3:
-    st.metric("Role", role)
+    st.metric(translation.t("Role"), role)
 st.write("")
 st.divider()
 
@@ -512,7 +539,7 @@ st.divider()
 # FOOTER
 # ==========================================
 
-st.markdown("""
+st.markdown(f"""
 <div style="
 text-align:center;
 padding:25px;
@@ -520,21 +547,21 @@ color:#94A3B8;
 ">
 
 <h2 style="color:#00C2FF;">
-🩺 HealthVibe AI
+{translation.t("🩺 HealthVibe AI")}
 </h2>
 
 <p>
-Your Complete AI Healthcare Platform
+{translation.t("Your Complete AI Healthcare Platform")}
 </p>
 
 <hr style="margin:20px 0;">
 
 <p>
-Made with ❤️ using Streamlit & AI
+{translation.t("Made with ❤️ using Streamlit & AI")}
 </p>
 
 <p>
-© 2026 HealthVibe AI
+{translation.t("© 2026 HealthVibe AI")}
 </p>
 
 </div>

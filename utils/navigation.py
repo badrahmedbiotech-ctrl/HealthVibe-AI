@@ -1,5 +1,8 @@
 import streamlit as st
 from pathlib import Path
+import translation
+
+from components.branding import LOGO
 
 
 def sidebar():
@@ -10,54 +13,94 @@ def sidebar():
         # LOGO
         # ==========================
 
-        st.markdown("# 🩺")
-        st.markdown("## HealthVibe AI")
-        st.caption("Clinical Decision Support Platform")
+        st.image(
+            str(LOGO),
+            width=140
+        )
+
+        st.markdown(
+            "<h2 style='text-align:center;'>HealthVibe AI</h2>",
+            unsafe_allow_html=True
+        )
+
+        st.caption(
+            translation.t("Clinical Decision Support Platform")
+        )
 
         st.divider()
-
         # ==========================
         # USER CARD
         # ==========================
 
-        username = st.session_state.get("username", "Guest")
-        role = st.session_state.get("role", "Patient")
+        username = st.session_state.get(
+            "username",
+            "Guest"
+        )
 
-        st.info(f"""
+        role = st.session_state.get(
+            "role",
+            "Patient"
+        )
+
+
+        st.info(
+            f"""
 👤 **{username}**
 
-🩺 **Role:** {role}
+🩺 **{translation.t("Role:")}** {translation.t(role)}
 
-🟢 **Status:** Online
-""")
+🟢 **{translation.t("Status:")}** {translation.t("Online")}
+"""
+        )
+
 
         st.divider()
+
 
         # ==========================
         # NAVIGATION
         # ==========================
 
-        st.subheader("📂 Navigation")
+        st.subheader(
+            translation.t("📂 Navigation")
+        )
+
 
         pages = [
+
             ("pages/Dashboard.py", "🏠 Dashboard"),
+
             ("pages/Profile.py", "👤 Profile"),
+
             ("pages/Patient_History.py", "📋 Patient History"),
 
+
             ("pages/Diabetes.py", "🩸 Diabetes"),
+
             ("pages/Hypertension.py", "❤️ Hypertension"),
+
             ("pages/obesity.py", "⚖️ Obesity"),
+
             ("pages/lipid.py", "🫀 Lipid"),
+
             ("pages/thrombosis_app.py", "🧬 Thrombosis"),
+
             ("pages/Pulmonary_Fibrosis.py", "🫁 Pulmonary AI"),
+
             ("pages/CT_Scan_AI.py", "🩻 CT Analysis"),
+
 
             ("pages/chatbot.py", "🤖 AI Assistant"),
 
+
             ("pages/doctor_db.py", "👨‍⚕️ Doctor Dashboard"),
+
             ("pages/About.py", "ℹ️ About"),
+
         ]
-                # ==========================
+
+
+        # ==========================
         # PAGE LINKS
         # ==========================
 
@@ -67,46 +110,87 @@ def sidebar():
 
                 st.page_link(
                     page,
-                    label=title,
+                    label=translation.t(title),
                     width="stretch"
                 )
 
+
         st.divider()
+
 
         # ==========================
         # SYSTEM STATUS
         # ==========================
 
-        st.subheader("⚡ System Status")
+        st.subheader(
+            translation.t("⚡ System Status")
+        )
 
-        st.success("🟢 AI Server")
-        st.success("🟢 Database")
-        st.success("🟢 Models Loaded")
+
+        st.success(
+            translation.t("🟢 AI Server")
+        )
+
+        st.success(
+            translation.t("🟢 Database")
+        )
+
+        st.success(
+            translation.t("🟢 Models Loaded")
+        )
+
 
         st.divider()
+
 
         # ==========================
         # DAILY HEALTH TIP
         # ==========================
 
-        st.subheader("💙 Daily Health Tip")
+        st.subheader(
+            translation.t("💙 Daily Health Tip")
+        )
 
-        st.markdown("""
-- 💧 Drink enough water
-- 🥗 Eat healthy meals
-- 🏃 Exercise at least 30 minutes
-- 😴 Sleep 7–8 hours
-""")
+
+        tips = [
+
+            "💧 Drink enough water",
+
+            "🥗 Eat healthy meals",
+
+            "🏃 Exercise at least 30 minutes",
+
+            "😴 Sleep 7–8 hours",
+
+        ]
+
+
+        tips_md = "\n".join(
+            f"- {translation.t(tip)}"
+            for tip in tips
+        )
+
+
+        st.markdown(
+            tips_md
+        )
+
 
         st.divider()
-                # ==========================
+
+
+        # ==========================
         # LOGOUT
         # ==========================
 
         if st.button(
-            "🚪 Logout",
+            translation.t("🚪 Logout"),
             type="primary",
             width="stretch"
         ):
+
             st.session_state.clear()
-            st.switch_page("app.py")
+
+            st.switch_page(
+                "app.py"
+            )

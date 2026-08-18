@@ -1,41 +1,14 @@
 import streamlit as st
+import translation
 
 def recommendation(prediction):
 
-    st.subheader("💡 Medical Recommendation")
+    st.subheader(translation.t("💡 Medical Recommendation"))
 
     if prediction == 1:
 
-        st.warning("""
-### High Risk
-
-• Visit an Internal Medicine doctor.
-
-• Perform HbA1c Test.
-
-• Monitor Blood Glucose.
-
-• Reduce Sugar Intake.
-
-• Exercise 30 minutes daily.
-
-• Lose excess weight.
-
-• Repeat laboratory tests.
-""")
+        st.warning(translation.t("reco_high_risk"))
 
     else:
 
-        st.success("""
-### Healthy Lifestyle
-
-• Continue healthy nutrition.
-
-• Exercise regularly.
-
-• Drink enough water.
-
-• Annual Diabetes Screening.
-
-• Maintain healthy body weight.
-""")
+        st.success(translation.t("reco_healthy_lifestyle"))

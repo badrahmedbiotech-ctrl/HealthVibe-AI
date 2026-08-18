@@ -438,6 +438,40 @@ def get_profile(user_id):
 
     return profile
 
+# ==========================================
+# GET ALL PATIENT PROFILES
+# ==========================================
+
+def get_all_profiles():
+
+    conn = connect()
+
+    query = """
+        SELECT
+            patient_profiles.id,
+            patient_profiles.user_id,
+            patient_profiles.full_name AS name,
+            users.email,
+            patient_profiles.gender,
+            patient_profiles.age,
+            patient_profiles.created_at
+
+        FROM patient_profiles
+
+        LEFT JOIN users
+            ON patient_profiles.user_id = users.id
+
+        ORDER BY datetime(patient_profiles.created_at) DESC
+    """
+
+    df = pd.read_sql_query(
+        query,
+        conn
+    )
+
+    conn.close()
+
+    return df
 
 # ==========================================
 # UPDATE PROFILE
@@ -911,18 +945,27 @@ def get_all_history():
 
     conn = connect()
 
-    df = pd.read_sql_query("""
-
-        SELECT *
+    query = """
+        SELECT
+            assessments.id,
+            assessments.user_id,
+            users.full_name AS patient_name,
+            assessments.disease,
+            assessments.prediction,
+            assessments.probability,
+            assessments.created_at
 
         FROM assessments
 
-        ORDER BY created_at DESC
+        LEFT JOIN users
+            ON assessments.user_id = users.id
 
-    """,
+        ORDER BY datetime(assessments.created_at) DESC
+    """
 
-    conn
-
+    df = pd.read_sql_query(
+        query,
+        conn
     )
 
     conn.close()
@@ -1052,3 +1095,182 @@ def delete_user(user_id):
 
     conn.commit()
     conn.close()
+# ==========================================
+# DASHBOARD STATISTICS
+# ==========================================
+
+def average_risk(user_id=None):
+    """
+    Calculate average assessment probability.
+    Returns 0 if there are no assessments.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT AVG(probability)
+        FROM assessments
+        WHERE user_id = ?
+        """
+
+        result = conn.execute(
+            query,
+            (user_id,)
+        ).fetchone()[0]
+
+    else:
+
+        query = """
+        SELECT AVG(probability)
+        FROM assessments
+        """
+
+        result = conn.execute(query).fetchone()[0]
+
+    conn.close()
+
+    if result is None:
+        return 0
+
+    return float(result)
+
+
+def latest_assessments(limit=5, user_id=None):
+    """
+    Return latest assessments as a DataFrame.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT *
+        FROM assessments
+        WHERE user_id = ?
+        ORDER BY datetime(created_at) DESC
+        LIMIT ?
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(user_id, limit)
+        )
+
+    else:
+
+        query = """
+        SELECT *
+        FROM assessments
+        ORDER BY datetime(created_at) DESC
+        LIMIT ?
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(limit,)
+        )
+
+    conn.close()
+
+    return df
+
+
+def disease_statistics(user_id=None):
+    """
+    Return assessment count grouped by disease.
+    """
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+        SELECT
+            disease,
+            COUNT(*) AS count
+        FROM assessments
+        WHERE user_id = ?
+        GROUP BY disease
+        ORDER BY count DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(user_id,)
+        )
+
+    else:
+
+        query = """
+        SELECT
+            disease,
+            COUNT(*) AS count
+        FROM assessments
+        GROUP BY disease
+        ORDER BY count DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn
+        )
+
+    conn.close()
+
+    return df
+
+
+def risk_statistics(user_id=None):
+
+    conn = connect()
+
+    if user_id is not None:
+
+        query = """
+            SELECT
+                disease AS Disease,
+                ROUND(AVG(probability), 2) AS "Average Risk"
+
+            FROM assessments
+
+            WHERE user_id = ?
+
+            GROUP BY disease
+
+            ORDER BY "Average Risk" DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=(user_id,)
+        )
+
+    else:
+
+        query = """
+            SELECT
+                disease AS Disease,
+                ROUND(AVG(probability), 2) AS "Average Risk"
+
+            FROM assessments
+
+            GROUP BY disease
+
+            ORDER BY "Average Risk" DESC
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn
+        )
+
+    conn.close()
+
+    return df

@@ -2,10 +2,36 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
+from components.branding import *
+from components.colors import *
+from components.branding import LOGO
+
+from translation import init, t
+
+# ==========================================
+# LANGUAGE (must run before any other markup)
+# ==========================================
+
+init()
+
+col1, col2 = st.columns([1, 5])
+
+with col1:
+    st.image(str(LOGO), width=90)
+
+with col2:
+    st.title(t("HealthVibe AI"))
+    st.caption(t("Vibe Better, Live Better"))
+
 from utils.navigation import sidebar
 
 from components.database import (
     total_patients,
+    total_assessments,
+    average_risk,
+    latest_assessments,
+    disease_statistics,
+    risk_statistics,
     get_all_history,
     get_profile
 )
@@ -15,13 +41,14 @@ from components.doctor_db import (
     available_doctors
 )
 
+
 # ==========================================
 # PAGE CONFIG
 # ==========================================
 
 st.set_page_config(
-    page_title="HealthVibe AI Dashboard",
-    page_icon="🩺",
+    page_title=t("HealthVibe AI Dashboard"),
+    page_icon=str(LOGO),
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -49,7 +76,7 @@ with open("style.css", encoding="utf-8") as f:
 
 sidebar()
 
-st.write("Dashboard Loaded Successfully")
+st.write(t("Dashboard Loaded Successfully"))
 
 # ==========================================
 # LOAD DATABASE
@@ -61,7 +88,7 @@ except:
     patients = 0
 
 try:
-    assessments = assessments = get_all_history()
+    assessments = get_all_history()
 except:
     assessments = []
 
@@ -86,7 +113,7 @@ profile = get_profile(user_id)
 if history_count == 0:
 
     health_score = 100
-    latest_prediction = "No Assessment"
+    latest_prediction = t("No Assessment")
 
 else:
 
@@ -102,6 +129,7 @@ else:
 
     else:
         health_score = 45
+
 # ==========================================
 # NOTIFICATIONS
 # ==========================================
@@ -110,22 +138,22 @@ notifications = []
 
 if history_count == 0:
 
-    notifications.append("Welcome to HealthVibe AI")
+    notifications.append(t("Welcome to HealthVibe AI"))
 
 else:
 
     notifications.append(
-        f"Latest assessment : {latest_prediction}"
+        f"{t('Latest assessment :')} {t(latest_prediction)}"
     )
 
 if online_doctors > 0:
 
     notifications.append(
-    f"{online_doctors} Doctors Online"
+        f"{online_doctors} {t('Doctors Online')}"
     )
 
 notifications.append(
-    f"Last Login : {datetime.now().strftime('%d %b %Y')}"
+    f"{t('Last Login :')} {datetime.now().strftime('%d %b %Y')}"
 )
 
 # ==========================================
@@ -142,9 +170,9 @@ def disease_card(icon, title, desc, page, key):
         {icon}
         </div>
 
-        <h3>{title}</h3>
+        <h3>{t(title)}</h3>
 
-        <p>{desc}</p>
+        <p>{t(desc)}</p>
 
         </div>
         """,
@@ -152,11 +180,12 @@ def disease_card(icon, title, desc, page, key):
     )
 
     if st.button(
-        f"Open {title}",
+        t(f"Open {title}"),
         key=key,
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page(page)
+
 # ==========================================
 # HERO
 # ==========================================
@@ -169,15 +198,15 @@ st.markdown(f"""
 <div>
 
 <span class="hero-badge">
-🟢 AI System Online
+{t("🟢 AI System Online")}
 </span>
 
 <h1>
-👋 Welcome Back, {username}
+{t("👋 Welcome Back,")} {username}
 </h1>
 
 <p>
-Your Intelligent Clinical Decision Support Platform
+{t("Your Intelligent Clinical Decision Support Platform")}
 </p>
 
 </div>
@@ -202,36 +231,47 @@ a1, a2, a3, a4 = st.columns(4)
 with a1:
 
     if st.button(
-        "🩸 New Assessment",
-        use_container_width=True
+        t("🩸 New Assessment"),
+        width="stretch"
     ):
         st.switch_page("pages/Diabetes.py")
 
 with a2:
 
     if st.button(
-        "🤖 AI Assistant",
-        use_container_width=True
+        t("🤖 AI Assistant"),
+        width="stretch"
     ):
         st.switch_page("pages/chatbot.py")
 
 with a3:
 
     if st.button(
-        "📋 history_count",
-        use_container_width=True
+        t("📋 Medical History"),
+        width="stretch"
     ):
         st.switch_page("pages/Patient_History.py")
 
 with a4:
 
     if st.button(
-        "👤 Profile",
-        use_container_width=True
+        t("👤 Profile"),
+        width="stretch"
     ):
         st.switch_page("pages/Profile.py")
 
 st.write("")
+
+# ==========================================
+# LOAD REAL DATA
+# ==========================================
+
+patients = total_patients()
+assessment_count = total_assessments()
+doctors = doctors_count()
+available = available_doctors()
+history = get_all_history()
+history_count = len(history)
 
 # ==========================================
 # DASHBOARD METRICS
@@ -240,76 +280,68 @@ st.write("")
 m1, m2, m3, m4 = st.columns(4)
 
 with m1:
-
     st.metric(
-        "👥 Patients",
+        t("👥 Patients"),
         patients
     )
-
 with m2:
-
     st.metric(
-        "📄 Assessments",
-        history_count
+        t("📄 Assessments"),
+        assessment_count
     )
 
 with m3:
-
     st.metric(
-        "👨‍⚕️ Doctors",
-        doctors,
-        f"{online_doctors} Online"
+        t("👨‍⚕️ Doctors"),
+        doctors
     )
 
 with m4:
-
     st.metric(
-        "❤️ Health Score",
-        f"{health_score}%"
+        t("🟢 Available"),
+        available
     )
-
-st.write("")
 
 # ==========================================
 # SUMMARY + RISK
 # ==========================================
 
-left, right = st.columns([2,1])
+left, right = st.columns([2, 1])
 
 with left:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
-    <h3>📈 Dashboard Summary</h3>
+    <h3>{t("📈 Dashboard Summary")}</h3>
     """, unsafe_allow_html=True)
 
-    st.write(f"**Username:** {username}")
-    st.write(f"**Role:** {role}")
-    st.write(f"**Total Assessments:** {history_count}")
-    st.write(f"**Latest Prediction:** {latest_prediction}")
+    st.write(f"{t('Username:')} {username}")
+    st.write(f"{t('Role:')} {t(role)}")
+    st.write(f"{t('Total Assessments:')} {history_count}")
+    st.write(f"{t('Latest Prediction:')} {t(latest_prediction)}")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 with right:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
-    <h3>❤️ Risk Indicator</h3>
+    <h3>{t("❤️ Risk Indicator")}</h3>
     """, unsafe_allow_html=True)
 
-    st.progress(health_score/100)
+    st.progress(health_score / 100)
 
     if health_score >= 90:
 
-        st.success("Excellent")
+        st.success(t("Excellent"))
 
     elif health_score >= 70:
 
-        st.warning("Moderate")
+        st.warning(t("Moderate"))
 
     else:
 
-        st.error("High Risk")
+        st.error(t("High Risk"))
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -319,17 +351,17 @@ st.write("")
 # CHART
 # ==========================================
 
-st.subheader("📊 Platform Statistics")
+st.subheader(t("📊 Platform Statistics"))
 
 chart = pd.DataFrame({
 
-    "Category":[
-        "Patients",
-        "Assessments",
-        "Doctors"
+    "Category": [
+        t("Patients"),
+        t("Assessments"),
+        t("Doctors")
     ],
 
-    "Value":[
+    "Value": [
         patients,
         history_count,
         doctors
@@ -341,15 +373,16 @@ st.bar_chart(
     chart,
     x="Category",
     y="Value",
-    use_container_width=True
+    width="stretch"
 )
 
 st.write("")
+
 # ==========================================
 # AI MODULES
 # ==========================================
 
-st.subheader("🩺 AI Disease Prediction Modules")
+st.subheader(t("🩺 AI Disease Prediction Modules"))
 
 r1 = st.columns(4)
 
@@ -422,17 +455,17 @@ with r2[2]:
 
 with r2[3]:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="dashboard-card">
 
     <div style="font-size:55px;">
     🚀
     </div>
 
-    <h3>Coming Soon</h3>
+    <h3>{t("Coming Soon")}</h3>
 
     <p>
-    More AI models are under development.
+    {t("More AI models are under development.")}
     </p>
 
     </div>
@@ -449,7 +482,7 @@ left, right = st.columns([2, 1])
 
 with left:
 
-    st.subheader("🔔 Notifications")
+    st.subheader(t("🔔 Notifications"))
 
     for note in notifications:
 
@@ -457,15 +490,15 @@ with left:
 
 with right:
 
-    st.subheader("⚡ System Status")
+    st.subheader(t("⚡️ System Status"))
 
-    st.success("🟢 AI Server")
+    st.success(t("🟢 AI Server"))
 
-    st.success("🟢 Database")
+    st.success(t("🟢 Database"))
 
-    st.success("🟢 Models")
+    st.success(t("🟢 Models"))
 
-    st.success("🟢 Authentication")
+    st.success(t("🟢 Authentication"))
 
 st.write("")
 st.divider()
@@ -474,7 +507,7 @@ st.divider()
 # RECENT ACTIVITY
 # ==========================================
 
-st.subheader("📈 Recent Activity")
+st.subheader(t("📈 Recent Activity"))
 
 try:
     history = get_all_history()
@@ -483,7 +516,7 @@ except:
 
 if len(history) == 0:
 
-    st.info("No assessments yet.")
+    st.info(t("No assessments yet."))
 
 else:
 
@@ -491,13 +524,13 @@ else:
 
         with st.container(border=True):
 
-            c1, c2, c3 = st.columns([3,2,2])
+            c1, c2, c3 = st.columns([3, 2, 2])
 
             with c1:
-                st.write(f"**{item['disease']}**")
+                st.write(t(item['disease']))
 
             with c2:
-                st.write(item["prediction"])
+                st.write(t(item["prediction"]))
 
             with c3:
                 st.caption(item["created_at"])
@@ -509,11 +542,11 @@ st.divider()
 # LATEST REPORTS
 # ==========================================
 
-st.subheader("📄 Latest Assessments")
+st.subheader(t("📄 Latest Assessments"))
 
 if len(history) == 0:
 
-    st.info("No reports yet.")
+    st.info(t("No reports yet."))
 
 else:
 
@@ -521,13 +554,13 @@ else:
 
         with st.container(border=True):
 
-            c1, c2, c3, c4 = st.columns([3,2,2,2])
+            c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
 
             with c1:
-                st.write(f"**{report['disease']}**")
+                st.write(t(report['disease']))
 
             with c2:
-                st.write(report["prediction"])
+                st.write(t(report["prediction"]))
 
             with c3:
                 probability = report.get("probability", 0)
@@ -538,36 +571,37 @@ else:
 
 st.write("")
 st.divider()
+
 # ==========================================
 # PATIENT DASHBOARD
 # ==========================================
 
 if role == "Patient":
 
-    st.subheader("👤 Patient Dashboard")
+    st.subheader(t("👤 Patient Dashboard"))
 
     c1, c2 = st.columns(2)
 
     with c1:
 
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-        <h3>📊 Personal Statistics</h3>
+        <h3>{t("📊 Personal Statistics")}</h3>
         """, unsafe_allow_html=True)
 
         st.metric(
-            "Assessments",
+            t("Assessments"),
             history_count
         )
 
         st.metric(
-            "Health Score",
+            t("Health Score"),
             f"{health_score}%"
         )
 
         st.metric(
-            "Latest Result",
-            latest_prediction
+            t("Latest Result"),
+            t(latest_prediction)
         )
 
         st.markdown(
@@ -577,9 +611,9 @@ if role == "Patient":
 
     with c2:
 
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-        <h3>💡 Daily Health Tips</h3>
+        <h3>{t("💡 Daily Health Tips")}</h3>
         """, unsafe_allow_html=True)
 
         tips = [
@@ -598,163 +632,162 @@ if role == "Patient":
 
         for tip in tips:
 
-            st.write(tip)
+            st.write(t(tip))
 
         st.markdown(
             "</div>",
             unsafe_allow_html=True
         )
 
-        st.write("")
-        st.divider()
+    st.write("")
+    st.divider()
+
 # ==========================================
 # DOCTOR DASHBOARD
 # ==========================================
 
 elif role == "Doctor":
 
-    st.subheader("👨‍⚕️ Doctor Dashboard")
+    st.subheader(t("👨‍⚕️ Doctor Dashboard"))
 
     d1, d2, d3 = st.columns(3)
 
     with d1:
 
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-        <h3>👥 Patient Management</h3>
+        <h3>{t("👥 Patient Management")}</h3>
         <p>
-        View and manage all registered patients.
+        {t("View and manage all registered patients.")}
         </p>
         </div>
         """, unsafe_allow_html=True)
 
         st.metric(
-            "Patients",
+            t("Patients"),
             patients
         )
 
         if st.button(
-            "Open Patient Manager",
+            t("Open Patient Manager"),
             key="doctor_patient",
-            use_container_width=True
+            width="stretch"
         ):
             st.switch_page("pages/doctor_db.py")
 
     with d2:
 
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-        <h3>📈 AI Analytics</h3>
+        <h3>{t("📈 AI Analytics")}</h3>
         <p>
-        Monitor AI performance and predictions.
+        {t("Monitor AI performance and predictions.")}
         </p>
         </div>
         """, unsafe_allow_html=True)
 
         st.metric(
-            "Assessments",
+            t("Assessments"),
             history_count
         )
 
         if st.button(
-            "Open Analytics",
+            t("Open Analytics"),
             key="doctor_ai",
-            use_container_width=True
+            width="stretch"
         ):
             st.switch_page("pages/doctor_db.py")
 
     with d3:
 
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-        <h3>👨‍⚕️ Doctors</h3>
+        <h3>{t("👨‍⚕️ Doctors")}</h3>
         <p>
-        Manage doctor accounts.
+        {t("Manage doctor accounts.")}
         </p>
         </div>
         """, unsafe_allow_html=True)
 
         st.metric(
-            "Online Doctors",
+            t("Online Doctors"),
             online_doctors
         )
 
         if st.button(
-            "Manage Doctors",
+            t("Manage Doctors"),
             key="doctor_manage",
-            use_container_width=True
+            width="stretch"
         ):
             st.switch_page("pages/doctor_db.py")
 
-st.write("")
-st.divider()
+    st.write("")
+    st.divider()
+
 # ==========================================
 # QUICK ACCESS
 # ==========================================
 
-st.subheader("⚡ Quick Access")
+st.subheader(t("⚡️ Quick Access"))
 
 q1, q2, q3, q4 = st.columns(4)
 
 with q1:
 
     if st.button(
-        "🤖 AI Chatbot",
+        t("🤖 AI Chatbot"),
         key="qa_chat",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/chatbot.py")
 
 with q2:
 
     if st.button(
-        "📋 Patient history_count",
+        t("📋 Patient History"),
         key="qa_history_count",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Patient_History.py")
 
 with q3:
 
     if st.button(
-        "👤 Profile",
+        t("👤 Profile"),
         key="qa_profile",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/Profile.py")
 
 with q4:
 
     if st.button(
-        "⚙ Settings",
+        t("⚙️ Settings"),
         key="qa_settings",
-        use_container_width=True
+        width="stretch"
     ):
         st.switch_page("pages/settings.py")
 
 st.write("")
 st.divider()
+
 # ==========================================
 # AI INSIGHTS
 # ==========================================
 
-st.write("")
-st.divider()
-
-st.subheader("🧠 AI Insights")
+st.subheader(t("🧠 AI Insights"))
 
 i1, i2 = st.columns(2)
 
 with i1:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
 
-    <h3>📊 Risk Distribution</h3>
+    <h3>{t("📊 Risk Distribution")}</h3>
 
     <p>
-    Based on your previous assessments,
-    your overall health trend is improving.
+    {t("Based on your previous assessments, your overall health trend is improving.")}
     </p>
 
     </div>
@@ -764,20 +797,20 @@ with i1:
 
 with i2:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
 
-    <h3>💡 AI Recommendation</h3>
+    <h3>{t("💡 AI Recommendation")}</h3>
 
     <p>
 
-    ✔ Continue regular screening.<br><br>
+    ✔️ {t("Continue regular screening.")}<br><br>
 
-    ✔ Maintain healthy diet.<br><br>
+    ✔️ {t("Maintain healthy diet.")}<br><br>
 
-    ✔ Exercise at least 150 min/week.<br><br>
+    ✔️ {t("Exercise at least 150 min/week.")}<br><br>
 
-    ✔ Repeat laboratory tests every 6 months.
+    ✔️ {t("Repeat laboratory tests every 6 months.")}
 
     </p>
 
@@ -791,13 +824,13 @@ with i2:
 st.write("")
 st.divider()
 
-st.subheader("🔔 Notifications")
+st.subheader(t("🔔 Notifications"))
 
 notifications = [
 
     ("🟢", "AI models updated successfully"),
 
-    ("🔵", "New medical report online_doctors"),
+    ("🔵", "New medical report available"),
 
     ("🟡", "Annual health check recommended"),
 
@@ -807,26 +840,27 @@ notifications = [
 
 for icon, msg in notifications:
 
-    st.info(f"{icon} {msg}")
+    st.info(f"{icon} {t(msg)}")
+
 # ==========================================
 # SYSTEM STATUS
 # ==========================================
 
-st.subheader("⚡ System Status")
+st.subheader(t("⚡️ System Status"))
 
 system1, system2, system3, system4 = st.columns(4)
 
 with system1:
-    st.success("🟢 AI Server Online")
+    st.success(t("🟢 AI Server Online"))
 
 with system2:
-    st.success("🟢 Database Connected")
+    st.success(t("🟢 Database Connected"))
 
 with system3:
-    st.success("🟢 Models Loaded")
+    st.success(t("🟢 Models Loaded"))
 
 with system4:
-    st.success("🟢 Secure Connection")
+    st.success(t("🟢 Secure Connection"))
 
 st.progress(0.98)
 
@@ -836,7 +870,7 @@ st.divider()
 # PLATFORM ANALYTICS
 # ==========================================
 
-st.subheader("📊 Platform Analytics")
+st.subheader(t("📊 Platform Analytics"))
 
 col1, col2 = st.columns([2, 1])
 
@@ -844,9 +878,9 @@ with col1:
 
     analytics = pd.DataFrame({
         "Category": [
-            "Patients",
-            "Assessments",
-            "Doctors"
+            t("Patients"),
+            t("Assessments"),
+            t("Doctors")
         ],
         "Value": [
             patients,
@@ -859,74 +893,75 @@ with col1:
         analytics,
         x="Category",
         y="Value",
-        use_container_width=True
+        width="stretch"
     )
 
 with col2:
 
-    st.metric("AI Accuracy", "98.7%")
-    st.metric("online_doctors Doctors", online_doctors)
-    st.metric("System Status", "Healthy")
+    st.metric(t("AI Accuracy"), "98.7%")
+    st.metric(t("Online Doctors"), online_doctors)
+    st.metric(t("System Status"), t("Healthy"))
 
 st.divider()
+
 # ==========================================
 # AI HEALTH INSIGHTS
 # ==========================================
 
-st.subheader("🧠 AI Health Insights")
+st.subheader(t("🧠 AI Health Insights"))
 
 left, right = st.columns(2)
 
 with left:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
-    <h3>🤖 AI Recommendation</h3>
+    <h3>{t("🤖 AI Recommendation")}</h3>
     """, unsafe_allow_html=True)
 
     if history_count == 0:
 
-        st.info("No assessments yet.")
+        st.info(t("No assessments yet."))
 
     elif history_count < 5:
 
         st.success(
-            "Great start. Continue monitoring your health regularly."
+            t("Great start. Continue monitoring your health regularly.")
         )
 
     elif history_count < 15:
 
         st.warning(
-            "Keep following healthy habits and review your reports."
+            t("Keep following healthy habits and review your reports.")
         )
 
     else:
 
         st.error(
-            "You have many assessments. Regular physician follow-up is recommended."
+            t("You have many assessments. Regular physician follow-up is recommended.")
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 with right:
 
-    st.markdown("""
+    st.markdown(f"""
     <div class="card">
-    <h3>📈 AI Prediction Distribution</h3>
+    <h3>{t("📈 AI Prediction Distribution")}</h3>
     """, unsafe_allow_html=True)
 
     chart = pd.DataFrame({
 
-        "Risk":[
-            "Low",
-            "Moderate",
-            "High"
+        "Risk": [
+            t("Low"),
+            t("Moderate"),
+            t("High")
         ],
 
-        "Count":[
-            max(history_count-3,0),
-            min(history_count,3),
-            1 if history_count>0 else 0
+        "Count": [
+            max(history_count - 3, 0),
+            min(history_count, 3),
+            1 if history_count > 0 else 0
         ]
 
     })
@@ -935,7 +970,7 @@ with right:
         chart,
         x="Risk",
         y="Count",
-        use_container_width=True
+        width="stretch"
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -946,49 +981,48 @@ st.divider()
 # UPCOMING FEATURES
 # ==========================================
 
-st.subheader("🚀 Upcoming Features")
+st.subheader(t("🚀 Upcoming Features"))
 
 u1, u2, u3 = st.columns(3)
 
 with u1:
-    st.info("📅 Smart Appointment Booking")
+    st.info(t("📅 Smart Appointment Booking"))
 
 with u2:
-    st.info("💊 Medication Reminder")
+    st.info(t("💊 Medication Reminder"))
 
 with u3:
-    st.info("📱 HealthVibe Mobile App")
+    st.info(t("📱 HealthVibe Mobile App"))
 
 st.divider()
-
 
 # ==========================================
 # ACCOUNT INFORMATION
 # ==========================================
 
-st.subheader("👤 Account")
+st.subheader(t("👤 Account"))
 
 c1, c2, c3 = st.columns(3)
 
 with c1:
 
     st.metric(
-        "Username",
+        t("Username"),
         username
     )
 
 with c2:
 
     st.metric(
-        "Role",
-        role
+        t("Role"),
+        t(role)
     )
 
 with c3:
 
     st.metric(
-        "Status",
-        "Active"
+        t("Status"),
+        t("Active")
     )
 
 st.write("")
@@ -1001,7 +1035,7 @@ st.divider()
 st.write("")
 st.divider()
 
-st.markdown("""
+st.markdown(f"""
 <div style="
 text-align:center;
 padding:25px;
@@ -1012,15 +1046,15 @@ color:#94A3B8;
 color:#00C2FF;
 margin-bottom:5px;
 ">
-🩺 HealthVibe AI
+{t("🩺 HealthVibe AI")}
 </h2>
 
 <p>
-AI Clinical Decision Support Platform
+{t("AI Clinical Decision Support Platform")}
 </p>
 
 <p style="margin-top:15px;">
-Version 2.0 • Secure • Intelligent • Fast
+{t("Version 2.0 • Secure • Intelligent • Fast")}
 </p>
 
 <hr style="
@@ -1029,11 +1063,11 @@ margin:20px 0;
 ">
 
 <p>
-Made with ❤️ using Streamlit + AI
+{t("Made with ❤️ using Streamlit + AI")}
 </p>
 
 <p>
-© 2026 HealthVibe AI • All Rights Reserved
+{t("© 2026 HealthVibe AI • All Rights Reserved")}
 </p>
 
 </div>
