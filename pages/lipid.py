@@ -11,10 +11,8 @@ from components.database import (
     save_assessment,
     save_lipid
 )
-
 from components.branding import *
 from components.colors import *
-
 from utils.navigation import sidebar
 from components.stepper import stepper
 from components.patient_summary import patient_summary
@@ -65,7 +63,7 @@ if profile is None:
 # LOAD MODEL
 # ==================================================
 
-@st.cache_resource
+st.cache_resource
 def load_model():
     return joblib.load("models/lipid_model.pkl")
 
