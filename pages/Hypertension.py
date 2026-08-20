@@ -1070,7 +1070,7 @@ elif st.session_state.step == 7:
 
         if st.button(
 
-            t("🤖 Analyze With AI"),
+            t("🤖 Predict "),
 
             key="analyze_hypertension",
 

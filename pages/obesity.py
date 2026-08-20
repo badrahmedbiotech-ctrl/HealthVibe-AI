@@ -66,16 +66,21 @@ if profile is None:
 
 model = joblib.load("models/obesity_model.pkl")
 
-if "step" not in st.session_state:
-    st.session_state.step = 1
+# ==========================================
+# SESSION (namespaced to this page so it never
+# collides with Diabetes / Lipid session state)
+# ==========================================
 
-if "patient" not in st.session_state:
-    st.session_state.patient = {}
+if "obesity_step" not in st.session_state:
+    st.session_state.obesity_step = 1
 
-if "saved" not in st.session_state:
-    st.session_state.saved = False
+if "obesity_patient" not in st.session_state:
+    st.session_state.obesity_patient = {}
 
-patient = st.session_state.patient
+if "obesity_saved" not in st.session_state:
+    st.session_state.obesity_saved = False
+
+patient = st.session_state.obesity_patient
 
 # ==========================================
 # HERO
@@ -97,7 +102,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-stepper(st.session_state.step)
+stepper(st.session_state.obesity_step)
 
 st.write("")
 
@@ -105,7 +110,7 @@ st.write("")
 # STEP 1
 # ==========================================
 
-if st.session_state.step == 1:
+if st.session_state.obesity_step == 1:
 
     st.subheader(t("👤 Patient Information"))
 
@@ -189,14 +194,14 @@ if st.session_state.step == 1:
             width="stretch",
             key="obesity_step1"
         ):
-            st.session_state.step = 2
+            st.session_state.obesity_step = 2
             st.rerun()
 
 # ==========================================
 # STEP 2
 # ==========================================
 
-elif st.session_state.step == 2:
+elif st.session_state.obesity_step == 2:
 
     st.subheader(t("🥗 Lifestyle Information"))
 
@@ -308,7 +313,7 @@ elif st.session_state.step == 2:
             width="stretch",
             key="obesity_step2_back"
         ):
-            st.session_state.step = 1
+            st.session_state.obesity_step = 1
             st.rerun()
 
     with col2:
@@ -317,14 +322,14 @@ elif st.session_state.step == 2:
             width="stretch",
             key="obesity_step2_next"
         ):
-            st.session_state.step = 3
+            st.session_state.obesity_step = 3
             st.rerun()
 
 # ==========================================
 # STEP 3
 # ==========================================
 
-elif st.session_state.step == 3:
+elif st.session_state.obesity_step == 3:
 
     st.subheader(t("🤖 AI Analysis"))
 
@@ -340,21 +345,24 @@ elif st.session_state.step == 3:
             width="stretch",
             key="obesity_step3_back"
         ):
-            st.session_state.step = 2
+            st.session_state.obesity_step = 2
             st.rerun()
 
     with col2:
         if st.button(
-            t("🤖 Predict with AI"),
+            t("🤖 Predict "),
             width="stretch",
             key="obesity_predict"
         ):
 
             ai_loading()
 
+            # IMPORTANT:
+            # These mappings MUST match the LabelEncoder order used when
+            # the existing obesity model was trained. Training is not changed.
             gender_map = {
-                "Male": 0,
-                "Female": 1
+                "Female": 0,
+                "Male": 1
             }
 
             yes_no_map = {
@@ -362,30 +370,35 @@ elif st.session_state.step == 3:
                 "yes": 1
             }
 
+            # LabelEncoder sorts strings alphabetically.
             alcohol_map = {
-                "no": 0,
+                "Frequently": 0,
                 "Sometimes": 1,
-                "Frequently": 2
+                "no": 2
             }
 
             transport_map = {
-                "Walking": 0,
+                "Automobile": 0,
                 "Bike": 1,
                 "Motorbike": 2,
-                "Automobile": 3,
-                "Public_Transportation": 4
+                "Public_Transportation": 3,
+                "Walking": 4
             }
 
-            # Prepare input data exactly as model expects
+            # The model was trained after encoding these categorical fields.
+            # Keep the feature order/names exactly as in the training data.
             input_data = pd.DataFrame([{
                 "Gender": gender_map[patient["gender"]],
                 "Age": patient["age"],
-                "Height": patient["height"] / 100,  # Convert cm to meters
+                "Height": patient["height"] / 100,
                 "Weight": patient["weight"],
                 "Family history with overweight": yes_no_map[patient["family_history"]],
                 "Frequent consumption of high-caloric food": yes_no_map[patient["high_calorie"]],
                 "Frequency of vegetable consumption": patient["vegetables"],
                 "Number of main meals the person eats per day": patient["meals"],
+
+                # Keep the existing app behavior for fields that are not
+                # exposed in the UI.
                 "Consumption of food between meals": 1,
                 "SMOKE": yes_no_map[patient["smoke"]],
                 "Daily water consumption": patient["water"],
@@ -397,16 +410,25 @@ elif st.session_state.step == 3:
             }])
 
             try:
-                prediction = model.predict(input_data)[0]
+                prediction_raw = model.predict(input_data)[0]
+                prediction = int(prediction_raw)
 
+                # IMPORTANT:
+                # predict_proba columns follow model.classes_, not necessarily
+                # the numeric class value. Use the matching class position.
                 try:
-                    # Get probability array and find the max confidence
                     proba_array = model.predict_proba(input_data)[0]
-                    # For multi-class, we take the highest probability
-                    probability = float(proba_array.max())
-                    # Ensure it's between 0-1
-                    if probability > 1:
-                        probability = probability / 100
+                    class_positions = list(model.classes_)
+
+                    if prediction_raw in class_positions:
+                        probability = float(
+                            proba_array[class_positions.index(prediction_raw)]
+                        )
+                    else:
+                        probability = float(max(proba_array))
+
+                    probability = max(0.0, min(probability, 1.0))
+
                 except Exception:
                     probability = 0.5
 
@@ -414,53 +436,59 @@ elif st.session_state.step == 3:
                 st.error(f"{t('Prediction Error')}: {e}")
                 st.stop()
 
-            # ✅ Obesity categories (0-6)
+            # IMPORTANT:
+            # This is the real target encoding created by LabelEncoder.
+            # We only change the interpretation in the app; the training
+            # model/file remains untouched.
             obesity_labels = {
                 0: "Insufficient Weight",
                 1: "Normal Weight",
-                2: "Overweight Level I",
-                3: "Overweight Level II",
-                4: "Obesity Type I",
-                5: "Obesity Type II",
-                6: "Obesity Type III"
+                2: "Obesity Type I",
+                3: "Obesity Type II",
+                4: "Obesity Type III",
+                5: "Overweight Level I",
+                6: "Overweight Level II"
             }
 
-            patient["prediction"] = int(prediction)
-            patient["prediction_text"] = obesity_labels[int(prediction)]
+            patient["prediction"] = prediction
+            patient["prediction_text"] = obesity_labels.get(
+                prediction,
+                "Unknown"
+            )
             patient["probability"] = probability
 
-            st.session_state.step = 4
+            st.session_state.obesity_step = 4
             st.rerun()
 
 # ==========================================
 # STEP 4
 # ==========================================
 
-elif st.session_state.step == 4:
+elif st.session_state.obesity_step == 4:
 
     st.subheader(t("📊 AI Prediction Result"))
 
     ai_loading()
 
     prediction = int(patient.get("prediction", 0))
-    result = patient.get("prediction_text", "Unknown")
     probability = patient.get("probability", 0.0)
-    
-    # Ensure probability is 0-1
-    if probability > 1:
+
+    # Normalize into a 0-1 range and clamp — never above 100%.
+    while probability > 1:
         probability = probability / 100
-    
+    probability = max(0.0, min(probability, 1.0))
+
     risk = round(probability * 100, 1)
 
     # ✅ Color based on obesity classification
     obesity_labels = {
         0: "Insufficient Weight",
         1: "Normal Weight",
-        2: "Overweight Level I",
-        3: "Overweight Level II",
-        4: "Obesity Type I",
-        5: "Obesity Type II",
-        6: "Obesity Type III"
+        2: "Obesity Type I",
+        3: "Obesity Type II",
+        4: "Obesity Type III",
+        5: "Overweight Level I",
+        6: "Overweight Level II"
     }
 
     result = obesity_labels.get(prediction, "Unknown")
@@ -478,7 +506,19 @@ elif st.session_state.step == 4:
 
     st.balloons()
 
-    ai_gauge(risk)
+    # Gauge expects a 0-1 probability, same convention as the Lipid page —
+    # passing "risk" (0-100) here was what pushed the gauge past 100%.
+    # Gauge is a visual severity indicator for the predicted obesity class.
+    obesity_gauge_scores = {
+        0: 0.20,  # Insufficient Weight
+        1: 0.20,  # Normal Weight
+        5: 0.45,  # Overweight Level I
+        6: 0.60,  # Overweight Level II
+        2: 0.75,  # Obesity Type I
+        3: 0.88,  # Obesity Type II
+        4: 0.97   # Obesity Type III
+    }
+    ai_gauge(obesity_gauge_scores.get(prediction, 0.0))
 
     st.markdown(f"""
     <div class="card">
@@ -505,7 +545,7 @@ elif st.session_state.step == 4:
     st.divider()
 
     # Save to Database
-    if not st.session_state.saved:
+    if not st.session_state.obesity_saved:
 
         try:
             assessment_id = save_assessment(
@@ -535,7 +575,7 @@ elif st.session_state.step == 4:
             }
 
             save_obesity(assessment_id, obesity_data)
-            st.session_state.saved = True
+            st.session_state.obesity_saved = True
 
         except Exception as e:
             st.error(f"{t('Database Error')}: {e}")
@@ -562,7 +602,7 @@ elif st.session_state.step == 4:
             width="stretch",
             key="obesity_back_result"
         ):
-            st.session_state.step = 3
+            st.session_state.obesity_step = 3
             st.rerun()
 
     with col2:
@@ -571,7 +611,7 @@ elif st.session_state.step == 4:
             width="stretch",
             key="obesity_new"
         ):
-            st.session_state.step = 1
-            st.session_state.patient = {}
-            st.session_state.saved = False
+            st.session_state.obesity_step = 1
+            st.session_state.obesity_patient = {}
+            st.session_state.obesity_saved = False
             st.rerun()

@@ -292,7 +292,7 @@ elif st.session_state.step == 2:
 
 elif st.session_state.step == 3:
 
-    st.subheader(t("🧠 AI Prediction"))
+    st.subheader(t("🧠AI Prediction "))
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
 
