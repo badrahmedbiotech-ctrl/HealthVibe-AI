@@ -548,7 +548,7 @@ elif st.session_state.page == 2:
     with right:
 
         if st.button(
-            t("Analyze ➜"),
+            t("Predict ➜"),
             use_container_width=True
         ):
 

@@ -78,19 +78,20 @@ except Exception as e:
 create_tables()
 
 # ==================================================
-# SESSION
+# SESSION (namespaced to this page so it never
+# collides with Diabetes / Obesity session state)
 # ==================================================
 
-if "step" not in st.session_state:
-    st.session_state.step = 1
+if "lipid_step" not in st.session_state:
+    st.session_state.lipid_step = 1
 
-if "patient" not in st.session_state:
-    st.session_state.patient = {}
+if "lipid_patient" not in st.session_state:
+    st.session_state.lipid_patient = {}
 
-if "saved" not in st.session_state:
-    st.session_state.saved = False
+if "lipid_saved" not in st.session_state:
+    st.session_state.lipid_saved = False
 
-patient = st.session_state.patient
+patient = st.session_state.lipid_patient
 
 # ==================================================
 # HERO
@@ -106,7 +107,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-stepper(st.session_state.step)
+stepper(st.session_state.lipid_step)
 
 st.write("")
 
@@ -114,7 +115,7 @@ st.write("")
 # STEP 1
 # ==================================================
 
-if st.session_state.step == 1:
+if st.session_state.lipid_step == 1:
 
     st.subheader(t("👤 Patient Information"))
 
@@ -179,14 +180,14 @@ if st.session_state.step == 1:
             key="lipid_step1_next",
             width="stretch"
         ):
-            st.session_state.step = 2
+            st.session_state.lipid_step = 2
             st.rerun()
 
 # ==================================================
 # STEP 2
 # ==================================================
 
-elif st.session_state.step == 2:
+elif st.session_state.lipid_step == 2:
 
     st.subheader(t("🩺 Clinical Information"))
 
@@ -272,7 +273,7 @@ elif st.session_state.step == 2:
             key="lipid_step2_back",
             width="stretch"
         ):
-            st.session_state.step = 1
+            st.session_state.lipid_step = 1
             st.rerun()
 
     with col2:
@@ -281,14 +282,14 @@ elif st.session_state.step == 2:
             key="lipid_step2_next",
             width="stretch"
         ):
-            st.session_state.step = 3
+            st.session_state.lipid_step = 3
             st.rerun()
 
 # ==================================================
 # STEP 3
 # ==================================================
 
-elif st.session_state.step == 3:
+elif st.session_state.lipid_step == 3:
 
     st.subheader(t("🧠 AI Analysis"))
 
@@ -304,12 +305,12 @@ elif st.session_state.step == 3:
             key="lipid_step3_back",
             width="stretch"
         ):
-            st.session_state.step = 2
+            st.session_state.lipid_step = 2
             st.rerun()
 
     with col2:
         if st.button(
-            t("🤖 Predict with AI"),
+            t("🤖 Predict "),
             key="lipid_predict",
             width="stretch"
         ):
@@ -366,21 +367,20 @@ elif st.session_state.step == 3:
             patient["prediction_text"] = labels.get(int(prediction), "Unknown")
             patient["probability"] = probability
 
-            st.session_state.step = 4
+            st.session_state.lipid_step = 4
             st.rerun()
 
 # ==================================================
 # STEP 4
 # ==================================================
 
-elif st.session_state.step == 4:
+elif st.session_state.lipid_step == 4:
 
     st.subheader(t("📊 AI Prediction Result"))
 
     ai_loading()
 
     prediction = int(patient.get("prediction", 0))
-    result = patient.get("prediction_text", "Unknown")
     probability = patient.get("probability", 0.0)
 
     # ✅ Keep normalizing until it's in 0-1 range
@@ -390,6 +390,15 @@ elif st.session_state.step == 4:
     # Ensure it's between 0-1 (safety check)
     probability = max(0.0, min(probability, 1.0))
     risk = round(probability * 100, 1)
+
+    labels = {
+        0: "Low Risk",
+        1: "Borderline Risk",
+        2: "High Risk"
+    }
+
+    result = labels.get(prediction, "Unknown")
+    patient["prediction_text"] = result
 
     # Color mapping based on risk level
     if prediction == 0:
@@ -436,7 +445,7 @@ elif st.session_state.step == 4:
     # SAVE TO DATABASE (Automatic)
     # ==================================================
 
-    if not st.session_state.saved:
+    if not st.session_state.lipid_saved:
 
         try:
             assessment_id = save_assessment(
@@ -465,7 +474,7 @@ elif st.session_state.step == 4:
             }
 
             save_lipid(assessment_id, lipid_data)
-            st.session_state.saved = True
+            st.session_state.lipid_saved = True
 
         except Exception as e:
             st.error(f"{t('Database Error')}: {e}")
@@ -495,7 +504,7 @@ elif st.session_state.step == 4:
             width="stretch",
             key="lipid_back_result"
         ):
-            st.session_state.step = 3
+            st.session_state.lipid_step = 3
             st.rerun()
 
     with col2:
@@ -504,7 +513,7 @@ elif st.session_state.step == 4:
             width="stretch",
             key="lipid_new"
         ):
-            st.session_state.step = 1
-            st.session_state.patient = {}
-            st.session_state.saved = False
+            st.session_state.lipid_step = 1
+            st.session_state.lipid_patient = {}
+            st.session_state.lipid_saved = False
             st.rerun()
