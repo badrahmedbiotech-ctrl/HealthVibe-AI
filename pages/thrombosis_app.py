@@ -8,6 +8,7 @@ import numpy as np
 import joblib
 
 from utils.navigation import sidebar
+from components.stepper import stepper
 
 from components.database import (
     save_assessment,
@@ -66,7 +67,7 @@ with open("style.css", encoding="utf-8") as f:
     )
 
 # ==========================================================
-# PAGE-LOCAL CSS (hero, cards, RTL)
+# PAGE-LOCAL CSS (hero, cards, stepper, RTL)
 # ==========================================================
 
 st.markdown(
@@ -74,32 +75,6 @@ f"""
 <style>
 html, body, [data-testid="stAppViewContainer"] {{
     direction: {DIR};
-}}
-
-.hv-hero {{
-    background: linear-gradient(135deg, #0F2027 0%, #2C5364 60%, #00C2FF 100%);
-    border-radius: 18px;
-    padding: 36px 32px;
-    color: #fff;
-    text-align: {"right" if IS_RTL else "left"};
-    margin-bottom: 18px;
-}}
-.hv-hero h1 {{
-    margin: 8px 0 4px 0;
-    font-size: 2rem;
-}}
-.hv-hero p {{
-    opacity: .9;
-    font-size: 1rem;
-    margin: 0;
-}}
-.hv-badge {{
-    display: inline-block;
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.35);
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: .85rem;
 }}
 
 .hv-card {{
@@ -212,6 +187,45 @@ for key,value in defaults.items():
         st.session_state[key]=value
 
 # ==========================================================
+# HERO (Diabetes-style card + progress bar) — top of page
+# ==========================================================
+
+progress = (st.session_state.page / 3) * 100
+
+st.markdown(f"""
+<div class="hero">
+
+<h1>🩸 {t("Thrombosis Risk Prediction")}</h1>
+
+<p>{t("AI Clinical Decision Support System")}</p>
+
+<div style="margin-top:20px;height:10px;background:#1E293B;border-radius:20px;overflow:hidden;">
+
+<div style="
+width:{progress}%;
+height:100%;
+background:linear-gradient(90deg,#00C2FF,#2563EB);
+">
+</div>
+
+</div>
+
+<p style="margin-top:10px;">
+{t("Step")} {st.session_state.page} / 3
+</p>
+
+</div>
+""", unsafe_allow_html=True)
+
+# Reuse the exact same stepper component Diabetes uses (Patient, Medical,
+# Analysis, Result). Thrombosis only has 3 pages (page 3 runs analysis and
+# shows the result together), so page 3 maps to stepper step 4.
+_stepper_step = st.session_state.page if st.session_state.page < 3 else 4
+stepper(_stepper_step)
+
+st.write("")
+
+# ==========================================================
 # PDF REPORT
 # (NOTE: FPDF default font is Latin-1 only, cannot render Arabic
 # glyphs. This report always stays English regardless of language
@@ -274,63 +288,6 @@ def generate_pdf(data):
     pdf.output(temp.name)
     temp.close()
     return temp.name
-
-# ==========================================================
-# UI HELPER: DASHBOARD CARD
-# ==========================================================
-
-def render_card(col, icon, label, value):
-    with col:
-        st.markdown(
-            f"""
-            <div class="hv-card">
-                <div style="font-size:1.6rem;">{icon}</div>
-                <div style="opacity:.7;font-size:.85rem;margin-top:4px;">{label}</div>
-                <div style="font-size:1.2rem;font-weight:700;margin-top:2px;">{value}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# ==========================================================
-# HERO
-# ==========================================================
-
-st.markdown(
-f"""
-<div class="hv-hero">
-
-<span class="hv-badge">
-🩸 {t("AI Disease Screening")}
-</span>
-
-<h1>
-{t("Thrombosis Risk Prediction")}
-</h1>
-
-<p>
-{t("Artificial Intelligence Based Blood Clot Screening System")}
-</p>
-
-</div>
-""",
-unsafe_allow_html=True
-)
-
-# ==========================================================
-# DASHBOARD
-# ==========================================================
-
-st.subheader(t("📊 AI Dashboard"))
-
-m1,m2,m3,m4 = st.columns(4)
-
-render_card(m1, "🩸", t("Disease"), t("Thrombosis"))
-render_card(m2, "🤖", t("AI Model"), "Random Forest")
-render_card(m3, "⚠", t("Risk Factors"), "10")
-render_card(m4, "🟢", t("Status"), t("Ready"))
-
-st.divider()
 
 # ==========================================================
 # PAGE 1
@@ -400,10 +357,6 @@ if st.session_state.page == 1:
         )
 
     st.divider()
-
-    st.progress(33)
-
-    st.caption(t("Step 1 / 3"))
 
     if st.button(
         t("Next ➜"),
@@ -489,10 +442,6 @@ if st.session_state.page == 2:
 
     st.divider()
 
-    st.progress(66)
-
-    st.caption(t("Step 2 / 3"))
-
     left,right = st.columns(2)
 
     with left:
@@ -508,7 +457,7 @@ if st.session_state.page == 2:
     with right:
 
         if st.button(
-            t("Analyze ➜"),
+            f"🧠 {t('Predict')}",
             use_container_width=True
         ):
 
@@ -560,48 +509,6 @@ if st.session_state.page == 3:
     st.session_state.risk_score = probability
     st.session_state.risk_result = result
 
-    # ==========================================
-    # SAVE RESULT
-    # ==========================================
-
-    if not st.session_state.saved_result:
-
-        assessment_id = save_assessment(
-
-            st.session_state.user["id"],
-
-            "Thrombosis",
-
-            result,
-
-            probability
-
-        )
-
-        save_thrombosis(
-
-            assessment_id,
-
-            {
-
-                "d_dimer": st.session_state.d_dimer,
-
-                "platelets":0,
-
-                "inr":0,
-
-                "prediction":result
-
-            }
-
-        )
-
-        st.session_state.saved_result = True
-
-    # ==========================================
-    # RESULT CARD (display-only risk band, does NOT touch model output)
-    # ==========================================
-
     if probability >= 70:
         band_class = "hv-result-high"
         band_label = t("High Risk")
@@ -611,39 +518,6 @@ if st.session_state.page == 3:
     else:
         band_class = "hv-result-low"
         band_label = t("Low Risk")
-
-    st.markdown(
-        f"""
-        <div class="hv-result-card {band_class}">
-            <div style="font-size:1rem;opacity:.85;">{t("AI Prediction Result")}</div>
-            <div style="font-size:2.2rem;font-weight:800;margin:6px 0;">{probability:.1f}%</div>
-            <div class="hv-badge-risk">{band_label}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    m1,m2 = st.columns(2)
-
-    with m1:
-
-        st.metric(
-
-            t("Risk Probability"),
-
-            f"{probability:.1f}%"
-
-        )
-
-    with m2:
-
-        st.metric(
-
-            t("Prediction"),
-
-            result
-
-        )
 
     st.divider()
 
@@ -789,6 +663,51 @@ if st.session_state.page == 3:
     st.divider()
 
     # ==========================================
+    # PATIENT SUMMARY TABLE
+    # ==========================================
+
+    st.subheader(t("📋 Patient Summary"))
+
+    summary_data = {
+
+        t("Full Name"): st.session_state.name,
+        t("Age"): st.session_state.age,
+        t("Gender"): t(st.session_state.gender),
+        t("Weight"): f"{st.session_state.weight} kg",
+        t("Height"): f"{st.session_state.height} cm",
+        t("Blood Type"): st.session_state.blood_type,
+        t("D-Dimer"): st.session_state.d_dimer,
+        t("Leg Swelling"): t(st.session_state.swelling),
+        t("Leg Pain"): t(st.session_state.pain),
+        t("Previous Blood Clot"): t(st.session_state.history),
+        t("Recent Immobility"): t(st.session_state.mobility),
+        t("Recent Surgery"): t(st.session_state.surgery),
+        t("Family History"): t(st.session_state.family_history),
+        t("Smoking"): t(st.session_state.smoking),
+        t("Hypertension"): t(st.session_state.hypertension),
+        t("Diabetes"): t(st.session_state.diabetes),
+        t("High Cholesterol"): t(st.session_state.cholesterol),
+        t("Prediction Result"): result,
+        t("Risk Score (%)"): f"{probability:.1f}%"
+
+    }
+
+    summary_df = pd.DataFrame(
+        {
+            t("Field"): list(summary_data.keys()),
+            t("Value"): list(summary_data.values())
+        }
+    )
+
+    st.dataframe(
+        summary_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.divider()
+
+    # ==========================================
     # PDF REPORT (kept English - FPDF has no Arabic glyphs)
     # ==========================================
 
@@ -814,19 +733,6 @@ if st.session_state.page == 3:
 
     }
 
-    pdf_path = generate_pdf(report)
-
-    with open(pdf_path,"rb") as file:
-
-        st.download_button(
-
-            t("📄 Download Report"),
-             file,
-        file_name="HealthVibe_Thrombosis_Report.pdf",
-        mime="application/pdf",
-        use_container_width=True
-    )
-
     if "High Risk" in result:
         st.error(f"🔴 {t('Result')}: {result}")
     elif "Moderate Risk" in result:
@@ -837,36 +743,110 @@ if st.session_state.page == 3:
     st.divider()
 
     # ==========================================
-    # QUICK ACTIONS
+    # ACTIONS: Back / Save Result / Download PDF
     # ==========================================
 
-    c1,c2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
-    with c1:
+    # ==========================
+    # BACK
+    # ==========================
+
+    with col1:
 
         if st.button(
-
             t("⬅ Back"),
-
             use_container_width=True
-
         ):
 
             st.session_state.page = 2
-
             st.rerun()
 
-    with c2:
+    # ==========================
+    # SAVE
+    # ==========================
+
+    with col2:
 
         if st.button(
-
-            t("🏠 Dashboard"),
-
+            t("💾 Save Result"),
             use_container_width=True
-
         ):
 
-            st.switch_page("pages/Dashboard.py")
+            try:
+
+                if not st.session_state.saved_result:
+
+                    assessment_id = save_assessment(
+
+                        st.session_state.user["id"],
+
+                        "Thrombosis",
+
+                        result,
+
+                        probability
+
+                    )
+
+                    save_thrombosis(
+
+                        assessment_id,
+
+                        {
+
+                            "d_dimer": st.session_state.d_dimer,
+
+                            "platelets":0,
+
+                            "inr":0,
+
+                            "prediction":result
+
+                        }
+
+                    )
+
+                    st.session_state.saved_result = True
+
+                st.success(t("Saved Successfully ✅"))
+
+            except Exception as e:
+
+                st.error(f"{t('Database Error : ')}{e}")
+
+    # ==========================
+    # PDF
+    # ==========================
+
+    with col3:
+
+        try:
+
+            pdf_path = generate_pdf(report)
+
+            with open(pdf_path,"rb") as file:
+
+                st.download_button(
+                    t("📄 Download PDF"),
+                    data=file.read(),
+                    file_name="HealthVibe_Thrombosis_Report.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+
+        except Exception as e:
+
+            st.error(f"{t('PDF Error : ')}{e}")
+
+    st.write("")
+
+    if st.button(
+        t("🏠 Back To Dashboard"),
+        use_container_width=True
+    ):
+
+        st.switch_page("pages/Dashboard.py")
 
 # ==========================================================
 # FOOTER
