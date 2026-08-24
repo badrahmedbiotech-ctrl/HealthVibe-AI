@@ -4,7 +4,7 @@ from components.branding import *
 from components.colors import *
 import translation
 
-icon = Image.open("assets/logo.jpg")
+icon = Image.open("assets/logo_icon.png")
 
 st.set_page_config(
     page_title="HealthVibe AI",

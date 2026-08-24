@@ -4,7 +4,7 @@ from datetime import datetime
 
 from components.branding import *
 from components.colors import *
-from components.branding import LOGO
+from components.branding import LOGO, LOGO_ICON
 
 from translation import init, t
 
@@ -17,7 +17,10 @@ init()
 col1, col2 = st.columns([1, 5])
 
 with col1:
-    st.image(str(LOGO), width=90)
+    try:
+        st.image(str(LOGO_ICON), width=50)
+    except Exception:
+        pass
 
 with col2:
     st.title(t("HealthVibe AI"))

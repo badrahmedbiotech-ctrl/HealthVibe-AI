@@ -1,11 +1,7 @@
 import streamlit as st
+from pathlib import Path
 
-from components.branding import LOGO
-
-st.image(
-    "assets/logo.jpg",
-    width=180
-)
+from components.branding import LOGO, LOGO_ICON
 
 from components.auth import (
     create_users_table,
@@ -13,7 +9,7 @@ from components.auth import (
 )
 
 # ==========================================
-# PAGE CONFIG
+# PAGE CONFIG (must run first)
 # ==========================================
 
 st.set_page_config(
@@ -66,14 +62,6 @@ footer{
 .block-container{
     max-width:480px;
     padding-top:2rem;
-}
-
-.login-card{
-    background:#111827;
-    padding:35px;
-    border-radius:24px;
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 10px 40px rgba(0,0,0,.35);
 }
 
 .title{
@@ -142,28 +130,31 @@ for k, v in defaults.items():
 
 
 # ==========================================
-# LOGIN CARD
+# CENTERED LOGO
 # ==========================================
 
-st.markdown(
-    '<div class="login-card">',
-    unsafe_allow_html=True
-)
+col_l, col_c, col_r = st.columns([1, 2, 1])
 
-st.markdown("""
-<div style="text-align:center;">
+with col_c:
 
-    <h1 style="font-size:70px;">
-        🩺
-    </h1>
+    if Path(LOGO_ICON).exists():
 
-    <h2 style="color:#00C2FF;">
-        HealthVibe AI
-    </h2>
+        st.image(
+            str(LOGO_ICON),
+            width=180
+        )
 
-</div>
-""", unsafe_allow_html=True)
+    elif Path(LOGO).exists():
 
+        st.image(
+            str(LOGO),
+            width=180
+        )
+
+
+# ==========================================
+# HEADER TEXT
+# ==========================================
 
 st.markdown(
     f'<div class="title">{t("HealthVibe AI")}</div>',
@@ -362,13 +353,3 @@ else:
         st.switch_page(
             "pages/Register.py"
         )
-
-
-# ==========================================
-# CLOSE CARD
-# ==========================================
-
-st.markdown(
-    "</div>",
-    unsafe_allow_html=True
-)

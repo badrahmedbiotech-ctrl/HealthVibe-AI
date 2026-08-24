@@ -2,7 +2,7 @@ import streamlit as st
 from pathlib import Path
 import translation
 
-from components.branding import LOGO
+from components.branding import LOGO_ICON
 
 
 def sidebar():
@@ -13,10 +13,16 @@ def sidebar():
         # LOGO
         # ==========================
 
-        st.image(
-            str(LOGO),
-            width=140
-        )
+        col_l, col_c, col_r = st.columns([1, 2, 1])
+
+        with col_c:
+
+            if Path(LOGO_ICON).exists():
+
+                st.image(
+                    str(LOGO_ICON),
+                    width=140
+                )
 
         st.markdown(
             "<h2 style='text-align:center;'>HealthVibe AI</h2>",
